@@ -1,0 +1,28 @@
+module STD
+
+//@The function represents the missing value.
+export primitive Nothing
+
+#override(STD) alwaysinline
+def shar__rc_free(nothing Nothing)
+    return nothing
+
+#override(STD) alwaysinline
+def shar__rc_use(nothing Nothing)
+    return nothing
+
+#override(STD) alwaysinline
+def shar__to_const(nothing Nothing)
+    return nothing
+
+#override(STD) alwaysinline nothrow
+def use?(nothing Nothing) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def constant?(nothing Nothing) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def clone(nothing Nothing) Nothing
+    return nothing

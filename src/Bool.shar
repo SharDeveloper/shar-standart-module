@@ -1,0 +1,152 @@
+module STD
+
+//@Boolean data type implementation.
+export primitive Bool
+
+attach Bool to Independent
+
+#override(STD) alwaysinline
+def shar__rc_free(boolean Bool)
+    return nothing
+
+#override(STD) alwaysinline
+def shar__rc_use(boolean Bool)
+    return nothing
+
+#override(STD) alwaysinline
+def shar__to_const(boolean Bool)
+    return nothing
+
+#override(STD) alwaysinline nothrow
+def use?(boolean Bool) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def constant?(boolean Bool) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def clone(boolean Bool) Bool
+    return boolean
+
+attach Bool to Equal
+
+attach Bool to Shar__sugar__equal
+    #alwaysinline nothrow
+    def shar__sugar__equal(boolean1, boolean2 Bool) Bool
+        llvm
+            %##nreg##boolean1 i64## = extractvalue [2 x i64] %0, 1
+            %##nreg##boolean2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##boolean1## = trunc i64 %##reg##boolean1 i64## to i1
+            %##nreg##boolean2## = trunc i64 %##reg##boolean2 i64## to i1
+            %##nreg##result i1## = icmp eq i1 %##reg##boolean1##, %##reg##boolean2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Bool to Shar__sugar__notEqual
+    #alwaysinline nothrow
+    def shar__sugar__notEqual(boolean1, boolean2 Bool) Bool
+        llvm
+            %##nreg##boolean1 i64## = extractvalue [2 x i64] %0, 1
+            %##nreg##boolean2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##boolean1## = trunc i64 %##reg##boolean1 i64## to i1
+            %##nreg##boolean2## = trunc i64 %##reg##boolean2 i64## to i1
+            %##nreg##result i1## = icmp ne i1 %##reg##boolean1##, %##reg##boolean2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Bool to Shar__sugar__neg
+    //@The function changes the value of its argument to the opposite.
+    #alwaysinline nothrow
+    def shar__sugar__neg(boolean Bool) Bool
+        llvm
+            %##nreg##boolean i64## = extractvalue [2 x i64] %0, 1
+            %##nreg##result i64## = xor i64 %##reg##boolean i64##, 1
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Bool to Shar__sugar__and
+    //@The function performs a logical "and" on its two arguments.
+    #alwaysinline nothrow
+    def shar__sugar__and(boolean1, boolean2 Bool) Bool
+        llvm
+            %##nreg##boolean1## = extractvalue [2 x i64] %0, 1
+            %##nreg##boolean2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i64## = and i64 %##reg##boolean1##, %##reg##boolean2##
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Bool to Shar__sugar__xor
+    //@The function performs a logical "exclusive or" on its two arguments.
+    #alwaysinline nothrow
+    def shar__sugar__xor(boolean1, boolean2 Bool) Bool
+        llvm
+            %##nreg##boolean1## = extractvalue [2 x i64] %0, 1
+            %##nreg##boolean2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i64## = xor i64 %##reg##boolean1##, %##reg##boolean2##
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Bool to Shar__sugar__or
+    //@The function performs a logical "or" on its two arguments.
+    #alwaysinline nothrow
+    def shar__sugar__or(boolean1, boolean2 Bool) Bool
+        llvm
+            %##nreg##boolean1## = extractvalue [2 x i64] %0, 1
+            %##nreg##boolean2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i64## = or i64 %##reg##boolean1##, %##reg##boolean2##
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Bool to StringWriter
+    //@The function returns an object of type "STD::String".
+    #alwaysinline nothrow
+    def toString(boolean Bool) String
+        return boolean.select("true", "false")
+
+#override(STD) alwaysinline nothrow
+def print(boolean Bool)
+    boolean.select("true", "false").print()
+
+#override(STD) alwaysinline nothrow
+def println(boolean Bool)
+    boolean.select("true", "false").println()
+
+#override(STD) nothrow
+def printAsError(boolean Bool)
+    boolean.select("true", "false").printAsError()
+
+#override(STD) nothrow
+def printlnAsError(boolean Bool)
+    boolean.select("true", "false").printlnAsError()
+
+attach Bool to StringReader
+    #alwaysinline
+    def fromString(noread type Bool, string $String) Bool
+        if string == "true".repackTo(string)
+            return true
+        if string == "false".repackTo(string)
+            return false
+        throw(enum::error_readFromString, "Reading from the string caused an error.")
+
+attach Bool to Hashable
+    #alwaysinline nothrow
+    def getHash(boolean Bool) Int
+        return boolean.select(1, 0)
+
+    #alwaysinline nothrow
+    def getRandomizedHash(boolean Bool) Int
+        return boolean.select(1, 0) ^ const::staticRandomNumber
+
+attach Bool to BinarySerializable
+    #alwaysinline nothrow
+    def serialize(bool Bool, write bytes Bytes)
+        bytes.addItem(bool.select(1, 0))
+
+    #alwaysinline
+    def deserialize(noread type Bool, bytes Bytes, write position Int) Bool
+        const result Bool = bytes[position] != 0
+        position++
+        return result

@@ -1,0 +1,10 @@
+module STD
+
+//@Members of the "STD::Iterable" group are types whose objects contain other objects (called "items"), and there is a certain key by which you can access the item.
+//@The group was created to implement the "parse" operand and functions from this group should not be used without it.
+export group Iterable
+    parse__init(This) $Any
+    parse__predicate(This, $Any) Bool
+    parse__next(This, write $Any)
+    parse__get__key(This, $Any) $Any
+    parse__get__item(This, $Any) $Any

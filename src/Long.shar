@@ -1,0 +1,14 @@
+module STD
+
+//@Members of the "STD::Long" group are types whose objects contain other objects, the number of which is known.
+//@The characteristic of an object that represents the number of internal objects is called "length".
+export group Long
+    //@The function returns the length of the object passed as an argument.
+    //@The function cannot return any errors.
+    length~(This) Int
+
+//@The function finds out if the number of objects inside the function argument is 0.
+//@The function cannot return any errors.
+#this(Long) alwaysinline
+export def empty?(object This) Bool
+    return object.length~() == 0

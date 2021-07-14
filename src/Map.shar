@@ -1,0 +1,306 @@
+module STD
+
+//@Members of the "STD::Map" group are types whose objects are associative arrays in which all keys have the same type, and all values have the same type.
+export group Map: AArray, KeyTypeNumber
+    //@The function returns the value type number.
+    //@The function cannot return any errors.
+    valueTypeNumber~(This) Int
+
+//@A type that is a member of the "STD::Map" group.
+export primitive Map
+
+#override(STD)
+def shar__rc_free(map Map)
+    const counter Int = map.unsafe_map_getCounter()
+    if counter > 1
+        map.unsafe_map_setCounter(counter - 1)
+    elif counter == 1
+        const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
+        for :(index Int = 0) index < hashPartsCount; index++
+            const node MapNode = map.unsafe_map_getNodeByIndex(index)
+            const nodeCounter Int = node.unsafe_mapNode_getCounter()
+            if nodeCounter > 1
+                node.unsafe_mapNode_setCounter(nodeCounter - 1)
+            elif nodeCounter == 1
+                node.unsafe_mapNode_free(map.keyTypeNumber~(), map.valueTypeNumber~())
+        map.unsafe_free()
+
+#override(STD) alwaysinline
+def shar__rc_use(map Map)
+    const counter Int = map.unsafe_map_getCounter()
+    if counter != 0
+        map.unsafe_map_setCounter(counter + 1)
+
+#override(STD)
+def shar__to_const(map Map)
+    if map.unsafe_map_getCounter() != 0
+        const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
+        for :(index Int = 0) index < hashPartsCount; index++
+            const node MapNode = map.unsafe_map_getNodeByIndex(index)
+            if node.unsafe_mapNode_getCounter() != 0
+                node.unsafe_mapNode_toConst(map.keyTypeNumber~(), map.valueTypeNumber~())
+        map.unsafe_map_setCounter(0)
+
+#override(STD) alwaysinline nothrow
+def use?(map Map) Bool
+    return map.unsafe_map_getCounter() != 1
+
+#override(STD) alwaysinline nothrow
+def constant?(map Map) Bool
+    return map.unsafe_map_getCounter() == 0
+
+#override(STD) nothrow
+def clone(map Map) Map
+    const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
+    for :(index Int = 0) index < hashPartsCount; index++
+        const node MapNode = map.unsafe_map_getNodeByIndex(index)
+        const nodeCounter Int = node.unsafe_mapNode_getCounter()
+        if nodeCounter != 0
+            node.unsafe_mapNode_setCounter(nodeCounter + 1)
+    const mapSizeInI8 Int = hashPartsCount * 9 + 32
+    var result $Any = unsafe_malloc(mapSizeInI8)
+    unsafe_memcpyI8(result, map, mapSizeInI8)
+    result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
+    result.unsafe_setType(Map.typeNumber~())
+    return result
+
+attach Map to Empty
+    #alwaysinline nothrow
+    def createEmpty(noread type Map) Map
+        llvm
+            ret [2 x i64] [i64 ##tnum##STD::Map##, i64 ptrtoint ([4 x i64]* ##llvmconst##>private unnamed_addr constant [4 x i64] zeroinitializer, align 8<## to i64)]
+
+attach Map to Long
+    #alwaysinline nothrow
+    def length~(map Map) Int
+        return map.unsafe_getI64(1)
+
+attach Map to Shar__sugar__getItem
+    //@If the search occurs in an array and the type of the key to be found does not match the type of the existing keys, the function returns an error with the code "enum::STD::error_invalidType".
+    def shar__sugar__getItem(map Map, key ${Equal, Hashable}) $Any
+        const keyTypeNumberInMap Int = map.keyTypeNumber~()
+        inthrow
+            if keyTypeNumberInMap == Nothing.typeNumber~()
+                return nothing
+        if keyTypeNumberInMap != key.typeNumber~()
+            throw(enum::error_invalidType, "Invalid type.")
+        const hash Int = key.getShortRandomizedHash()
+        const lowHashPart Int = hash & 0xff
+        const highHashPart Int = (hash >> 8) & 0xffff
+        var unneeded1 Int = 0
+        var unneeded2 Int = 0
+        var unneeded3 Int = 0
+        var keysEqualError List = {}
+        const result $Any = map.unsafe_map_getNodeByHash(lowHashPart, unneeded1, unneeded2)->unsafe_mapNode_getValueByHash(highHashPart, key, map.valueTypeNumber~(), unneeded1, unneeded2, unneeded3, keysEqualError)
+        result.shar__rc_use()
+        inthrow
+            if !keysEqualError.empty?()
+                throw(keysEqualError[0], keysEqualError[1])
+        return result
+
+attach Map to Put
+    //@If the search occurs in an array and the type of the key to be found does not correspond to the type of existing keys, or the type value differs from the type of existing values, the function returns an error with the code “enum::STD::error_invalidType”.
+    def put(write map Map, key ${Equal, Hashable}, newValue $Any) $Any
+        const keyTypeNumberInMap Int = map.keyTypeNumber~()
+        const valueTypeNumberInMap Int = map.valueTypeNumber~()
+        const delete Bool = newValue.nothing?()
+        inthrow
+            if (keyTypeNumberInMap != key.typeNumber~() || (valueTypeNumberInMap != newValue.typeNumber~() && !delete)) && keyTypeNumberInMap != Nothing.typeNumber~()
+                throw(enum::error_invalidType, "Invalid type.")
+        const hash Int = key.getShortRandomizedHash()
+        const lowHashPart Int = hash & 0xff
+        const highHashPart Int = (hash >> 8) & 0xffff
+        var nodeIndex Int = -1
+        var nodeInsertIndex Int = -1
+        var keysIndex Int = -1
+        var keysInsertIndex Int = -1
+        var keyIndex Int = -1
+        var keysEqualError List = {}
+        var node <>MapNode = map.unsafe_map_getNodeByHash(lowHashPart, nodeIndex, nodeInsertIndex)
+        const oldValue $Any = node->unsafe_mapNode_getValueByHash(highHashPart, key, valueTypeNumberInMap, keysIndex, keysInsertIndex, keyIndex, keysEqualError)
+        inthrow
+            if !keysEqualError.empty?()
+                throw(keysEqualError[0], keysEqualError[1])
+        if delete
+            if oldValue.nothing?()
+                return nothing
+            elif map.length~() == 1
+                oldValue.shar__rc_use()
+                map = Map.createEmpty()
+                return oldValue
+        if map.use?()
+            map = map.clone()
+        if node.type?(MapNode)
+            const nodeCounter Int = node.unsafe_mapNode_getCounter()
+            if nodeCounter != 1
+                const oldNode MapNode = node
+                node = node.unsafe_mapNode_clone(keyTypeNumberInMap, valueTypeNumberInMap)
+                if nodeCounter != 0
+                    oldNode.unsafe_mapNode_setCounter(nodeCounter - 1)
+        if delete
+            node.unsafe_mapNode_deleteValue(keysIndex, keyIndex, keyTypeNumberInMap)
+            if node.nothing?()
+                map.unsafe_map_removeNode(nodeIndex)
+                map.unsafe_setI64(1, map.length~() - 1)
+                return oldValue
+        else
+            map.unsafe_setI64(2, key.typeNumber~())
+            map.unsafe_setI64(3, newValue.typeNumber~())
+            key.shar__rc_use()
+            newValue.shar__rc_use()
+            if node.type?(MapNode)
+                if keysIndex == -1
+                    node.unsafe_mapNode_addKVWithNewHashCode(highHashPart, keysInsertIndex, key, newValue)
+                else
+                    node.unsafe_mapNode_addKVWithExistedHashCode(keysIndex, keyIndex, key, newValue)
+            else
+                node = unsafe_mapNode_createNewNode(highHashPart, key, newValue)
+        if nodeIndex == -1
+            map.unsafe_map_addNode(lowHashPart, nodeInsertIndex, node)
+        else
+            map.unsafe_setI64(nodeIndex + 4, node)
+        if delete
+            map.unsafe_setI64(1, map.length~() - 1)
+        elif oldValue.nothing?()
+            map.unsafe_setI64(1, map.length~() + 1)
+        return oldValue
+
+#alwaysinline nothrow
+def unsafe_map_getCounter(map $Any) Int
+    return map.unsafe_getI64(0) & 0xffffffffffff
+
+#alwaysinline nothrow
+def unsafe_map_setCounter(map, newCounter $Any)
+    map.unsafe_setI64(0, (map.unsafe_getI64(0) & -281474976710656) | (newCounter & 0xffffffffffff))
+
+#alwaysinline nothrow
+def unsafe_map_getHashPartsCount(map $Any) Int
+    return map.unsafe_getI16(3)
+
+#alwaysinline nothrow
+def unsafe_map_getNodeByIndex(map, index $Any) MapNode
+    var result $Any = map.unsafe_getI64(index + 4)
+    result.unsafe_setType(MapNode.typeNumber~())
+    return result
+
+#alwaysinline unsafewrite nothrow
+def unsafe_map_getNodeByHash(map, hashPart, write nodeIndex, write nodeInsertIndex $Any) <>MapNode
+    const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
+    const nodes Int = map.unsafe_offsetI64(4)
+    const hashParts Int = nodes.unsafe_offsetI64(hashPartsCount)
+    if hashPartsCount.inRange?(1, 256)
+        var leftIndex Int = 0
+        var rightEdge Int = hashPartsCount
+        for :(loop)
+            const length Int = rightEdge - leftIndex
+            if length == 0
+                nodeInsertIndex = leftIndex
+                end loop
+            const centerIndex Int = (length >> 1) + leftIndex
+            const centerHashPart Int = hashParts.unsafe_getI8(centerIndex)
+            if centerHashPart == hashPart
+                nodeIndex = centerIndex
+                var result $Any = nodes.unsafe_getI64(centerIndex)
+                result.unsafe_setType(MapNode.typeNumber~())
+                return result
+            if centerHashPart < hashPart
+                leftIndex = centerIndex + 1
+            else
+                rightEdge = centerIndex
+    elif hashPartsCount == 256
+        nodeIndex = hashPart
+        var result $Any = nodes.unsafe_getI64(hashPart)
+        result.unsafe_setType(MapNode.typeNumber~())
+        return result
+    else
+        nodeInsertIndex = 0
+    return nothing
+
+#inline unsafewrite nothrow
+def unsafe_map_removeNode(write map, nodeIndex $Any)
+    const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
+    const nodes Int = map.unsafe_offsetI64(4)
+    const hashParts Int = nodes.unsafe_offsetI64(hashPartsCount)
+    const countOfMovedHashParts Int = hashPartsCount - 1 - nodeIndex
+    const countOfMovedNodesAndMovedHashPartsInI8 Int = countOfMovedHashParts * 8 + hashPartsCount - 1
+    unsafe_memmoveI8(hashParts.unsafe_offsetI8(nodeIndex), hashParts.unsafe_offsetI8(nodeIndex + 1), countOfMovedHashParts)
+    map.unsafe_setI16(3, hashPartsCount - 1)
+    unsafe_memmoveI8(nodes.unsafe_offsetI64(nodeIndex), nodes.unsafe_offsetI64(nodeIndex + 1), countOfMovedNodesAndMovedHashPartsInI8)
+    map.unsafe_realloc(hashPartsCount * 9 + 23)
+
+#inline unsafewrite nothrow
+def unsafe_map_addNode(write map, hashPart, nodeInsertIndex, node $Any)
+    const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
+    map.unsafe_realloc(hashPartsCount * 9 + 41)
+    const oldNodesInNewMap Int = map.unsafe_offsetI64(4)
+    const oldHashPartsInNewMap Int = oldNodesInNewMap.unsafe_offsetI64(hashPartsCount)
+    const countOfMovedHashPartsInEnd Int = hashPartsCount - nodeInsertIndex
+    const countOfMovedNodesAndHashPartsInBeginInI8 Int = countOfMovedHashPartsInEnd * 8 + nodeInsertIndex
+    unsafe_memmoveI8(oldHashPartsInNewMap.unsafe_offsetI8(nodeInsertIndex + 9), oldHashPartsInNewMap.unsafe_offsetI8(nodeInsertIndex), countOfMovedHashPartsInEnd)
+    map.unsafe_setI16(3, map.unsafe_getI16(3) + 1)
+    unsafe_memmoveI8(oldNodesInNewMap.unsafe_offsetI64(nodeInsertIndex + 1), oldNodesInNewMap.unsafe_offsetI64(nodeInsertIndex), countOfMovedNodesAndHashPartsInBeginInI8)
+    oldNodesInNewMap.unsafe_setI64(nodeInsertIndex, node)
+    oldHashPartsInNewMap.unsafe_setI8(nodeInsertIndex + 8, hashPart)
+
+attach Map to Iterable
+    #alwaysinline nothrow
+    def parse__init(map Map) $Any
+        return 0
+
+    #alwaysinline nothrow
+    def parse__predicate(map Map, index $Any) Bool
+        const currenNodeIndex Int = index & 0x1ff
+        return currenNodeIndex < map.unsafe_map_getHashPartsCount()
+
+    #alwaysinline unsafewrite nothrow
+    def parse__next(map Map, write index $Any)
+        var nodeIndex Int = index & 0x1ff
+        var arrayIndex Int = (index >> 9) & 0xffff
+        var keyIndex Int = (index >> 25) + 1
+        const node MapNode = map.unsafe_map_getNodeByIndex(nodeIndex)
+        const array Int = node.unsafe_getI64(1 + arrayIndex)
+        const keysCount Int = array.unsafe_getI64(0)
+        if keyIndex == keysCount
+            keyIndex = 0
+            arrayIndex++
+            const arrayCount Int = node.unsafe_mapNode_getHashPartsCount()
+            if arrayIndex == arrayCount
+                arrayIndex = 0
+                nodeIndex++
+        index = (((keyIndex << 16) | arrayIndex) << 9) | nodeIndex
+
+    #alwaysinline nothrow
+    def parse__get__key(map Map, index $Any) $Any
+        const nodeIndex Int = index & 0x1ff
+        const arrayIndex Int = (index >> 9) & 0xffff
+        const keyIndex Int = index >> 25
+        const node MapNode = map.unsafe_map_getNodeByIndex(nodeIndex)
+        const array Int = node.unsafe_getI64(1 + arrayIndex)
+        var key $Any = array.unsafe_getI64(2 * keyIndex + 1)
+        key.unsafe_setType(map.keyTypeNumber~())
+        key.shar__rc_use()
+        return key
+
+    #alwaysinline nothrow
+    def parse__get__item(map Map, index $Any) $Any
+        const nodeIndex Int = index & 0x1ff
+        const arrayIndex Int = (index >> 9) & 0xffff
+        const keyIndex Int = index >> 25
+        const node MapNode = map.unsafe_map_getNodeByIndex(nodeIndex)
+        const array Int = node.unsafe_getI64(1 + arrayIndex)
+        var value $Any = array.unsafe_getI64(2 * (keyIndex + 1))
+        value.unsafe_setType(map.valueTypeNumber~())
+        value.shar__rc_use()
+        return value
+
+attach Map to AArray
+
+attach Map to KeyTypeNumber
+    #alwaysinline nothrow
+    def keyTypeNumber~(map Map) Int
+        return map.unsafe_getI64(2)
+
+attach Map to Map
+    #alwaysinline nothrow
+    def valueTypeNumber~(map Map) Int
+        return map.unsafe_getI64(3)

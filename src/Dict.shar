@@ -1,0 +1,298 @@
+module STD
+
+//@Members of the "STD::Dict" group are types whose objects are associative arrays in which all keys are of the same type, and the values can be of different types.
+export group Dict: AArray, KeyTypeNumber
+
+//@A type that is a member of the "STD::Dict" group.
+export primitive Dict
+
+#override(STD)
+def shar__rc_free(dict Dict)
+    const counter Int = dict.unsafe_dict_getCounter()
+    if counter > 1
+        dict.unsafe_dict_setCounter(counter - 1)
+    elif counter == 1
+        const hashPartsCount Int = dict.unsafe_dict_getHashPartsCount()
+        for :(index Int = 0) index < hashPartsCount; index++
+            const node DictNode = dict.unsafe_dict_getNodeByIndex(index)
+            const nodeCounter Int = node.unsafe_dictNode_getCounter()
+            if nodeCounter > 1
+                node.unsafe_dictNode_setCounter(nodeCounter - 1)
+            elif nodeCounter == 1
+                node.unsafe_dictNode_free(dict.keyTypeNumber~())
+        dict.unsafe_free()
+
+#override(STD) alwaysinline
+def shar__rc_use(dict Dict)
+    const counter Int = dict.unsafe_dict_getCounter()
+    if counter != 0
+        dict.unsafe_dict_setCounter(counter + 1)
+
+#override(STD)
+def shar__to_const(dict Dict)
+    if dict.unsafe_dict_getCounter() != 0
+        const hashPartsCount Int = dict.unsafe_dict_getHashPartsCount()
+        for :(index Int = 0) index < hashPartsCount; index++
+            const node DictNode = dict.unsafe_dict_getNodeByIndex(index)
+            if node.unsafe_dictNode_getCounter() != 0
+                node.unsafe_dictNode_toConst(dict.keyTypeNumber~())
+        dict.unsafe_dict_setCounter(0)
+
+#override(STD) alwaysinline nothrow
+def use?(dict Dict) Bool
+    return dict.unsafe_dict_getCounter() != 1
+
+#override(STD) alwaysinline nothrow
+def constant?(dict Dict) Bool
+    return dict.unsafe_dict_getCounter() == 0
+
+#override(STD) nothrow
+def clone(dict Dict) Dict
+    const hashPartsCount Int = dict.unsafe_dict_getHashPartsCount()
+    for :(index Int = 0) index < hashPartsCount; index++
+        const node DictNode = dict.unsafe_dict_getNodeByIndex(index)
+        const nodeCounter Int = node.unsafe_dictNode_getCounter()
+        if nodeCounter != 0
+            node.unsafe_dictNode_setCounter(nodeCounter + 1)
+    const dictSizeInI8 Int = hashPartsCount * 9 + 24
+    var result $Any = unsafe_malloc(dictSizeInI8)
+    unsafe_memcpyI8(result, dict, dictSizeInI8)
+    result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
+    result.unsafe_setType(Dict.typeNumber~())
+    return result
+
+attach Dict to Empty
+    #alwaysinline nothrow
+    def createEmpty(noread type Dict) Dict
+        llvm
+            ret [2 x i64] [i64 ##tnum##STD::Dict##, i64 ptrtoint ([3 x i64]* ##llvmconst##>private unnamed_addr constant [3 x i64] zeroinitializer, align 8<## to i64)]
+
+attach Dict to Long
+    #alwaysinline nothrow
+    def length~(dict Dict) Int
+        return dict.unsafe_getI64(1)
+
+attach Dict to Shar__sugar__getItem
+    //@If the search occurs in an array and the type of the key to be found does not match the type of the existing keys, the function returns an error with the code "enum::STD::error_invalidType".
+    def shar__sugar__getItem(dict Dict, key ${Equal, Hashable}) $Any
+        const keyTypeNumberInDict Int = dict.keyTypeNumber~()
+        if keyTypeNumberInDict == Nothing.typeNumber~()
+            return nothing
+        inthrow
+            if keyTypeNumberInDict != key.typeNumber~()
+                throw(enum::error_invalidType, "Invalid type.")
+        const hash Int = key.getShortRandomizedHash()
+        const lowHashPart Int = hash & 0xff
+        const highHashPart Int = (hash >> 8) & 0xffff
+        var unneeded1 Int = 0
+        var unneeded2 Int = 0
+        var unneeded3 Int = 0
+        var keysEqualError List = {}
+        const result $Any = dict.unsafe_dict_getNodeByHash(lowHashPart, unneeded1, unneeded2)->unsafe_dictNode_getValueByHash(highHashPart, key, unneeded1, unneeded2, unneeded3, keysEqualError)
+        result.shar__rc_use()
+        inthrow
+            if !keysEqualError.empty?()
+                throw(keysEqualError[0], keysEqualError[1])
+        return result
+
+attach Dict to Put
+    //@If the search occurs in an array and the type of the key to be found does not match the type of the existing keys, the function returns an error with the code "enum::STD::error_invalidType".
+    def put(write dict Dict, key ${Equal, Hashable}, newValue $Any) $Any
+        const keyTypeNumberInDict Int = dict.keyTypeNumber~()
+        inthrow
+            if keyTypeNumberInDict != key.typeNumber~() && keyTypeNumberInDict != Nothing.typeNumber~()
+                throw(enum::error_invalidType, "Invalid type.")
+        const delete Bool = newValue.nothing?()
+        const hash Int = key.getShortRandomizedHash()
+        const lowHashPart Int = hash & 0xff
+        const highHashPart Int = (hash >> 8) & 0xffff
+        var nodeIndex Int = -1
+        var nodeInsertIndex Int = -1
+        var keysIndex Int = -1
+        var keysInsertIndex Int = -1
+        var keyIndex Int = -1
+        var keysEqualError List = {}
+        var node <>DictNode = dict.unsafe_dict_getNodeByHash(lowHashPart, nodeIndex, nodeInsertIndex)
+        const oldValue $Any = node->unsafe_dictNode_getValueByHash(highHashPart, key, keysIndex, keysInsertIndex, keyIndex, keysEqualError)
+        inthrow
+            if !keysEqualError.empty?()
+                throw(keysEqualError[0], keysEqualError[1])
+        if delete
+            if oldValue.nothing?()
+                return nothing
+            elif dict.length~() == 1
+                oldValue.shar__rc_use()
+                dict = Dict.createEmpty()
+                return oldValue
+        if dict.use?()
+            dict = dict.clone()
+        if node.type?(DictNode)
+            const nodeCounter Int = node.unsafe_dictNode_getCounter()
+            if nodeCounter != 1
+                const oldNode DictNode = node
+                node = node.unsafe_dictNode_clone(keyTypeNumberInDict)
+                if nodeCounter != 0
+                    oldNode.unsafe_dictNode_setCounter(nodeCounter - 1)
+        if delete
+            node.unsafe_dictNode_deleteValue(keysIndex, keyIndex, keyTypeNumberInDict)
+            if node.nothing?()
+                dict.unsafe_dict_removeNode(nodeIndex)
+                dict.unsafe_setI64(1, dict.length~() - 1)
+                return oldValue
+        else
+            dict.unsafe_setI64(2, key.typeNumber~())
+            key.shar__rc_use()
+            newValue.shar__rc_use()
+            if node.type?(DictNode)
+                if keysIndex == -1
+                    node.unsafe_dictNode_addKVWithNewHashCode(highHashPart, keysInsertIndex, key, newValue)
+                else
+                    node.unsafe_dictNode_addKVWithExistedHashCode(keysIndex, keyIndex, key, newValue)
+            else
+                node = unsafe_dictNode_createNewNode(highHashPart, key, newValue)
+        if nodeIndex == -1
+            dict.unsafe_dict_addNode(lowHashPart, nodeInsertIndex, node)
+        else
+            dict.unsafe_setI64(nodeIndex + 3, node)
+        if delete
+            dict.unsafe_setI64(1, dict.length~() - 1)
+        elif oldValue.nothing?()
+            dict.unsafe_setI64(1, dict.length~() + 1)
+        return oldValue
+
+#alwaysinline nothrow
+def unsafe_dict_getCounter(dict $Any) Int
+    return dict.unsafe_getI64(0) & 0xffffffffffff
+
+#alwaysinline nothrow
+def unsafe_dict_setCounter(dict, newCounter $Any)
+    dict.unsafe_setI64(0, (dict.unsafe_getI64(0) & -281474976710656) | (newCounter & 0xffffffffffff))
+
+#alwaysinline nothrow
+def unsafe_dict_getHashPartsCount(dict $Any) Int
+    return dict.unsafe_getI16(3)
+
+#alwaysinline nothrow
+def unsafe_dict_getNodeByIndex(dict, index $Any) DictNode
+    var result $Any = dict.unsafe_getI64(index + 3)
+    result.unsafe_setType(DictNode.typeNumber~())
+    return result
+
+#alwaysinline unsafewrite nothrow
+def unsafe_dict_getNodeByHash(dict, hashPart, write nodeIndex, write nodeInsertIndex $Any) <>DictNode
+    const hashPartsCount Int = dict.unsafe_dict_getHashPartsCount()
+    const nodes Int = dict.unsafe_offsetI64(3)
+    const hashParts Int = nodes.unsafe_offsetI64(hashPartsCount)
+    if hashPartsCount.inRange?(1, 256)
+        var leftIndex Int = 0
+        var rightEdge Int = hashPartsCount
+        for :(loop)
+            const length Int = rightEdge - leftIndex
+            if length == 0
+                nodeInsertIndex = leftIndex
+                end loop
+            const centerIndex Int = (length >> 1) + leftIndex
+            const centerHashPart Int = hashParts.unsafe_getI8(centerIndex)
+            if centerHashPart == hashPart
+                nodeIndex = centerIndex
+                var result $Any = nodes.unsafe_getI64(centerIndex)
+                result.unsafe_setType(DictNode.typeNumber~())
+                return result
+            if centerHashPart < hashPart
+                leftIndex = centerIndex + 1
+            else
+                rightEdge = centerIndex
+    elif hashPartsCount == 256
+        nodeIndex = hashPart
+        var result $Any = nodes.unsafe_getI64(hashPart)
+        result.unsafe_setType(DictNode.typeNumber~())
+        return result
+    else
+        nodeInsertIndex = 0
+    return nothing
+
+#unsafewrite nothrow
+def unsafe_dict_removeNode(write dict, nodeIndex $Any)
+    const hashPartsCount Int = dict.unsafe_dict_getHashPartsCount()
+    const nodes Int = dict.unsafe_offsetI64(3)
+    const hashParts Int = nodes.unsafe_offsetI64(hashPartsCount)
+    const countOfMovedHashParts Int = hashPartsCount - 1 - nodeIndex
+    const countOfMovedNodesAndMovedHashPartsInI8 Int = countOfMovedHashParts * 8 + hashPartsCount - 1
+    unsafe_memmoveI8(hashParts.unsafe_offsetI8(nodeIndex), hashParts.unsafe_offsetI8(nodeIndex + 1), countOfMovedHashParts)
+    dict.unsafe_setI16(3, hashPartsCount - 1)
+    unsafe_memmoveI8(nodes.unsafe_offsetI64(nodeIndex), nodes.unsafe_offsetI64(nodeIndex + 1), countOfMovedNodesAndMovedHashPartsInI8)
+    dict.unsafe_realloc(hashPartsCount * 9 + 15)
+
+#inline unsafewrite nothrow
+def unsafe_dict_addNode(write dict, hashPart, nodeInsertIndex, node $Any)
+    const hashPartsCount Int = dict.unsafe_dict_getHashPartsCount()
+    dict.unsafe_realloc(hashPartsCount * 9 + 33)
+    const oldNodesInNewDict Int = dict.unsafe_offsetI64(3)
+    const oldHashPartsInNewDict Int = oldNodesInNewDict.unsafe_offsetI64(hashPartsCount)
+    const countOfMovedHashPartsInEnd Int = hashPartsCount - nodeInsertIndex
+    const countOfMovedNodesAndHashPartsInBeginInI8 Int = countOfMovedHashPartsInEnd * 8 + nodeInsertIndex
+    unsafe_memmoveI8(oldHashPartsInNewDict.unsafe_offsetI8(nodeInsertIndex + 9), oldHashPartsInNewDict.unsafe_offsetI8(nodeInsertIndex), countOfMovedHashPartsInEnd)
+    dict.unsafe_setI16(3, dict.unsafe_getI16(3) + 1)
+    unsafe_memmoveI8(oldNodesInNewDict.unsafe_offsetI64(nodeInsertIndex + 1), oldNodesInNewDict.unsafe_offsetI64(nodeInsertIndex), countOfMovedNodesAndHashPartsInBeginInI8)
+    oldNodesInNewDict.unsafe_setI64(nodeInsertIndex, node)
+    oldHashPartsInNewDict.unsafe_setI8(nodeInsertIndex + 8, hashPart)
+
+attach Dict to KeyTypeNumber
+    #alwaysinline nothrow
+    def keyTypeNumber~(dict Dict) Int
+        return dict.unsafe_getI64(2)
+
+attach Dict to Iterable
+    #alwaysinline nothrow
+    def parse__init(dict Dict) $Any
+        return 0
+
+    #alwaysinline nothrow
+    def parse__predicate(dict Dict, index $Any) Bool
+        const currenNodeIndex Int = index & 0x1ff
+        return currenNodeIndex < dict.unsafe_dict_getHashPartsCount()
+
+    #alwaysinline unsafewrite nothrow
+    def parse__next(dict Dict, write index $Any)
+        var nodeIndex Int = index & 0x1ff
+        var arrayIndex Int = (index >> 9) & 0xffff
+        var keyIndex Int = (index >> 25) + 1
+        const node DictNode = dict.unsafe_dict_getNodeByIndex(nodeIndex)
+        const array Int = node.unsafe_getI64(1 + arrayIndex)
+        const keysCount Int = array.unsafe_getI64(0)
+        if keyIndex == keysCount
+            keyIndex = 0
+            arrayIndex++
+            const arrayCount Int = node.unsafe_dictNode_getHashPartsCount()
+            if arrayIndex == arrayCount
+                arrayIndex = 0
+                nodeIndex++
+        index = (((keyIndex << 16) | arrayIndex) << 9) | nodeIndex
+
+    #alwaysinline nothrow
+    def parse__get__key(dict Dict, index $Any) $Any
+        const nodeIndex Int = index & 0x1ff
+        const arrayIndex Int = (index >> 9) & 0xffff
+        const keyIndex Int = index >> 25
+        const node DictNode = dict.unsafe_dict_getNodeByIndex(nodeIndex)
+        const array Int = node.unsafe_getI64(1 + arrayIndex)
+        var key $Any = array.unsafe_getI64(3 * keyIndex + 1)
+        key.unsafe_setType(dict.keyTypeNumber~())
+        key.shar__rc_use()
+        return key
+
+    #alwaysinline nothrow
+    def parse__get__item(dict Dict, index $Any) $Any
+        const nodeIndex Int = index & 0x1ff
+        const arrayIndex Int = (index >> 9) & 0xffff
+        const keyIndex Int = index >> 25
+        const node DictNode = dict.unsafe_dict_getNodeByIndex(nodeIndex)
+        const array Int = node.unsafe_getI64(1 + arrayIndex)
+        var value $Any = nothing
+        array.unsafe_offsetI64(3 * keyIndex + 2).unsafe_get2xI64(0, value)
+        value.shar__rc_use()
+        return value
+
+attach Dict to AArray
+
+attach Dict to Dict

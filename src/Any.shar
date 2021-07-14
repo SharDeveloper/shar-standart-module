@@ -1,0 +1,107 @@
+module STD
+
+//@All types are members of the "STD::Any" group.
+export group Any
+
+//@The function decrements the reference count by one and frees memory if necessary.
+//@The function cannot return an error.
+#this(Any)
+export def shar__rc_free(a This)
+    if a.inGroups?(Type)
+        a.type_rc_free()
+
+//@The function increments the reference count by one.
+//@The function cannot return an error.
+#this(Any) alwaysinline
+export def shar__rc_use(a This)
+    if a.inGroups?(Type)
+        a.type_rc_use()
+
+//@The function turns its argument into a constant.
+//@The function cannot return an error.
+#this(Any)
+export def shar__to_const(a This)
+    if a.inGroups?(Type)
+        a.type_to_const()
+
+//@The function finds out if the function argument is used in several places in the program.
+//@If the argument is of a type for which this function does not make sense, then the function return "false".
+#this(Any) alwaysinline
+export def use?(a This) Bool
+    return a.inGroups?(Type) && a.type_use?()
+
+//@The function finds out if the function argument is a constant.
+//@If the argument is of a type for which this function does not make sense, then the function return "false".
+#this(Any) alwaysinline
+export def constant?(a This) Bool
+    return a.inGroups?(Type) && a.type_constant?()
+
+//@The function returns a partial copy of the function argument.
+//@If the "STD::use?" or "STD::constant?" function is applied to the result of the "STD::clone" function, then the result of the application of these functions is "false".
+#this(Any)
+export def clone(a This) This
+    return a.inGroups?(Type).select(a.type_clone(), a)
+
+//@The function returns its argument.
+#this(Any) alwaysinline
+export def same(a This) This
+    return a
+
+//@The function finds out if the type of the first and second arguments of the function are the same.
+#alwaysinline nothrow
+export def type?(noread a, noread type $Any) Bool
+    return a.typeNumber~() == type.typeNumber~()
+
+//@The function returns its first argument if its type is equal to the type of the second argument of the function, otherwise it returns an error with the "enum::STD::error_invalidType" code.
+#this(Any) alwaysinline
+export def type!(a This, noread type This) This
+    return a
+
+//@The function returns the type number of its argument.
+//@Two distinct types are guaranteed to have two different numbers.
+#alwaysinline nothrow
+export def typeNumber~(noread a $Any) Int
+    llvm
+        %##nreg##type## = extractvalue [2 x i64] %0, 0
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##type##, 1
+        ret [2 x i64] %##reg##result##
+
+//@The function swaps the values of its arguments.
+//@If the arguments are of different types, then the function returns an error with the code "enum::STD::error_invalidType", and the arguments remain unchanged.
+#alwaysinline unsafewrite
+export def exchange(write a, write b $Any)
+    inthrow
+        if !a.type?(b)
+            throw(enum::error_invalidType, "Invalid type")
+    unsafe_exchange(a, b)
+
+#alwaysinline unsafewrite
+def unsafe_exchange(write a, write b $Any)
+    llvm
+        %##nreg##a pointer## = getelementptr [2 x i64], [2 x i64]* %0, i64 0, i32 1
+        %##nreg##b pointer## = getelementptr [2 x i64], [2 x i64]* %1, i64 0, i32 1
+        %##nreg##a## = load i64, i64* %##reg##a pointer##, align 8
+        %##nreg##b## = load i64, i64* %##reg##b pointer##, align 8
+        store i64 %##reg##a##, i64* %##reg##b pointer##, align 8
+        store i64 %##reg##b##, i64* %##reg##a pointer##, align 8
+        ret [2 x i64] zeroinitializer
+
+//@The function returns the type name whose number is specified by the function argument.
+//@If the type with the specified number does not exist, the function returns an error with the code "enum::STD::error_outOfRange".
+export def getTypeName(typeNumber Int) String
+    const result String = typeNumber.unsafe_getTypeName()
+    inthrow
+        if result == ""
+            throw(enum::error_outOfRange, "Out of range.")
+    return result
+
+#alwaysinline nothrow
+def unsafe_getTypeName(typeNumber $Any) String
+    llvm
+        %##nreg##type number## = extractvalue [2 x i64] %0, 1
+        %##nreg##type name## = call [2 x i64] @shar.type.number.to.type.name(i64 %##reg##type number##)
+        ret [2 x i64] %##reg##type name##
+
+#alwaysinline nothrow
+export def nothing?(noread arg $Any) Bool
+    return arg.type?(Nothing)

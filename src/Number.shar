@@ -1,0 +1,26 @@
+module STD
+
+//@The group is intended for grouping two types "int" and "real", which allows writing a function for two types at once.
+//@Regardless of the purpose of the group, there is no problem adding your own types for numbers to this group.
+//@Function "shar__sugar__inc" increments its argument by one.
+//@Function "shar__sugar__dec" decrements its argument by one.
+//@Function "shar__sugar__neg" returns its argument with the opposite sign.
+//@The "shar__sugar__mul" function returns the product of its arguments.
+//@Function "shar__sugar__div" returns the result of dividing its first argument by its second.
+//@The "shar__sugar__mod" function returns the remainder of the division of its first argument by the second.
+//@Function "shar__sugar__add" returns the sum of its arguments.
+//@The "shar__sugar__sub" function returns the result of subtracting the second argument from the first.
+//@The "shar__sugar__addSet" function adds the second argument to the first argument.
+//@Function "shar__sugar__subSet" subtracts the second argument from the first argument.
+//@The "shar__sugar__mulSet" function multiplies the first argument by the second.
+//@Function "shar__sugar__divSet" divides the first argument by the second argument.
+//@The function "shar__sugar__modSet" calculates the remainder after dividing the first argument by the second and changes the value of the first argument to the calculated remainder.
+export group Number: Ordered, StringWriter, StringReader, Shar__sugar__inc, Shar__sugar__dec, Shar__sugar__neg, Shar__sugar__mul, Shar__sugar__div, Shar__sugar__mod, Shar__sugar__add, Shar__sugar__sub, Shar__sugar__addSet, Shar__sugar__subSet, Shar__sugar__mulSet, Shar__sugar__divSet, Shar__sugar__modSet
+    //@The function returns the absolute value of the number.
+    abs(This) This
+    //@The function returns the first number raised to the power of the second number.
+    power(This, This) This
+    //@The function returns a random number with the specified type.
+    getRandom(noread This) This
+    //@The function returns a random number, suitable for cryptographic purposes, with the specified type.
+    getCryptographicRandom(noread This) This

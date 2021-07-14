@@ -1,0 +1,807 @@
+module Main
+
+def intAsReal_testReal(int Int) Real
+    llvm
+        %##nreg##result## = insertvalue [2 x i64] %0, i64 ##tnum##STD::Real##, 0
+        ret [2 x i64] %##reg##result##
+
+#noinline
+def testReal(write ok Int, write errorsCoordinates List)
+    testReal_Any(ok, errorsCoordinates)
+    testReal_Equal(ok, errorsCoordinates)
+    testReal_Ordered(ok, errorsCoordinates)
+    testReal_Number(ok, errorsCoordinates)
+    testReal_StringWriter(ok, errorsCoordinates)
+    testReal_StringReader(ok, errorsCoordinates)
+    testReal_Math(ok, errorsCoordinates)
+    testReal_BitArray(ok, errorsCoordinates)
+    testReal_RealToInt(ok, errorsCoordinates)
+    testReal_BinarySerializable(ok, errorsCoordinates)
+
+#noinline
+def testReal_Any(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        1.0.use?() == false
+        1.0.constant?() == false
+        3.1.clone() == 3.1
+
+#noinline
+def testReal_Equal(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0.0 == 0.0
+        4.2 == 4.2
+        0.0 == -0.0
+        0.0.unsafe_getValue() != -0.0.unsafe_getValue()
+        0.0 == (0.0 / 0.0) : error_compareWithNaN
+        (0.0 / 0.0) == 0.0 : error_compareWithNaN
+        0.0 != 0.1
+        4.2 != 3.4
+        1.0 != -1.0
+        0.0 != (0.0 / 0.0) : error_compareWithNaN
+        (0.0 / 0.0) != 0.0 : error_compareWithNaN
+
+#noinline
+def testReal_Ordered(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0.0 > -1.0
+        -0.0 > -1.0
+        1.0 > 0.0
+        1.0 > -1.0
+        !(-1.0 > 0.0)
+        !(-1.0 > -0.0)
+        !(0.1 > 0.9)
+        !(-1.0 > 1.0)
+        !(0.0 > 0.0)
+        !(1.0 > 1.0)
+        0.0 > (0.0 / 0.0) : error_compareWithNaN
+        (0.0 / 0.0) > 0.0 : error_compareWithNaN
+        0.0 >= 0.0
+        1.0 >= 1.0
+        0.0 >= -1.0
+        0.0 >= -0.0
+        -0.0 >= -1.0
+        1.0 >= 0.0
+        1.0 >= -1.0
+        !(-1.0 >= 0.0)
+        !(-1.0 >= -0.0)
+        !(0.1 >= 0.9)
+        !(-1.0 >= 1.0)
+        0.0 >= (0.0 / 0.0) : error_compareWithNaN
+        (0.0 / 0.0) >= 0.0 : error_compareWithNaN
+        -1.0 < 0.0
+        -1.0 < -0.0
+        -1.0 < 1.0
+        !(0.0 < -1.0)
+        !(-0.0 < -1.0)
+        !(0.9 < 0.1)
+        !(1.0 < -1.0)
+        !(0.0 < 0.0)
+        !(1.0 < 1.0)
+        0.0 < (0.0 / 0.0) : error_compareWithNaN
+        (0.0 / 0.0) < 0.0 : error_compareWithNaN
+        0.0 <= 0.0
+        1.0 <= 1.0
+        -1.0 <= 0.0
+        -0.0 <= 0.0
+        -1.0 <= -0.0
+        -0.0 <= 0.0
+        -1.0 <= 1.0
+        !(0.0 <= -1.0)
+        !(-0.0 <= -1.0)
+        !(0.9 <= 0.1)
+        !(1.0 <= -1.0)
+        0.0 <= (0.0 / 0.0) : error_compareWithNaN
+        (0.0 / 0.0) <= 0.0 : error_compareWithNaN
+
+#noinline
+def testReal_Number(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        !0.0 == -0.0
+        !1.0 == -1.0
+        !100.0 == -100.0
+        !(-1.0) == 1.0
+        0.0 * 0.0 == 0.0
+        1.0 * 0.0 == 0.0
+        0.0 * 1.0 == 0.0
+        (10.0 * 26.0).unsafe_getValue() == 4643281584563159040
+        (0.0 / 0.0).nan?()
+        (1.0 / 0.0).positiveInf?()
+        (-1.0 / 0.0).negativeInf?()
+        (144.0 / 12.0).unsafe_getValue() == 4622945017495814144
+        (144.5 / 5.7).unsafe_getValue() == 4627828855249618333
+        (-144.5 / 5.7).unsafe_getValue() == -4595543181605157475
+        (144.5 / -5.7).unsafe_getValue() == -4595543181605157475
+        (0.0 % 0.0).nan?()
+        (1.0 % 0.0).nan?()
+        144.0 % 12.0 == 0.0
+        (144.0 % 7.0).unsafe_getValue() == 4616189618054758400
+        -144.0 % 12.0 == -0.0
+        (340.1 % 60.5).unsafe_getValue() == 4630488546871659728
+        (-340.7 % 60.667).unsafe_getValue() == -4592916563292879588
+        0.0 + 0.0 == 0.0
+        0.0 + 1.0 == 1.0
+        1.0 + 0.0 == 1.0
+        (12.5 + 133.9).unsafe_getValue() == 4639355008638045389
+        (12.5 + -133.9).unsafe_getValue() == -4585128854374737510
+        0.0 - 0.0 == 0.0
+        0.0 - 1.0 == -1.0
+        1.0 - 0.0 == 1.0
+        (12.5 - 133.9).unsafe_getValue() == -4585128854374737510
+        (12.5 - -133.9).unsafe_getValue() == 4639355008638045389
+         0.0.abs() == 0.0
+        -1.0.abs() == 1.0
+        1.0.abs() == 1.0
+        10.5.abs() == 10.5
+        -10.7.abs() == 10.7
+        0.0.power(0.0) == 1.0
+        123.3.power(0.0) == 1.0
+        -123.3.power(0.0) == 1.0
+        7.0.power(645.0).positiveInf?()
+        3.7.power(-0.5).unsafe_getValue() == 4602857839463788386
+        -3.7.power(0.5).nan?()
+        Real.getRandom().type?(Real)
+        Real.getCryptographicRandom().type?(Real)
+    var real1 Real = -1.0
+    var real2 Real = -1.0
+    var real3 Real = 1.0
+    var real4 Real = 1.0
+    var real5 Real = 0.0
+    var real6 Real = 0.0
+    var real7 Real = -0.0
+    var real8 Real = -0.0
+    test: ok, errorsCoordinates
+        (real1++).nothing?()
+        real1 == 0.0
+        (real2--).nothing?()
+        real2 == -2.0
+        (real3++).nothing?()
+        real3 == 2.0
+        (real4--).nothing?()
+        real4 == 0.0
+        (real5++).nothing?()
+        real5 == 1.0
+        (real6--).nothing?()
+        real6 == -1.0
+        (real7++).nothing?()
+        real7 == 1.0
+        (real8--).nothing?()
+        real8 == -1.0
+    real1 = 0.0
+    real2 = 0.0
+    real3 = 1.0
+    real4 = 12.5
+    real5 = 12.5
+    test: ok, errorsCoordinates
+        (real1 += 0.0).nothing?()
+        real1 == 0.0
+        (real2 += 1.0).nothing?()
+        real2 == 1.0
+        (real3 += 0.0).nothing?()
+        real3 == 1.0
+        (real4 += 133.9).nothing?()
+        real4.unsafe_getValue() == 4639355008638045389
+        (real5 += -133.9).nothing?()
+        real5.unsafe_getValue() == -4585128854374737510
+    real1 = 0.0
+    real2 = 0.0
+    real3 = 1.0
+    real4 = 12.5
+    real5 = 12.5
+    test: ok, errorsCoordinates
+        (real1 -= 0.0).nothing?()
+        real1 == 0.0
+        (real2 -= 1.0).nothing?()
+        real2 == -1.0
+        (real3 -= 0.0).nothing?()
+        real3 == 1.0
+        (real4 -= -133.9).nothing?()
+        real4.unsafe_getValue() == 4639355008638045389
+        (real5 -= 133.9).nothing?()
+        real5.unsafe_getValue() == -4585128854374737510
+    real1 = 0.0
+    real2 = 0.0
+    real3 = 1.0
+    real4 = 10.0
+    test: ok, errorsCoordinates
+        (real1 *= 0.0).nothing?()
+        real1 == 0.0
+        (real2 *= 1.0).nothing?()
+        real2 == 0.0
+        (real3 *= 0.0).nothing?()
+        real3 == 0.0
+        (real4 *= 26.0).nothing?()
+        real4.unsafe_getValue() == 4643281584563159040
+    real1 = 0.0
+    real2 = 1.0
+    real3 = -1.0
+    real4 = 144.0
+    real5 = 144.5
+    real6 = -144.5
+    real7 = 144.5
+    test: ok, errorsCoordinates
+        (real1 /= 0.0).nothing?()
+        real1.nan?()
+        (real2 /= 0.0).nothing?()
+        real2.positiveInf?()
+        (real3 /= 0.0).nothing?()
+        real3.negativeInf?()
+        (real4 /= 12.0).nothing?()
+        real4.unsafe_getValue() == 4622945017495814144
+        (real5 /= 5.7).nothing?()
+        real5.unsafe_getValue() == 4627828855249618333
+        (real6 /= 5.7).nothing?()
+        real6.unsafe_getValue() == -4595543181605157475
+        (real7 /= -5.7).nothing?()
+        real7.unsafe_getValue() == -4595543181605157475
+    real1 = 0.0
+    real2 = 1.0
+    real3 = 144.0
+    real4 = 144.0
+    real5 = -144.0
+    real6 = 340.1
+    real7 = -340.7
+    test: ok, errorsCoordinates
+        (real1 %= 0.0).nothing?()
+        real1.nan?()
+        (real2 %= 0.0).nothing?()
+        real2.nan?()
+        (real3 %= 12.0).nothing?()
+        real3 == 0.0
+        (real4 %= 7.0).nothing?()
+        real4.unsafe_getValue() == 4616189618054758400
+        (real5 %= 12.0).nothing?()
+        real5 == 0.0
+        (real6 %= 60.5).nothing?()
+        real6.unsafe_getValue() == 4630488546871659728
+        (real7 %= 60.667).nothing?()
+        real7.unsafe_getValue() == -4592916563292879588
+
+#noinline
+def testReal_StringWriter(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        1.1.toString() == "1.1"
+        -1.1.toString() == "-1.1"
+        -1.999.toString() == "-1.999"
+
+#noinline
+def testReal_StringReader(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        Real.fromString("0.0") == 0.0
+        Real.fromString("1.1") == 1.1
+        Real.fromString("-1.1") == -1.1
+        Real.fromString("+0.0") == 0.0
+        Real.fromString("-0.0") == -0.0
+        Real.fromString("+10") == 10.0
+        Real.fromString("+0010.0") == 10.0
+        Real.fromString("3.1a") : error_readFromString
+        Real.fromString("3.0 ") : error_readFromString
+        Real.fromString("5645a") : error_readFromString
+        Real.fromString("a5456.0") : error_readFromString
+        Real.fromString(" 0.4") : error_readFromString
+        Real.fromString("- 3.0") : error_readFromString
+        Real.fromString("3.1-") : error_readFromString
+        Real.fromString("+-3.56") : error_readFromString
+        Real.fromString("-+3.2") : error_readFromString
+        Real.fromString("+") : error_readFromString
+        Real.fromString("-") : error_readFromString
+        Real.fromString("") : error_readFromString
+
+#noinline
+def testReal_Math(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        3.7.sqrt().unsafe_getValue() == 4611341666021894057
+        -3.7.sqrt().nan?()
+        3.6.sin().unsafe_getValue() == -4621728677322763791
+        3.6.cos().unsafe_getValue() == -4617119535570211751
+        3.6.exp().unsafe_getValue() == 4630347560903342087
+        3.6.exp2().unsafe_getValue() == 4623015798618893917
+        3.6.log().unsafe_getValue() == 4608447632361756121
+        3.6.log2().unsafe_getValue() == 4611001457352389614
+        3.6.log10().unsafe_getValue() == 4603185947015598076
+        1.0.floor() == 1.0
+        1.1.floor() == 1.0
+        1.5.floor() == 1.0
+        1.9.floor() == 1.0
+        -1.0.floor() == -1.0
+        -1.1.floor() == -2.0
+        -1.5.floor() == -2.0
+        -1.9.floor() == -2.0
+        1.0.ceil() == 1.0
+        1.1.ceil() == 2.0
+        1.5.ceil() == 2.0
+        1.9.ceil() == 2.0
+        -1.0.ceil() == -1.0
+        -1.1.ceil() == -1.0
+        -1.5.ceil() == -1.0
+        -1.9.ceil() == -1.0
+        1.0.trunc() == 1.0
+        1.1.trunc() == 1.0
+        1.5.trunc() == 1.0
+        1.9.trunc() == 1.0
+        -1.0.trunc() == -1.0
+        -1.1.trunc() == -1.0
+        -1.5.trunc() == -1.0
+        -1.9.trunc() == -1.0
+        1.0.round() == 1.0
+        1.1.round() == 1.0
+        1.5.round() == 2.0
+        1.9.round() == 2.0
+        -1.0.round() == -1.0
+        -1.1.round() == -1.0
+        -1.5.round() == -2.0
+        -1.9.round() == -2.0
+
+#noinline
+def testReal_BitArray(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        (-6148914691236517206.intAsReal_testReal() & 6148914691236517205.intAsReal_testReal()).unsafe_getValue()== 0
+        (6148914691236517205.intAsReal_testReal() & -6148914691236517206.intAsReal_testReal()).unsafe_getValue()== 0
+        (6148914691236517205.intAsReal_testReal() & 6148914691236517205.intAsReal_testReal()).unsafe_getValue()== 6148914691236517205
+        (-6148914691236517206.intAsReal_testReal() & -6148914691236517206.intAsReal_testReal()).unsafe_getValue()== -6148914691236517206
+        (8070450532247928839.intAsReal_testReal() & 6148914691236517205.intAsReal_testReal()).unsafe_getValue()== 5764607523034234885
+        (-2305843009213693938.intAsReal_testReal() & -6148914691236517206.intAsReal_testReal()).unsafe_getValue()== -6917529027641081846
+        (-6148914691236517206.intAsReal_testReal() | 6148914691236517205.intAsReal_testReal()).unsafe_getValue()== -1
+        (6148914691236517205.intAsReal_testReal() | -6148914691236517206.intAsReal_testReal()).unsafe_getValue()== -1
+        (6148914691236517205.intAsReal_testReal() | 6148914691236517205.intAsReal_testReal()).unsafe_getValue()== 6148914691236517205
+        (-6148914691236517206.intAsReal_testReal() | -6148914691236517206.intAsReal_testReal()).unsafe_getValue()== -6148914691236517206
+        (8070450532247928839.intAsReal_testReal() | 6148914691236517205.intAsReal_testReal()).unsafe_getValue()== 8454757700450211159
+        (-2305843009213693938.intAsReal_testReal() | -6148914691236517206.intAsReal_testReal()).unsafe_getValue()== -1537228672809129298
+        (-6148914691236517206.intAsReal_testReal() ^ 6148914691236517205.intAsReal_testReal()).unsafe_getValue()== -1
+        (6148914691236517205.intAsReal_testReal() ^ -6148914691236517206.intAsReal_testReal()).unsafe_getValue()== -1
+        (6148914691236517205.intAsReal_testReal() ^ 6148914691236517205.intAsReal_testReal()).unsafe_getValue()== 0
+        (-6148914691236517206.intAsReal_testReal() ^ -6148914691236517206.intAsReal_testReal()).unsafe_getValue()== 0
+        (8070450532247928839.intAsReal_testReal() ^ 6148914691236517205.intAsReal_testReal()).unsafe_getValue()== 2690150177415976274
+        (-2305843009213693938.intAsReal_testReal() ^ -6148914691236517206.intAsReal_testReal()).unsafe_getValue()== 5380300354831952548
+        (0.intAsReal_testReal() << 1).unsafe_getValue()== 0
+        (0.intAsReal_testReal() << 63).unsafe_getValue()== 0
+        (1.intAsReal_testReal() << 63).unsafe_getValue()== -9223372036854775808
+        (-9223372036854775808.intAsReal_testReal() << 1).unsafe_getValue()== 0
+        (-9223372036854775808.intAsReal_testReal() << 63).unsafe_getValue()== 0
+        (-1.intAsReal_testReal() << 63).unsafe_getValue()== -9223372036854775808
+        (7.intAsReal_testReal() << 2).unsafe_getValue()== 28
+        (0.intAsReal_testReal() << 64) : error_invalidShiftsNumber
+        (0.intAsReal_testReal() << 67) : error_invalidShiftsNumber
+        (1.intAsReal_testReal() << 64) : error_invalidShiftsNumber
+        (1.intAsReal_testReal() << 67) : error_invalidShiftsNumber
+        (-1.intAsReal_testReal() << 64) : error_invalidShiftsNumber
+        (-1.intAsReal_testReal() << 67) : error_invalidShiftsNumber
+        (-1.intAsReal_testReal() << -1) : error_invalidShiftsNumber
+        (0.intAsReal_testReal() << -1) : error_invalidShiftsNumber
+        (1.intAsReal_testReal() << -1) : error_invalidShiftsNumber
+        (-1.intAsReal_testReal() << -9223372036854775808) : error_invalidShiftsNumber
+        (0.intAsReal_testReal() << -9223372036854775808) : error_invalidShiftsNumber
+        (1.intAsReal_testReal() << -9223372036854775808) : error_invalidShiftsNumber
+        (0.intAsReal_testReal() >> 1).unsafe_getValue()== 0
+        (0.intAsReal_testReal() >> 63).unsafe_getValue()== 0
+        (1.intAsReal_testReal() >> 63).unsafe_getValue()== 0
+        (-9223372036854775808.intAsReal_testReal() >> 1).unsafe_getValue()== 4611686018427387904
+        (-9223372036854775808.intAsReal_testReal() >> 63).unsafe_getValue()== 1
+        (-1.intAsReal_testReal() >> 63).unsafe_getValue()== 1
+        (7.intAsReal_testReal() >> 2).unsafe_getValue()== 1
+        (0.intAsReal_testReal() >> 64) : error_invalidShiftsNumber
+        (0.intAsReal_testReal() >> 67) : error_invalidShiftsNumber
+        (1.intAsReal_testReal() >> 64) : error_invalidShiftsNumber
+        (1.intAsReal_testReal() >> 67) : error_invalidShiftsNumber
+        (-1.intAsReal_testReal() >> 64) : error_invalidShiftsNumber
+        (-1.intAsReal_testReal() >> 67) : error_invalidShiftsNumber
+        (-1.intAsReal_testReal() << -1) : error_invalidShiftsNumber
+        (0.intAsReal_testReal() << -1) : error_invalidShiftsNumber
+        (1.intAsReal_testReal() << -1) : error_invalidShiftsNumber
+        (-1.intAsReal_testReal() << -9223372036854775808) : error_invalidShiftsNumber
+        (0.intAsReal_testReal() << -9223372036854775808) : error_invalidShiftsNumber
+        (1.intAsReal_testReal() << -9223372036854775808) : error_invalidShiftsNumber
+        0.intAsReal_testReal().getBit(0) == false
+        0.intAsReal_testReal().getBit(1) == false
+        0.intAsReal_testReal().getBit(2) == false
+        0.intAsReal_testReal().getBit(63) == false
+        1.intAsReal_testReal().getBit(0) == true
+        1.intAsReal_testReal().getBit(1) == false
+        1.intAsReal_testReal().getBit(2) == false
+        1.intAsReal_testReal().getBit(63) == false
+        2.intAsReal_testReal().getBit(0) == false
+        2.intAsReal_testReal().getBit(1) == true
+        2.intAsReal_testReal().getBit(2) == false
+        2.intAsReal_testReal().getBit(63) == false
+        -1.intAsReal_testReal().getBit(0) == true
+        -1.intAsReal_testReal().getBit(1) == true
+        -1.intAsReal_testReal().getBit(2) == true
+        -1.intAsReal_testReal().getBit(63) == true
+        -9223372036854775808.intAsReal_testReal().getBit(0) == false
+        -9223372036854775808.intAsReal_testReal().getBit(1) == false
+        -9223372036854775808.intAsReal_testReal().getBit(2) == false
+        -9223372036854775808.intAsReal_testReal().getBit(63) == true
+        0.intAsReal_testReal().getBit(64) : error_outOfRange
+        0.intAsReal_testReal().getBit(9223372036854775807) : error_outOfRange
+        0.intAsReal_testReal().getBit(9223372036854775806) : error_outOfRange
+        0.intAsReal_testReal().getBit(-1) : error_outOfRange
+        0.intAsReal_testReal().getBit(-9223372036854775808) : error_outOfRange
+        -1.intAsReal_testReal().getBit(64) : error_outOfRange
+        -1.intAsReal_testReal().getBit(9223372036854775807) : error_outOfRange
+        -1.intAsReal_testReal().getBit(9223372036854775806) : error_outOfRange
+        -1.intAsReal_testReal().getBit(-1) : error_outOfRange
+        -1.intAsReal_testReal().getBit(-9223372036854775808) : error_outOfRange
+        1.intAsReal_testReal().getBit(64) : error_outOfRange
+        1.intAsReal_testReal().getBit(9223372036854775807) : error_outOfRange
+        1.intAsReal_testReal().getBit(9223372036854775806) : error_outOfRange
+        1.intAsReal_testReal().getBit(-1) : error_outOfRange
+        1.intAsReal_testReal().getBit(-9223372036854775808) : error_outOfRange
+        0.intAsReal_testReal().setBit$(0, true).unsafe_getValue() == 1
+        0.intAsReal_testReal().setBit$(0, false).unsafe_getValue() == 0
+        0.intAsReal_testReal().setBit$(1, true).unsafe_getValue() == 2
+        0.intAsReal_testReal().setBit$(2, true).unsafe_getValue() == 4
+        0.intAsReal_testReal().setBit$(63, true).unsafe_getValue() == -9223372036854775808
+        0.intAsReal_testReal().setBit$(63, false).unsafe_getValue() == 0
+        1.intAsReal_testReal().setBit$(0, true).unsafe_getValue() == 1
+        1.intAsReal_testReal().setBit$(0, false).unsafe_getValue() == 0
+        1.intAsReal_testReal().setBit$(1, true).unsafe_getValue() == 3
+        1.intAsReal_testReal().setBit$(2, true).unsafe_getValue() == 5
+        1.intAsReal_testReal().setBit$(63, true).unsafe_getValue() == -9223372036854775807
+        1.intAsReal_testReal().setBit$(63, false).unsafe_getValue() == 1
+        2.intAsReal_testReal().setBit$(0, true).unsafe_getValue() == 3
+        2.intAsReal_testReal().setBit$(1, true).unsafe_getValue() == 2
+        2.intAsReal_testReal().setBit$(2, true).unsafe_getValue() == 6
+        2.intAsReal_testReal().setBit$(2, false).unsafe_getValue() == 2
+        2.intAsReal_testReal().setBit$(63, true).unsafe_getValue() == -9223372036854775806
+        -1.intAsReal_testReal().setBit$(0, true).unsafe_getValue() == -1
+        -1.intAsReal_testReal().setBit$(0, false).unsafe_getValue() == -2
+        -1.intAsReal_testReal().setBit$(1, true).unsafe_getValue() == -1
+        -1.intAsReal_testReal().setBit$(2, false).unsafe_getValue() == -5
+        -1.intAsReal_testReal().setBit$(63, true).unsafe_getValue() == -1
+        -1.intAsReal_testReal().setBit$(63, false).unsafe_getValue() == 9223372036854775807
+        -9223372036854775808.intAsReal_testReal().setBit$(0, true).unsafe_getValue() == -9223372036854775807
+        -9223372036854775808.intAsReal_testReal().setBit$(0, false).unsafe_getValue() == -9223372036854775808
+        -9223372036854775808.intAsReal_testReal().setBit$(1, true).unsafe_getValue() == -9223372036854775806
+        -9223372036854775808.intAsReal_testReal().setBit$(2, true).unsafe_getValue() == -9223372036854775804
+        -9223372036854775808.intAsReal_testReal().setBit$(63, true).unsafe_getValue() == -9223372036854775808
+        0.intAsReal_testReal().setBit$(64, true) : error_outOfRange
+        0.intAsReal_testReal().setBit$(64, false) : error_outOfRange
+        0.intAsReal_testReal().setBit$(9223372036854775807, true) : error_outOfRange
+        0.intAsReal_testReal().setBit$(9223372036854775806, false) : error_outOfRange
+        0.intAsReal_testReal().setBit$(-1, true) : error_outOfRange
+        0.intAsReal_testReal().setBit$(-1, false) : error_outOfRange
+        0.intAsReal_testReal().setBit$(-9223372036854775808, true) : error_outOfRange
+        -1.intAsReal_testReal().setBit$(64, true) : error_outOfRange
+        -1.intAsReal_testReal().setBit$(9223372036854775807, true) : error_outOfRange
+        -1.intAsReal_testReal().setBit$(9223372036854775806, false) : error_outOfRange
+        -1.intAsReal_testReal().setBit$(-1, true) : error_outOfRange
+        -1.intAsReal_testReal().setBit$(-9223372036854775808, true) : error_outOfRange
+        1.intAsReal_testReal().setBit$(64, false) : error_outOfRange
+        1.intAsReal_testReal().setBit$(9223372036854775807, false) : error_outOfRange
+        1.intAsReal_testReal().setBit$(9223372036854775806, true) : error_outOfRange
+        1.intAsReal_testReal().setBit$(-1, true) : error_outOfRange
+        1.intAsReal_testReal().setBit$(-9223372036854775808, false) : error_outOfRange
+        0.5.bitsCount~() == 64
+        -1.intAsReal_testReal().not().unsafe_getValue() == 0
+        1.intAsReal_testReal().not().unsafe_getValue() == -2
+        -9223372036854775808.intAsReal_testReal().not().unsafe_getValue() == 9223372036854775807
+        -9223372036854775808.intAsReal_testReal().not().not().unsafe_getValue() == -9223372036854775808
+    var real1 Real = -6148914691236517206.intAsReal_testReal()
+    var real2 Real = 6148914691236517205.intAsReal_testReal()
+    var real3 Real = 6148914691236517205.intAsReal_testReal()
+    var real4 Real = -6148914691236517206.intAsReal_testReal()
+    var real5 Real = 8070450532247928839.intAsReal_testReal()
+    var real6 Real = -2305843009213693938.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        (real1 &= 6148914691236517205.intAsReal_testReal()).nothing?()
+        real1.unsafe_getValue() == 0
+        (real2 &= -6148914691236517206.intAsReal_testReal()).nothing?()
+        real2.unsafe_getValue() == 0
+        (real3 &= 6148914691236517205.intAsReal_testReal()).nothing?()
+        real3.unsafe_getValue() == 6148914691236517205
+        (real4 &= -6148914691236517206.intAsReal_testReal()).nothing?()
+        real4.unsafe_getValue() == -6148914691236517206
+        (real5 &= 6148914691236517205.intAsReal_testReal()).nothing?()
+        real5.unsafe_getValue() == 5764607523034234885
+        (real6 &= -6148914691236517206.intAsReal_testReal()).nothing?()
+        real6.unsafe_getValue() == -6917529027641081846
+    real1 = -6148914691236517206.intAsReal_testReal()
+    real2 = 6148914691236517205.intAsReal_testReal()
+    real3 = 6148914691236517205.intAsReal_testReal()
+    real4 = -6148914691236517206.intAsReal_testReal()
+    real5 = 8070450532247928839.intAsReal_testReal()
+    real6 = -2305843009213693938.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        (real1 |= 6148914691236517205.intAsReal_testReal()).nothing?()
+        real1.unsafe_getValue() == -1
+        (real2 |= -6148914691236517206.intAsReal_testReal()).nothing?()
+        real2.unsafe_getValue() == -1
+        (real3 |= 6148914691236517205.intAsReal_testReal()).nothing?()
+        real3.unsafe_getValue() == 6148914691236517205
+        (real4 |= -6148914691236517206.intAsReal_testReal()).nothing?()
+        real4.unsafe_getValue() == -6148914691236517206
+        (real5 |= 6148914691236517205.intAsReal_testReal()).nothing?()
+        real5.unsafe_getValue() == 8454757700450211159
+        (real6 |= -6148914691236517206.intAsReal_testReal()).nothing?()
+        real6.unsafe_getValue() == -1537228672809129298
+    real1 = -6148914691236517206.intAsReal_testReal()
+    real2 = 6148914691236517205.intAsReal_testReal()
+    real3 = 6148914691236517205.intAsReal_testReal()
+    real4 = -6148914691236517206.intAsReal_testReal()
+    real5 = 8070450532247928839.intAsReal_testReal()
+    real6 = -2305843009213693938.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        (real1 ^= 6148914691236517205.intAsReal_testReal()).nothing?()
+        real1.unsafe_getValue() == -1
+        (real2 ^= -6148914691236517206.intAsReal_testReal()).nothing?()
+        real2.unsafe_getValue() == -1
+        (real3 ^= 6148914691236517205.intAsReal_testReal()).nothing?()
+        real3.unsafe_getValue() == 0
+        (real4 ^= -6148914691236517206.intAsReal_testReal()).nothing?()
+        real4.unsafe_getValue() == 0
+        (real5 ^= 6148914691236517205.intAsReal_testReal()).nothing?()
+        real5.unsafe_getValue() == 2690150177415976274
+        (real6 ^= -6148914691236517206.intAsReal_testReal()).nothing?()
+        real6.unsafe_getValue() == 5380300354831952548
+    real1 = 0.intAsReal_testReal()
+    real2 = 0.intAsReal_testReal()
+    real3 = 1.intAsReal_testReal()
+    real4 = -9223372036854775808.intAsReal_testReal()
+    real5 = -9223372036854775808.intAsReal_testReal()
+    real6 = -1.intAsReal_testReal()
+    var real7 Real = 7.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        (real1 <<= 1).nothing?()
+        real1.unsafe_getValue() == 0
+        (real2 <<= 63).nothing?()
+        real2.unsafe_getValue() == 0
+        (real3 <<= 63).nothing?()
+        real3.unsafe_getValue() == -9223372036854775808
+        (real4 <<= 1).nothing?()
+        real4.unsafe_getValue() == 0
+        (real5 <<= 63).nothing?()
+        real5.unsafe_getValue() == 0
+        (real6 <<= 63).nothing?()
+        real6.unsafe_getValue() == -9223372036854775808
+        (real7 <<= 2).nothing?()
+        real7.unsafe_getValue() == 28
+    real1 = 0.intAsReal_testReal()
+    real2 = 0.intAsReal_testReal()
+    real3 = 1.intAsReal_testReal()
+    real4 = -9223372036854775808.intAsReal_testReal()
+    real5 = -9223372036854775808.intAsReal_testReal()
+    real6 = -1.intAsReal_testReal()
+    real7 = 7.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        (real1 >>= 1).nothing?()
+        real1.unsafe_getValue() == 0
+        (real2 >>= 63).nothing?()
+        real2.unsafe_getValue() == 0
+        (real3 >>= 63).nothing?()
+        real3.unsafe_getValue() == 0
+        (real4 >>= 1).nothing?()
+        real4.unsafe_getValue() == 4611686018427387904
+        (real5 >>= 63).nothing?()
+        real5.unsafe_getValue() == 1
+        (real6 >>= 63).nothing?()
+        real6.unsafe_getValue() == 1
+        (real7 >>= 2).nothing?()
+        real7.unsafe_getValue() == 1
+    real1 = 0.intAsReal_testReal()
+    real2 = 0.intAsReal_testReal()
+    real3 = 1.intAsReal_testReal()
+    real4 = 1.intAsReal_testReal()
+    real5 = -1.intAsReal_testReal()
+    real6 = -1.intAsReal_testReal()
+    real7 = -1.intAsReal_testReal()
+    var real8 Real = 0.intAsReal_testReal()
+    var real9 Real = 1.intAsReal_testReal()
+    var real10 Real = -1.intAsReal_testReal()
+    var real11 Real = 0.intAsReal_testReal()
+    var real12 Real = 1.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        (real1 <<= 64) : error_invalidShiftsNumber
+        real1 == 0.intAsReal_testReal()
+        (real2 <<= 67) : error_invalidShiftsNumber
+        real2 == 0.intAsReal_testReal()
+        (real3 <<= 64) : error_invalidShiftsNumber
+        real3 == 1.intAsReal_testReal()
+        (real4 <<= 67) : error_invalidShiftsNumber
+        real4 == 1.intAsReal_testReal()
+        (real5 <<= 64) : error_invalidShiftsNumber
+        real5.unsafe_getValue() == -1
+        (real6 <<= 67) : error_invalidShiftsNumber
+        real6.unsafe_getValue() == -1
+        (real7 <<= -1) : error_invalidShiftsNumber
+        real7.unsafe_getValue() == -1
+        (real8 <<= -1) : error_invalidShiftsNumber
+        real8 == 0.intAsReal_testReal()
+        (real9 <<= -1) : error_invalidShiftsNumber
+        real9 == 1.intAsReal_testReal()
+        (real10 <<= -9223372036854775808) : error_invalidShiftsNumber
+        real10.unsafe_getValue() == -1
+        (real11 <<= -9223372036854775808) : error_invalidShiftsNumber
+        real11 == 0.intAsReal_testReal()
+        (real12 <<= -9223372036854775808) : error_invalidShiftsNumber
+        real12 == 1.intAsReal_testReal()
+    real1 = 0.intAsReal_testReal()
+    real2 = 0.intAsReal_testReal()
+    real3 = 1.intAsReal_testReal()
+    real4 = 1.intAsReal_testReal()
+    real5 = -1.intAsReal_testReal()
+    real6 = -1.intAsReal_testReal()
+    real7 = -1.intAsReal_testReal()
+    real8 = 0.intAsReal_testReal()
+    real9 = 1.intAsReal_testReal()
+    real10 = -1.intAsReal_testReal()
+    real11 = 0.intAsReal_testReal()
+    real12 = 1.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        (real1 >>= 64) : error_invalidShiftsNumber
+        real1 == 0.intAsReal_testReal()
+        (real2 >>= 67) : error_invalidShiftsNumber
+        real2 == 0.intAsReal_testReal()
+        (real3 >>= 64) : error_invalidShiftsNumber
+        real3 == 1.intAsReal_testReal()
+        (real4 >>= 67) : error_invalidShiftsNumber
+        real4 == 1.intAsReal_testReal()
+        (real5 >>= 64) : error_invalidShiftsNumber
+        real5.unsafe_getValue() == -1
+        (real6 >>= 67) : error_invalidShiftsNumber
+        real6.unsafe_getValue() == -1
+        (real7 >>= -1) : error_invalidShiftsNumber
+        real7.unsafe_getValue() == -1
+        (real8 >>= -1) : error_invalidShiftsNumber
+        real8 == 0.intAsReal_testReal()
+        (real9 >>= -1) : error_invalidShiftsNumber
+        real9 == 1.intAsReal_testReal()
+        (real10 >>= -9223372036854775808) : error_invalidShiftsNumber
+        real10.unsafe_getValue() == -1
+        (real11 >>= -9223372036854775808) : error_invalidShiftsNumber
+        real11 == 0.intAsReal_testReal()
+        (real12 >>= -9223372036854775808) : error_invalidShiftsNumber
+        real12 == 1.intAsReal_testReal()
+    real1 = 0.intAsReal_testReal()
+    real2 = 0.intAsReal_testReal()
+    real3 = 0.intAsReal_testReal()
+    real4 = 0.intAsReal_testReal()
+    real5 = 0.intAsReal_testReal()
+    real6 = 0.intAsReal_testReal()
+    real7 = 1.intAsReal_testReal()
+    real8 = 1.intAsReal_testReal()
+    real9 = 1.intAsReal_testReal()
+    real10 = 1.intAsReal_testReal()
+    real11 = 1.intAsReal_testReal()
+    real12 = 1.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        real1.setBit(0, true).nothing?()
+        real1.unsafe_getValue() == 1
+        real2.setBit(0, false).nothing?()
+        real2.unsafe_getValue() == 0
+        real3.setBit(1, true).nothing?()
+        real3.unsafe_getValue() == 2
+        real4.setBit(2, true).nothing?()
+        real4.unsafe_getValue() == 4
+        real5.setBit(63, true).nothing?()
+        real5.unsafe_getValue() == -9223372036854775808
+        real6.setBit(63, false).nothing?()
+        real6.unsafe_getValue() == 0
+        real7.setBit(0, true).nothing?()
+        real7.unsafe_getValue() == 1
+        real8.setBit(0, false).nothing?()
+        real8.unsafe_getValue() == 0
+        real9.setBit(1, true).nothing?()
+        real9.unsafe_getValue() == 3
+        real10.setBit(2, true).nothing?()
+        real10.unsafe_getValue() == 5
+        real11.setBit(63, true).nothing?()
+        real11.unsafe_getValue() == -9223372036854775807
+        real12.setBit(63, false).nothing?()
+        real12.unsafe_getValue() == 1
+    real1 = 2.intAsReal_testReal()
+    real2 = 2.intAsReal_testReal()
+    real3 = 4.intAsReal_testReal()
+    real4 = 2.intAsReal_testReal()
+    real5 = 2.intAsReal_testReal()
+    real6 = -1.intAsReal_testReal()
+    real7 = -1.intAsReal_testReal()
+    real8 = -1.intAsReal_testReal()
+    real9 = -1.intAsReal_testReal()
+    real10 = -1.intAsReal_testReal()
+    real11 = -1.intAsReal_testReal()
+    real12 = -9223372036854775808.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        real1.setBit(0, true).nothing?()
+        real1.unsafe_getValue() == 3
+        real2.setBit(1, true).nothing?()
+        real2.unsafe_getValue() == 2
+        real3.setBit(1, true).nothing?()
+        real3.unsafe_getValue() == 6
+        real4.setBit(2, false).nothing?()
+        real4.unsafe_getValue() == 2
+        real5.setBit(63, true).nothing?()
+        real5.unsafe_getValue() == -9223372036854775806
+        real6.setBit(0, true).nothing?()
+        real6.unsafe_getValue() == -1
+        real7.setBit(0, false).nothing?()
+        real7.unsafe_getValue() == -2
+        real8.setBit(1, true).nothing?()
+        real8.unsafe_getValue() == -1
+        real9.setBit(2, false).nothing?()
+        real9.unsafe_getValue() == -5
+        real10.setBit(63, true).nothing?()
+        real10.unsafe_getValue() == -1
+        real11.setBit(63, false).nothing?()
+        real11.unsafe_getValue() == 9223372036854775807
+        real12.setBit(0, true).nothing?()
+        real12.unsafe_getValue() == -9223372036854775807
+    real1 = -9223372036854775808.intAsReal_testReal()
+    real2 = -9223372036854775808.intAsReal_testReal()
+    real3 = -9223372036854775808.intAsReal_testReal()
+    real4 = -9223372036854775808.intAsReal_testReal()
+    test: ok, errorsCoordinates
+        real1.setBit(0, false).nothing?()
+        real2.setBit(1, true).nothing?()
+        real3.setBit(2, true).nothing?()
+        real4.setBit(63, true).nothing?()
+        real1.unsafe_getValue() == -9223372036854775808
+        real2.unsafe_getValue() == -9223372036854775806
+        real3.unsafe_getValue() == -9223372036854775804
+        real4.unsafe_getValue() == -9223372036854775808
+        real5.setBit(64, true) : error_outOfRange
+        real5.unsafe_getValue() == -9223372036854775806
+        real5.setBit(64, false) : error_outOfRange
+        real5.unsafe_getValue() == -9223372036854775806
+        real5.setBit(9223372036854775807, true) : error_outOfRange
+        real5.unsafe_getValue() == -9223372036854775806
+        real5.setBit(9223372036854775806, false) : error_outOfRange
+        real5.unsafe_getValue() == -9223372036854775806
+        real5.setBit(-1, true) : error_outOfRange
+        real5.unsafe_getValue() == -9223372036854775806
+        real5.setBit(-1, false) : error_outOfRange
+        real5.unsafe_getValue() == -9223372036854775806
+        real5.setBit(-9223372036854775808, true) : error_outOfRange
+        real5.unsafe_getValue() == -9223372036854775806
+
+#noinline
+def testReal_RealToInt(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0.0.realToInt() == 0
+        -0.0.realToInt() == 0
+        -1.9.realToInt() == -1
+        -1.1.realToInt() == -1
+        1.1.realToInt() == 1
+        1.9.realToInt() == 1
+        2.0.realToInt() == 2
+        2.1.realToInt() == 2
+        -9223372036854775808.0.realToInt() == -9223372036854775808
+        9223372036854775275.0.realToInt() == 9223372036854774784
+        (0.0/0.0).realToInt() : error_outOfRange
+        (1.0/0.0).realToInt() : error_outOfRange
+        (-1.0/0.0).realToInt() : error_outOfRange
+        (9223372036854775808.0).realToInt() : error_outOfRange
+        (-9223372036854777856.0).realToInt() : error_outOfRange
+
+#noinline
+def testReal_BinarySerializable(write ok Int, write errorsCoordinates List)
+    var bytes Bytes = Bytes.createEmpty()
+    var position Int = 0
+    test: ok, errorsCoordinates
+        0.intAsReal_testReal().serialize(bytes).nothing?()
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes)
+        0xfc1b0234.intAsReal_testReal().serialize(bytes).nothing?()
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0, 0x34, 2, 0x1b, 0xfc, 0, 0, 0, 0].repackTo(Bytes)
+        Real.deserialize(bytes, position) == 0.intAsReal_testReal()
+        position == 8
+        Real.deserialize(bytes, position) == 0xfc1b0234.intAsReal_testReal()
+        position == 16
+        Real.deserialize(bytes, position) : error_outOfRange
+    position = 0
+    test: ok, errorsCoordinates
+        Real.deserialize([0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        position == 0
+        Real.deserialize([0].repackTo(Bytes), position) : error_outOfRange
+        position == 0
+        Real.deserialize([].repackTo(Bytes), position) : error_outOfRange
+        position == 0
+    position = 1
+    test: ok, errorsCoordinates
+        Real.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = -1
+    test: ok, errorsCoordinates
+        Real.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = -9223372036854775808
+    test: ok, errorsCoordinates
+        Real.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = 9223372036854775807
+    test: ok, errorsCoordinates
+        Real.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange

@@ -1,0 +1,127 @@
+module Main
+
+type Test_AnyType
+
+def unsafe_testAnyType_getCounter(type $Any) Int
+    return type.unsafe_getI64(0)
+
+#noinline
+def testAny(write ok Int, write errorsCoordinates List)
+    var int Int = 1
+    var type1 Test_AnyType = Test_AnyType.fromList({int, 2, 3})
+    var type2 Test_AnyType = Test_AnyType.fromList({type1, 2, 3})
+    var type3 Test_AnyType = Test_AnyType.fromList({int, 2, 3})
+    var type4 Test_AnyType = Test_AnyType.fromList({type3, 2, 3})
+    test: ok, errorsCoordinates
+        unsafe_testAnyType_getCounter(type1) == 2
+        unsafe_testAnyType_getCounter(type2) == 1
+    type1.shar__rc_free()
+    test: ok, errorsCoordinates
+        unsafe_testAnyType_getCounter(type1) == 1
+        unsafe_testAnyType_getCounter(type2) == 1
+    type1.shar__rc_use()
+    test: ok, errorsCoordinates
+        unsafe_testAnyType_getCounter(type1) == 2
+        unsafe_testAnyType_getCounter(type2) == 1
+    type2 = Test_AnyType.fromList({1, 2, 3})
+    test: ok, errorsCoordinates
+        unsafe_testAnyType_getCounter(type1) == 1
+        unsafe_testAnyType_getCounter(type2) == 0
+    type1.shar__to_const()
+    test: ok, errorsCoordinates
+        unsafe_testAnyType_getCounter(type1) == 0
+        unsafe_testAnyType_getCounter(type2) == 0
+        type1.use?()
+        type3.use?()
+        !type4.use?()
+        type1.constant?()
+        !type3.constant?()
+        !type4.constant?()
+    type1 = type1.clone()
+    type2 = type3.clone()
+    var type5 Test_AnyType = type4.clone()
+    test: ok, errorsCoordinates
+        unsafe_testAnyType_getCounter(type1) == 1
+        unsafe_testAnyType_getCounter(type2) == 1
+        unsafe_testAnyType_getCounter(type3) == 3
+        unsafe_testAnyType_getCounter(type4) == 1
+        unsafe_testAnyType_getCounter(type5) == 1
+        !type1.use?()
+        !type1.constant?()
+        !type2.use?()
+        !type2.constant?()
+    type1 = Test_AnyType.fromList({int, 2, 3})
+    type2 = Test_AnyType.fromList({type1, 2, 3})
+    type2.shar__to_const()
+    test: ok, errorsCoordinates
+        unsafe_testAnyType_getCounter(type1) == 0
+        unsafe_testAnyType_getCounter(type2) == 0
+        unsafe_testAnyType_getCounter(type3) == 3
+        unsafe_testAnyType_getCounter(type4) == 1
+        unsafe_testAnyType_getCounter(type5) == 1
+        type1.use?()
+        type1.constant?()
+        type2.use?()
+        type2.constant?()
+        1.same() == 1
+        1.same() == [1.0][0] : error_invalidType
+        true.type?(Bool)
+        !true.type?(Int)
+        12.type!(Int) == 12
+        String.typeNumber~() == String.typeNumber~()
+        String.typeNumber~() != Int.typeNumber~()
+    var i1 Int = 10
+    var i2 Int = -5
+    var r1 Real = 1.0
+    test: ok, errorsCoordinates
+        exchange(i1, i2).nothing?()
+        i1 == -5
+        i2 == 10
+        exchange(i1, i2).nothing?()
+        i1 == 10
+        i2 == -5
+        exchange(i1, r1) : error_invalidType
+        i1 == 10
+        r1 == 1.0
+        exchange(r1, i1) : error_invalidType
+        i1 == 10
+        r1 == 1.0
+        Nothing.typeNumber~().getTypeName() == "STD::Nothing"
+        Int.typeNumber~().getTypeName() == "STD::Int"
+        Bool.typeNumber~().getTypeName() == "STD::Bool"
+        Array.typeNumber~().getTypeName() == "STD::Array"
+        Dict.typeNumber~().getTypeName() == "STD::Dict"
+        (-10000000).getTypeName() : error_outOfRange
+    var allOk Bool = false
+    var list1 List = {}
+    try
+        for :(i Int = 0) i < 300; i++
+            list1.addItem(i)
+        type1 = Test_AnyType.fromList(list1)
+        type2 = type1
+        for :(i Int = 1) i < 150; i++
+            type1.typeSetItem(i, i + 1)
+        allOk = type1.typeGetItem(0) == 0
+        if allOk
+            for :(i Int = 1) i < 150; i++
+                allOk = type1.toList()[i] == i + 1
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 150) i < 300; i++
+                allOk = type1.toList()[i] == i
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 0) i < 300; i++
+                allOk = type2.toList()[i] == i
+                if !allOk
+                    end i
+    catch
+        nothing
+    test: ok, errorsCoordinates
+        allOk
+        type1.toList().length~() == 300
+        type2.toList().length~() == 300
+        nothing.nothing?()
+        !0.nothing?()

@@ -1,0 +1,318 @@
+module Main
+
+def testChar(write ok Int, write errorsCoordinates List)
+    testChar_Any(ok, errorsCoordinates)
+    testChar_Equal(ok, errorsCoordinates)
+    testChar_Ordered(ok, errorsCoordinates)
+    testChar_BitArray(ok, errorsCoordinates)
+    testChar_StringWriter(ok, errorsCoordinates)
+    testChar_StringReader(ok, errorsCoordinates)
+    testChar_CharToInt(ok, errorsCoordinates)
+    testChar_Hashed(ok, errorsCoordinates)
+    testChar_BinarySerializable(ok, errorsCoordinates)
+
+#noinline
+def testChar_Any(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        !'a'.use?()
+        !'a'.constant?()
+        'a'.clone() == 'a'
+        'b'.clone() == 'b'
+        !'a'.clone().use?()
+        !'b'.clone().constant?()
+
+#noinline
+def testChar_Equal(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        'a' == 'a'
+        !('a' == 'b')
+        'a' != 'b'
+        !('a' != 'a')
+
+#noinline
+def testChar_Ordered(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        'a' < 'b'
+        !('b' < 'a')
+        'a' <= 'b'
+        'a' <= 'a'
+        !('b' <= 'a')
+        'b' > 'a'
+        !('a' > 'b')
+        'b' >= 'a'
+        'b' >= 'b'
+        !('a' >= 'b')
+
+#noinline
+def testChar_BitArray(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        ('\5555' & '\aa55') == '\0055'
+        ('\5555' & '\5555') == '\5555'
+        ('\aaaa' & '\5555') == '\0000'
+        ('\5555' | '\aa55') == '\ff55'
+        ('\5555' | '\5555') == '\5555'
+        ('\aaaa' | '\5555') == '\ffff'
+        ('\5555' ^ '\aa55') == '\ff00'
+        ('\5555' ^ '\5555') == '\0000'
+        ('\aaaa' ^ '\5555') == '\ffff'
+        '\aa55' >> 4 == '\0aa5'
+        '\aa55' >> 0 == '\aa55'
+        '\aa55' >> 16 : error_invalidShiftsNumber
+        '\aa55' >> 17 : error_invalidShiftsNumber
+        '\aa55' >> -1 : error_invalidShiftsNumber
+        '\aa55' >> -9223372036854775808 : error_invalidShiftsNumber
+        '\aa55' >> 9223372036854775807 : error_invalidShiftsNumber
+        '\aa55' << 4 == '\a550'
+        '\aa55' << 0 == '\aa55'
+        '\aa55' << 16 : error_invalidShiftsNumber
+        '\aa55' << 17 : error_invalidShiftsNumber
+        '\aa55' << -1 : error_invalidShiftsNumber
+        '\aa55' << -9223372036854775808 : error_invalidShiftsNumber
+        '\aa55' << 9223372036854775807 : error_invalidShiftsNumber
+        '\0000'.getBit(0) == false
+        '\0000'.getBit(1) == false
+        '\0000'.getBit(2) == false
+        '\0000'.getBit(15) == false
+        '\0001'.getBit(0) == true
+        '\0001'.getBit(1) == false
+        '\0001'.getBit(2) == false
+        '\0001'.getBit(15) == false
+        '\0002'.getBit(0) == false
+        '\0002'.getBit(1) == true
+        '\0002'.getBit(2) == false
+        '\0002'.getBit(15) == false
+        '\ffff'.getBit(0) == true
+        '\ffff'.getBit(1) == true
+        '\ffff'.getBit(2) == true
+        '\ffff'.getBit(15) == true
+        '\0000'.getBit(16) : error_outOfRange
+        '\0000'.getBit(9223372036854775807) : error_outOfRange
+        '\0000'.getBit(9223372036854775806) : error_outOfRange
+        '\0000'.getBit(-1) : error_outOfRange
+        '\0000'.getBit(-9223372036854775808) : error_outOfRange
+        '\ffff'.getBit(16) : error_outOfRange
+        '\ffff'.getBit(9223372036854775807) : error_outOfRange
+        '\ffff'.getBit(9223372036854775806) : error_outOfRange
+        '\ffff'.getBit(-1) : error_outOfRange
+        '\ffff'.getBit(-9223372036854775808) : error_outOfRange
+        '\0001'.getBit(16) : error_outOfRange
+        '\0001'.getBit(9223372036854775807) : error_outOfRange
+        '\0001'.getBit(9223372036854775806) : error_outOfRange
+        '\0001'.getBit(-1) : error_outOfRange
+        '\0001'.getBit(-9223372036854775808) : error_outOfRange
+        '\0000'.setBit$(0, true) == '\0001'
+        '\0000'.setBit$(0, false) == '\0000'
+        '\0000'.setBit$(1, true) == '\0002'
+        '\0000'.setBit$(2, true) == '\0004'
+        '\0000'.setBit$(15, true) == '\8000'
+        '\0000'.setBit$(15, false) == '\0000'
+        '\0001'.setBit$(0, true) == '\0001'
+        '\0001'.setBit$(0, false) == '\0000'
+        '\0001'.setBit$(1, true) == '\0003'
+        '\0001'.setBit$(2, true) == '\0005'
+        '\0001'.setBit$(15, true) == '\8001'
+        '\0001'.setBit$(15, false) == '\0001'
+        '\0002'.setBit$(0, true) == '\0003'
+        '\0002'.setBit$(1, true) == '\0002'
+        '\0002'.setBit$(2, true) == '\0006'
+        '\0002'.setBit$(2, false) == '\0002'
+        '\0002'.setBit$(15, true) == '\8002'
+        '\ffff'.setBit$(0, true) == '\ffff'
+        '\ffff'.setBit$(0, false) == '\fffe'
+        '\ffff'.setBit$(1, true) == '\ffff'
+        '\ffff'.setBit$(2, false) == '\fffb'
+        '\ffff'.setBit$(15, true) == '\ffff'
+        '\ffff'.setBit$(15, false) == '\7fff'
+        '\0000'.setBit$(16, true) : error_outOfRange
+        '\0000'.setBit$(16, false) : error_outOfRange
+        '\0000'.setBit$(9223372036854775807, true) : error_outOfRange
+        '\0000'.setBit$(9223372036854775806, false) : error_outOfRange
+        '\0000'.setBit$(-1, true) : error_outOfRange
+        '\0000'.setBit$(-1, false) : error_outOfRange
+        '\0000'.setBit$(-9223372036854775808, true) : error_outOfRange
+        '\ffff'.setBit$(16, true) : error_outOfRange
+        '\ffff'.setBit$(9223372036854775807, true) : error_outOfRange
+        '\ffff'.setBit$(9223372036854775806, false) : error_outOfRange
+        '\ffff'.setBit$(-1, true) : error_outOfRange
+        '\ffff'.setBit$(-9223372036854775808, true) : error_outOfRange
+        '\0001'.setBit$(16, false) : error_outOfRange
+        '\0001'.setBit$(9223372036854775807, false) : error_outOfRange
+        '\0001'.setBit$(9223372036854775806, true) : error_outOfRange
+        '\0001'.setBit$(-1, true) : error_outOfRange
+        '\0001'.setBit$(-9223372036854775808, false) : error_outOfRange
+        '\0000'.bitsCount~() == 16
+        '\ffff'.bitsCount~() == 16
+        'a'.bitsCount~() == 16
+        ' '.bitsCount~() == 16
+        '\ffff'.not() == '\0000'
+        '\aa55'.not() == '\55aa'
+        '\0001'.not() == '\fffe'
+        '\0000'.not() == '\ffff'
+        '\0000'.not().not() == '\0000'
+    var c1 Char = '\5555'
+    var c2 Char = '\5555'
+    var c3 Char = '\aaaa'
+    test: ok, errorsCoordinates
+        (c1 &= '\aa55').nothing?()
+        c1 == '\0055'
+        (c2 &= '\5555').nothing?()
+        c2 == '\5555'
+        (c3 &= '\5555').nothing?()
+        c3 == '\0000'
+    c1 = '\5555'
+    c2 = '\5555'
+    c3 = '\aaaa'
+    test: ok, errorsCoordinates
+        (c1 |= '\aa55').nothing?()
+        c1 == '\ff55'
+        (c2 |= '\5555').nothing?()
+        c2 == '\5555'
+        (c3 |= '\5555').nothing?()
+        c3 == '\ffff'
+    c1 = '\5555'
+    c2 = '\5555'
+    c3 = '\aaaa'
+    test: ok, errorsCoordinates
+        (c1 ^= '\aa55').nothing?()
+        c1 == '\ff00'
+        (c2 ^= '\5555').nothing?()
+        c2 == '\0000'
+        (c3 ^= '\5555').nothing?()
+        c3 == '\ffff'
+    c1 = '\aa55'
+    c2 = '\aa55'
+    c3 = '\aa55'
+    var c4 Char = '\aa55'
+    test: ok, errorsCoordinates
+        (c1 >>= 4).nothing?()
+        c1 == '\0aa5'
+        (c2 >>= 0).nothing?()
+        c2 == '\aa55'
+        c1 >>= 16 : error_invalidShiftsNumber
+        c1 == '\0aa5'
+        c1 >>= 17 : error_invalidShiftsNumber
+        c1 == '\0aa5'
+        c1 >>= -1 : error_invalidShiftsNumber
+        c1 == '\0aa5'
+        c1 >>= -9223372036854775808 : error_invalidShiftsNumber
+        c1 == '\0aa5'
+        c1 >>= 9223372036854775807 : error_invalidShiftsNumber
+        c1 == '\0aa5'
+        (c3 <<= 4).nothing?()
+        (c4 <<= 0).nothing?()
+        c3 == '\a550'
+        c4 == '\aa55'
+        c4 <<= 16 : error_invalidShiftsNumber
+        c4 == '\aa55'
+        c4 <<= 17 : error_invalidShiftsNumber
+        c4 == '\aa55'
+        c4 <<= -1 : error_invalidShiftsNumber
+        c4 == '\aa55'
+        c4 <<= -9223372036854775808 : error_invalidShiftsNumber
+        c4 == '\aa55'
+        c4 <<= 9223372036854775807 : error_invalidShiftsNumber
+        c4 == '\aa55'
+    c1 = '\0000'
+    test: ok, errorsCoordinates
+        c1.setBit(0, true).nothing?()
+        c1 == '\0001'
+        c1.setBit(0, false).nothing?()
+        c1 == '\0000'
+        c1.setBit(1, true).nothing?()
+        c1 == '\0002'
+        c1.setBit(2, true).nothing?()
+        c1 == '\0006'
+        c1.setBit(15, true).nothing?()
+        c1 == '\8006'
+        c1.setBit(15, false).nothing?()
+        c1 == '\0006'
+        c1.setBit(0, true).nothing?()
+        c1 == '\0007'
+        c1.setBit(0, false).nothing?()
+        c1 == '\0006'
+        c1.setBit(0, false).nothing?()
+        c1 == '\0006'
+        c1.setBit(12, true).nothing?()
+        c1 == '\1006'
+        c1.setBit(16, true) : error_outOfRange
+        c1 == '\1006'
+        c1.setBit(16, false) : error_outOfRange
+        c1 == '\1006'
+        c1.setBit(9223372036854775807, true) : error_outOfRange
+        c1 == '\1006'
+        c1.setBit(9223372036854775807, false) : error_outOfRange
+        c1 == '\1006'
+        c1.setBit(-1, true) : error_outOfRange
+        c1 == '\1006'
+        c1.setBit(-1, false) : error_outOfRange
+        c1 == '\1006'
+        c1.setBit(-9223372036854775808, true) : error_outOfRange
+        c1 == '\1006'
+        c1.setBit(-9223372036854775808, false) : error_outOfRange
+
+#noinline
+def testChar_StringWriter(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        'a'.toString() == "a"
+        'v'.toString() == "v"
+        ' '.toString() == " "
+        '\ffff'.toString() == "\ffff"
+
+#noinline
+def testChar_StringReader(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        Char.fromString("a") == 'a'
+        Char.fromString("v") == 'v'
+        Char.fromString(" ") == ' '
+        Char.fromString("\ffff") == '\ffff'
+        Char.fromString("") : error_readFromString
+        Char.fromString("12") : error_readFromString
+
+#noinline
+def testChar_CharToInt(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        charToInt('\0000') == 0
+        charToInt(' ') == 32
+        charToInt('\00ff') == 255
+        charToInt('\ffff') == 65535
+
+#noinline
+def testChar_Hashed(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        'a'.getHash() == 'a'.getHash()
+        'b'.getHash() == 'b'.getHash()
+        'a'.getRandomizedHash() == 'a'.getRandomizedHash()
+        'b'.getRandomizedHash() == 'b'.getRandomizedHash()
+
+#noinline
+def testChar_BinarySerializable(write ok Int, write errorsCoordinates List)
+    var bytes Bytes = Bytes.createEmpty()
+    var position Int = 0
+    test: ok, errorsCoordinates
+        0.intToChar().serialize(bytes).nothing?()
+        bytes == [0, 0].repackTo(Bytes)
+        0xb234.intToChar().serialize(bytes).nothing?()
+        bytes == [0, 0, 0x34, 0xb2].repackTo(Bytes)
+        Char.deserialize(bytes, position) == 0.intToChar()
+        position == 2
+        Char.deserialize(bytes, position) == 0xb234.intToChar()
+        position == 4
+        Char.deserialize(bytes, position) : error_outOfRange
+    position = 0
+    test: ok, errorsCoordinates
+        Char.deserialize([0].repackTo(Bytes), position) : error_outOfRange
+        position == 0
+        Char.deserialize([].repackTo(Bytes), position) : error_outOfRange
+        position == 0
+    position = 1
+    test: ok, errorsCoordinates
+        Char.deserialize([0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = -1
+    test: ok, errorsCoordinates
+        Char.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = -9223372036854775808
+    test: ok, errorsCoordinates
+        Char.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = 9223372036854775807
+    test: ok, errorsCoordinates
+        Char.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange

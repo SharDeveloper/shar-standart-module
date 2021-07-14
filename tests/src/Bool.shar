@@ -1,0 +1,121 @@
+module Main
+
+def testBool(write ok Int, write errorsCoordinates List)
+    testBool_Any(ok, errorsCoordinates)
+    testBool_Equal(ok, errorsCoordinates)
+    testBool_Logic(ok, errorsCoordinates)
+    testBool_StringWriter(ok, errorsCoordinates)
+    testBool_StringReader(ok, errorsCoordinates)
+    testBool_Hashed(ok, errorsCoordinates)
+    testBool_BinarySerializable(ok, errorsCoordinates)
+
+#noinline
+def testBool_Any(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        true
+        !false
+        !!true
+        !true.use?()
+        !true.constant?()
+        true.clone() == true
+        false.clone() == false
+        true.clone().use?() == false
+        true.clone().constant?() == false
+        false.clone().use?() == false
+        false.clone().constant?() == false
+
+#noinline
+def testBool_Equal(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        true == true
+        false == false
+        true != false
+        false != true
+
+#noinline
+def testBool_Logic(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        !(false & false)
+        !(true & false)
+        !(false & true)
+        true & true
+        !(false && false)
+        !(true && false)
+        !(false && true)
+        true && true
+        !(false | false)
+        true | false
+        false | true
+        true | true
+        !(false || false)
+        true || false
+        false || true
+        true || true
+        !(false ^ false)
+        true ^ false
+        false ^ true
+        !(true ^ true)
+
+#noinline
+def testBool_StringWriter(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        true.toString() == "true"
+        false.toString() == "false"
+
+#noinline
+def testBool_StringReader(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        Bool.fromString("true")
+        !Bool.fromString("false")
+        Bool.fromString("") : error_readFromString
+        Bool.fromString("true ") : error_readFromString
+        Bool.fromString(" true") : error_readFromString
+        Bool.fromString("false ") : error_readFromString
+        Bool.fromString(" false") : error_readFromString
+        Bool.fromString("f") : error_readFromString
+        Bool.fromString("t") : error_readFromString
+        Bool.fromString("fals") : error_readFromString
+        Bool.fromString("alse") : error_readFromString
+        Bool.fromString("tru") : error_readFromString
+        Bool.fromString("rue") : error_readFromString
+        Bool.fromString("False") : error_readFromString
+        Bool.fromString("True") : error_readFromString
+        Bool.fromString("dfsdfEsdf") : error_readFromString
+
+#noinline
+def testBool_Hashed(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        true.getHash() == true.getHash()
+        false.getHash() == false.getHash()
+        true.getRandomizedHash() == true.getRandomizedHash()
+        false.getRandomizedHash() == false.getRandomizedHash()
+
+#noinline
+def testBool_BinarySerializable(write ok Int, write errorsCoordinates List)
+    var bytes Bytes = Bytes.createEmpty()
+    var position Int = 0
+    test: ok, errorsCoordinates
+        false.serialize(bytes).nothing?()
+        bytes == [0].repackTo(Bytes)
+        true.serialize(bytes).nothing?()
+        bytes == [0, 1].repackTo(Bytes)
+        !Bool.deserialize(bytes, position)
+        position == 1
+        Bool.deserialize(bytes, position)
+        position == 2
+        Bool.deserialize(bytes, position) : error_outOfRange
+        Bool.deserialize([0, 1, 254].repackTo(Bytes), position)
+        position == 3
+    position = 0
+    test: ok, errorsCoordinates
+        Bool.deserialize(Bytes.createEmpty(), position) : error_outOfRange
+        position == 0
+    position = -1
+    test: ok, errorsCoordinates
+        Bool.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = -9223372036854775808
+    test: ok, errorsCoordinates
+        Bool.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = 9223372036854775807
+    test: ok, errorsCoordinates
+        Bool.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange

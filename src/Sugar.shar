@@ -1,0 +1,125 @@
+module STD
+
+export group Shar__sugar__equal
+    //@"a == b" is syntactic sugar for this function.
+    shar__sugar__equal(This, This) Bool
+
+export group Shar__sugar__notEqual
+    //@"a != b" is syntactic sugar for this function.
+    shar__sugar__notEqual(This, This) Bool
+
+export group Shar__sugar__getRange
+    //@"a[b : c]" is syntactic sugar for this function.
+    shar__sugar__getRange(This, $Any, $Any) This
+
+export group Shar__sugar__getItem
+    //@"a[b]" is syntactic sugar for this function.
+    shar__sugar__getItem(This, $Any) $Any
+
+export group Shar__sugar__inc
+    //@"a++" is syntactic sugar for this function.
+    shar__sugar__inc(write This)
+
+export group Shar__sugar__dec
+    //@"a--" is syntactic sugar for this function.
+    shar__sugar__dec(write This)
+
+export group Shar__sugar__neg
+    //@"!a" is syntactic sugar for this function.
+    shar__sugar__neg(This) This
+
+export group Shar__sugar__mul
+    //@"a * b" is syntactic sugar for this function.
+    shar__sugar__mul(This, This) This
+
+export group Shar__sugar__div
+    //@"a / b" is syntactic sugar for this function.
+    shar__sugar__div(This, This) This
+
+export group Shar__sugar__mod
+    //@"a % b" is syntactic sugar for this function.
+    shar__sugar__mod(This, This) This
+
+export group Shar__sugar__add
+    //@"a + b" is syntactic sugar for this function.
+    shar__sugar__add(This, This) This
+
+export group Shar__sugar__sub
+    //@"a - b" is syntactic sugar for this function.
+    shar__sugar__sub(This, This) This
+
+export group Shar__sugar__shl
+    //@"a << b" is syntactic sugar for this function.
+    shar__sugar__shl(This, Int) This
+
+export group Shar__sugar__shr
+    //@"a >> b" is syntactic sugar for this function.
+    shar__sugar__shr(This, Int) This
+
+export group Shar__sugar__less
+    //@"a < b" is syntactic sugar for this function.
+    shar__sugar__less(This, This) Bool
+
+export group Shar__sugar__great
+    //@"a > b" is syntactic sugar for this function.
+    shar__sugar__great(This, This) Bool
+
+export group Shar__sugar__lessOrEqual
+    //@"a <= b" is syntactic sugar for this function.
+    shar__sugar__lessOrEqual(This, This) Bool
+
+export group Shar__sugar__greatOrEqual
+    //@"a >= b" is syntactic sugar for this function.
+    shar__sugar__greatOrEqual(This, This) Bool
+
+export group Shar__sugar__and
+    //@"a & b" is syntactic sugar for this function.
+    shar__sugar__and(This, This) This
+
+export group Shar__sugar__xor
+    //@"a ^ b" is syntactic sugar for this function.
+    shar__sugar__xor(This, This) This
+
+export group Shar__sugar__or
+    //@"a | b" is syntactic sugar for this function.
+    shar__sugar__or(This, This) This
+
+export group Shar__sugar__addSet
+    //@"a += b" is syntactic sugar for this function.
+    shar__sugar__addSet(write This, This)
+
+export group Shar__sugar__subSet
+    //@"a -= b" is syntactic sugar for this function.
+    shar__sugar__subSet(write This, This)
+
+export group Shar__sugar__mulSet
+    //@"a *= b" is syntactic sugar for this function.
+    shar__sugar__mulSet(write This, This)
+
+export group Shar__sugar__divSet
+    //@"a /= b" is syntactic sugar for this function.
+    shar__sugar__divSet(write This, This)
+
+export group Shar__sugar__modSet
+    //@"a %= b" is syntactic sugar for this function.
+    shar__sugar__modSet(write This, This)
+
+export group Shar__sugar__andSet
+    //@"a &= b" is syntactic sugar for this function.
+    shar__sugar__andSet(write This, This)
+
+export group Shar__sugar__orSet
+    //@"a |= b" is syntactic sugar for this function.
+    shar__sugar__orSet(write This, This)
+
+export group Shar__sugar__xorSet
+    //@"a ^= b" is syntactic sugar for this function.
+    shar__sugar__xorSet(write This, This)
+
+export group Shar__sugar__shlSet
+    //@"a <<= b" is syntactic sugar for this function.
+    shar__sugar__shlSet(write This, Int)
+
+export group Shar__sugar__shrSet
+    //@"a >>= b" is syntactic sugar for this function.
+    shar__sugar__shrSet(write This, Int)

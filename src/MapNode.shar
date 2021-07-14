@@ -1,0 +1,241 @@
+module STD
+
+primitive MapNode
+
+attach MapNode to Independent
+
+#override(STD) alwaysinline
+def shar__rc_free(node MapNode)
+    return nothing
+
+#override(STD)  alwaysinline
+def shar__rc_use(node MapNode)
+    return nothing
+
+#override(STD)
+def shar__to_const(node MapNode)
+    unreachable()
+
+#alwaysinline nothrow
+def unsafe_mapNode_toConst(node, keyTypeNumber, valueTypeNumber $Any)
+    if node.unsafe_mapNode_getCounter() != 0
+        const hashPartsCount Int = node.unsafe_mapNode_getHashPartsCount()
+        for :(hashPartIndex Int = 0) hashPartIndex < hashPartsCount; hashPartIndex++
+            node.unsafe_mapNode_keysAndValuesWithSameHashPartToConst(hashPartIndex, keyTypeNumber, valueTypeNumber)
+        node.unsafe_mapNode_setCounter(0)
+
+#override(STD) alwaysinline nothrow
+def use?(node MapNode) Bool
+    return node.unsafe_mapNode_getCounter() != 1
+
+#override(STD) alwaysinline nothrow
+def constant?(node MapNode) Bool
+    return node.unsafe_mapNode_getCounter() == 0
+
+#override(STD)
+def clone(node MapNode) MapNode
+    unreachable()
+
+#inline nothrow
+def unsafe_mapNode_clone(node, keyTypeNumber, valueTypeNumber $Any) MapNode
+    const hashPartsCount Int = node.unsafe_mapNode_getHashPartsCount()
+    if node.unsafe_mapNode_getCounter() != 0
+        for :(hashPartIndex Int = 0) hashPartIndex < hashPartsCount; hashPartIndex++
+            node.unsafe_mapNode_useKeysAndValuesWithSameHashPart(hashPartIndex, keyTypeNumber, valueTypeNumber)
+    const nodeSizeInI16 Int = hashPartsCount * 5 + 4
+    var result $Any = unsafe_malloc(nodeSizeInI16 * 2)
+    unsafe_memcpyI16(result, node, nodeSizeInI16)
+    result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
+    result.unsafe_setType(MapNode.typeNumber~())
+    for :(hashPartIndex Int = 0) hashPartIndex < hashPartsCount; hashPartIndex++
+        const sourceArray Int = node.unsafe_getI64(hashPartIndex + 1)
+        const countOfItems Int = sourceArray.unsafe_getI64(0)
+        const destinationArray Int = unsafe_malloc(countOfItems * 16 + 8)
+        unsafe_memcpyI64(destinationArray, sourceArray, countOfItems * 2 + 1)
+        result.unsafe_setI64(hashPartIndex + 1, destinationArray)
+    return result
+
+#alwaysinline nothrow
+def unsafe_mapNode_getCounter(node $Any) Int
+    return node.unsafe_getI64(0) & 0xffffffffffff
+
+#alwaysinline nothrow
+def unsafe_mapNode_setCounter(node, newCounter $Any)
+    node.unsafe_setI64(0, (node.unsafe_getI64(0) & -281474976710656) | (newCounter & 0xffffffffffff))
+
+#inline nothrow
+def unsafe_mapNode_getHashPartsCount(node $Any) Int
+    return node.unsafe_getI16(3) + 1
+
+#inline nothrow
+def unsafe_mapNode_free(node, keyTypeNumber, valueTypeNumber $Any)
+    const hashPartsCount Int = node.unsafe_mapNode_getHashPartsCount()
+    for :(hashPartIndex Int = 0) hashPartIndex < hashPartsCount; hashPartIndex++
+        node.unsafe_mapNode_freeKeysAndValuesWithSameHashPart(hashPartIndex, keyTypeNumber, valueTypeNumber)
+        node.unsafe_getI64(hashPartIndex + 1).unsafe_free()
+    node.unsafe_free()
+
+#alwaysinline unsafewrite nothrow
+def unsafe_mapNode_getValueByHash(node, hashPart, key, valueTypeNumber, write keysIndex, write keysInsertIndex, write keyIndex, write keysEqualError $Any) $Any
+    const hashPartsCount Int = node.unsafe_mapNode_getHashPartsCount()
+    const keysAndValues Int = node.unsafe_offsetI64(1)
+    const hashParts Int = keysAndValues.unsafe_offsetI64(hashPartsCount)
+    var found Bool = false
+    if hashPartsCount != 65536
+        var leftIndex Int = 0
+        var rightEdge Int = hashPartsCount
+        for :(loop)
+            const length Int = rightEdge - leftIndex
+            if length == 0
+                keysInsertIndex = leftIndex
+                return nothing
+            const centerIndex Int = (length >> 1) + leftIndex
+            const centerHashPart Int = hashParts.unsafe_getI16(centerIndex)
+            if centerHashPart == hashPart
+                keysIndex = centerIndex
+                found = true
+                end loop
+            if centerHashPart < hashPart
+                leftIndex = centerIndex + 1
+            else
+                rightEdge = centerIndex
+    else
+        keysIndex = hashPart
+        found = true
+    if found
+        const keysAndValuesWithSameHashPart_withCount Int = keysAndValues.unsafe_getI64(keysIndex)
+        const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
+        const keysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(1)
+        for :(keyInNodeIndex Int = 0) keyInNodeIndex < countOfKeysAndValuesWithSameHashPart; keyInNodeIndex++
+            var keyInNode $Any = keysAndValuesWithSameHashPart.unsafe_getI64(keyInNodeIndex * 2)
+            keyInNode.unsafe_setType(key.typeNumber~())
+            found = false
+            try
+                found = keyInNode == key
+            catch id, message
+                keyInNode.unsafe_setType(Int.typeNumber~())
+                keysEqualError = {id, message}
+                return nothing
+            keyInNode.unsafe_setType(Int.typeNumber~())
+            if found
+                keyIndex = keyInNodeIndex
+                var result $Any = keysAndValuesWithSameHashPart.unsafe_getI64(keyInNodeIndex * 2 + 1)
+                result.unsafe_setType(valueTypeNumber)
+                return result
+    return nothing
+
+#inline nothrow
+def unsafe_mapNode_createNewNode(hashPart, key, value $Any) MapNode
+    const countAndKeyAndValue Int = unsafe_malloc(24)
+    countAndKeyAndValue.unsafe_setI64(0, 1)
+    countAndKeyAndValue.unsafe_setI64(1, key)
+    countAndKeyAndValue.unsafe_setI64(2, value)
+    var result $Any = unsafe_malloc(18)
+    result.unsafe_setI64(0, 1)
+    result.unsafe_setI64(1, countAndKeyAndValue)
+    result.unsafe_setI16(8, hashPart)
+    result.unsafe_setType(MapNode.typeNumber~())
+    return result
+
+#inline unsafewrite nothrow
+def unsafe_mapNode_deleteValue(write node, keysIndex, keyIndex, keyTypeNumber $Any)
+    const keysAndValues Int = node.unsafe_offsetI64(1)
+    var keysAndValuesWithSameHashPart_withCount Int = keysAndValues.unsafe_getI64(keysIndex)
+    const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
+    const keyAddress Int = keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(keyIndex * 2 + 1)
+    var key $Any = keyAddress.unsafe_getI64(0)
+    key.unsafe_setType(keyTypeNumber)
+    if countOfKeysAndValuesWithSameHashPart == 1
+        keysAndValuesWithSameHashPart_withCount.unsafe_free()
+        const hashPartsCount Int = node.unsafe_mapNode_getHashPartsCount()
+        if hashPartsCount == 1
+            node.unsafe_free()
+            node = nothing
+        else
+            node.unsafe_setI16(3, hashPartsCount - 2)
+            const hashParts Int = keysAndValues.unsafe_offsetI64(hashPartsCount)
+            const countOfMovedHashParts Int = hashPartsCount - 1 - keysIndex
+            const countOfMovedKVAndMovedHashPartsInI16 Int = countOfMovedHashParts * 4 + hashPartsCount - 1
+            unsafe_memmoveI16(hashParts.unsafe_offsetI16(keysIndex), hashParts.unsafe_offsetI16(keysIndex + 1), countOfMovedHashParts)
+            unsafe_memmoveI16(keysAndValues.unsafe_offsetI64(keysIndex), keysAndValues.unsafe_offsetI64(keysIndex + 1), countOfMovedKVAndMovedHashPartsInI16)
+            node.unsafe_realloc(hashPartsCount * 10 - 2)
+    else
+        keysAndValuesWithSameHashPart_withCount.unsafe_setI64(0, countOfKeysAndValuesWithSameHashPart - 1)
+        const lastIndexOffset Int = countOfKeysAndValuesWithSameHashPart * 2 - 1
+        const lastKeyAddress Int = keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(lastIndexOffset)
+        unsafe_memmoveI64(keyAddress, lastKeyAddress, 2)
+        keysAndValuesWithSameHashPart_withCount.unsafe_realloc(lastIndexOffset * 8)
+        keysAndValues.unsafe_setI64(keysIndex, keysAndValuesWithSameHashPart_withCount)
+
+#inline unsafewrite nothrow
+def unsafe_mapNode_addKVWithNewHashCode(write node, hashPart, keysInsertIndex, key, value $Any)
+    const countAndKeyAndValue Int = unsafe_malloc(24)
+    countAndKeyAndValue.unsafe_setI64(0, 1)
+    countAndKeyAndValue.unsafe_setI64(1, key)
+    countAndKeyAndValue.unsafe_setI64(2, value)
+    const hashPartsCount Int = node.unsafe_mapNode_getHashPartsCount()
+    node.unsafe_realloc(hashPartsCount * 10 + 18)
+    const oldKeysAndValuesInNewNode Int = node.unsafe_offsetI64(1)
+    const oldHashPartsInNewNode Int = oldKeysAndValuesInNewNode.unsafe_offsetI64(hashPartsCount)
+    const countOfMovedHashPartsInEnd Int = hashPartsCount - keysInsertIndex
+    const countOfMovedKVAndHashPartsInBeginInI16 Int = countOfMovedHashPartsInEnd * 4 + keysInsertIndex
+    unsafe_memmoveI16(oldHashPartsInNewNode.unsafe_offsetI16(keysInsertIndex + 5), oldHashPartsInNewNode.unsafe_offsetI16(keysInsertIndex), countOfMovedHashPartsInEnd)
+    node.unsafe_setI16(3, hashPartsCount)
+    unsafe_memmoveI16(oldKeysAndValuesInNewNode.unsafe_offsetI64(keysInsertIndex + 1), oldKeysAndValuesInNewNode.unsafe_offsetI64(keysInsertIndex), countOfMovedKVAndHashPartsInBeginInI16)
+    oldKeysAndValuesInNewNode.unsafe_setI64(keysInsertIndex, countAndKeyAndValue)
+    oldHashPartsInNewNode.unsafe_setI16(keysInsertIndex + 4, hashPart)
+
+#alwaysinline nothrow
+def unsafe_mapNode_addKVWithExistedHashCode(node, keysIndex, keyIndex, key, value $Any)
+    var keysAndValuesWithSameHashPart_withCount Int = node.unsafe_getI64(keysIndex + 1)
+    const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
+    if keyIndex == -1
+        keysAndValuesWithSameHashPart_withCount.unsafe_setI64(0, countOfKeysAndValuesWithSameHashPart + 1)
+        const newKeyOffset Int = countOfKeysAndValuesWithSameHashPart * 2 + 1
+        keysAndValuesWithSameHashPart_withCount.unsafe_realloc(newKeyOffset * 8 + 16)
+        node.unsafe_setI64(keysIndex + 1, keysAndValuesWithSameHashPart_withCount)
+        const newKeyAddress Int = keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(newKeyOffset)
+        newKeyAddress.unsafe_setI64(0, key)
+        newKeyAddress.unsafe_setI64(1, value)
+    else
+        const newKeyAddress Int = keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(keyIndex * 2 + 1)
+        var oldKey $Any = newKeyAddress.unsafe_getI64(0)
+        oldKey.unsafe_setType(key.typeNumber~())
+        newKeyAddress.unsafe_setI64(0, key)
+        newKeyAddress.unsafe_setI64(1, value)
+
+#alwaysinline nothrow
+def unsafe_mapNode_keysAndValuesWithSameHashPartToConst(node, keysAndValuesIndex, keyTypeNumber, valueTypeNumber $Any)
+    const keysAndValuesWithSameHashPart_withCount Int = node.unsafe_getI64(keysAndValuesIndex + 1)
+    const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
+    for :(keyOffset Int = 1) keyOffset < countOfKeysAndValuesWithSameHashPart * 2; keyOffset += 2
+        var key $Any = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset)
+        key.unsafe_setType(keyTypeNumber)
+        key.shar__to_const()
+        var value $Any = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset + 1)
+        value.unsafe_setType(valueTypeNumber)
+        value.shar__to_const()
+
+#alwaysinline nothrow
+def unsafe_mapNode_useKeysAndValuesWithSameHashPart(node, keysAndValuesIndex, keyTypeNumber, valueTypeNumber $Any)
+    const keysAndValuesWithSameHashPart_withCount Int = node.unsafe_getI64(keysAndValuesIndex + 1)
+    const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
+    for :(keyOffset Int = 1) keyOffset < countOfKeysAndValuesWithSameHashPart * 2; keyOffset += 2
+        var key $Any = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset)
+        key.unsafe_setType(keyTypeNumber)
+        key.shar__rc_use()
+        key.unsafe_setType(Int.typeNumber~())
+        var value $Any = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset + 1)
+        value.unsafe_setType(valueTypeNumber)
+        value.shar__rc_use()
+        value.unsafe_setType(Int.typeNumber~())
+
+#alwaysinline nothrow
+def unsafe_mapNode_freeKeysAndValuesWithSameHashPart(node, keysAndValuesIndex, keyTypeNumber, valueTypeNumber $Any)
+    const keysAndValuesWithSameHashPart_withCount Int = node.unsafe_getI64(keysAndValuesIndex + 1)
+    const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
+    for :(keyOffset Int = 1) keyOffset < countOfKeysAndValuesWithSameHashPart * 2; keyOffset += 2
+        var key $Any = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset)
+        key.unsafe_setType(keyTypeNumber)
+        var value $Any = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset + 1)
+        value.unsafe_setType(valueTypeNumber)

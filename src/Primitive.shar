@@ -1,0 +1,4 @@
+module STD
+
+//@All primitives are automatically added to this group.
+export group Primitive

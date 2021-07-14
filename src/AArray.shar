@@ -1,0 +1,7 @@
+module STD
+
+//@Members of the "STD::AArray" group are types whose objects are associative arrays.
+//@If the first argument of the "STD::put" function is an object with a type that is a member of the "STD::AArray" group and there is no value with the specified key (details in the description of the "STD::Put" group), then the function returns "Nothing".
+//@If the first argument to the "STD::put" function is an object with a type that is a member of the "STD::AArray" group and "Nothing" is specified as a new value, then the function removes the value by key from the array and returns it as a result.
+//@If the first argument of the "STD::shar__sugar__getItem" function is an object with a type that is a member of the "STD::AArray" group, then this function searches for the value by the key in the array, if the value is found, the function returns the found value, otherwise "Nothing" is returned.
+export group AArray: Iterable, Empty, Put, Shar__sugar__getItem

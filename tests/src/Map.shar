@@ -1,0 +1,699 @@
+module Main
+
+primitive TestMap_BadInt
+
+attach TestMap_BadInt to Equal
+
+attach TestMap_BadInt to Shar__sugar__equal
+    #alwaysinline nothrow
+    def shar__sugar__equal(integer1, integer2 TestMap_BadInt) Bool
+        llvm
+            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
+            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i1## = icmp eq i64 %##reg##integer1##, %##reg##integer2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach TestMap_BadInt to Shar__sugar__notEqual
+    #alwaysinline nothrow
+    def shar__sugar__notEqual(integer1, integer2 TestMap_BadInt) Bool
+        llvm
+            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
+            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i1## = icmp ne i64 %##reg##integer1##, %##reg##integer2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach TestMap_BadInt to Hashable
+    #alwaysinline nothrow
+    def getHash(int TestMap_BadInt) Int
+        return int.map_toGood() & 15
+
+    #alwaysinline nothrow
+    def getRandomizedHash(int TestMap_BadInt) Int
+        return int.map_toGood() & 15
+
+attach TestMap_BadInt to StringWriter
+    #inline nothrow
+    def toString(int TestMap_BadInt) $String
+        return int.map_toGood().toString()
+
+#alwaysinline nothrow
+def map_toGood(int TestMap_BadInt) Int
+    return int.unsafe_getValue()
+
+#alwaysinline nothrow
+def map_toBad(int Int) TestMap_BadInt
+    var result $Any = int
+    result.unsafe_setType(TestMap_BadInt.typeNumber~())
+    return result
+
+def unsafe_map_getCounter(map $Any) Int
+    return map.unsafe_getI64(0) & 0xffffffffffff
+
+def mapPrintln(map Map)
+    if map.empty?()
+        "Map: empty".println()
+        return
+    "Map: ".println()
+    ("  counter: " + (map.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
+    ("  count of nodes: " + map.unsafe_getI16(3).toString()).println()
+    ("  count of items: " + map.unsafe_getI64(1).toString()).println()
+    ("  key type: " + map.unsafe_getI64(2).getTypeName()).println()
+    ("  value type: " + map.unsafe_getI64(3).getTypeName()).println()
+    "  Nodes:".println()
+    for :(index Int = 0) index < map.unsafe_getI16(3); index++
+        ("    Node with hash part " + map.unsafe_getI8(32 + map.unsafe_getI16(3) * 8 + index).toString() + ": ").println()
+        (map.unsafe_getI64(index + 4).mapNodePrint(map.unsafe_getI64(2), map.unsafe_getI64(3)))
+
+def mapNodePrint(node, keyTypeNumber, valueTypeNumber $Any)
+    ("      counter: " + (node.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
+    ("      count of hash parts: " + (node.unsafe_getI16(3) + 1).toString()).println()
+    for :(index Int = 0) index <= node.unsafe_getI16(3); index++
+        const keysAndValues Int = node.unsafe_getI64(1 + index)
+        ("      Keys and values with hash part " + node.unsafe_getI16(4 + node.unsafe_getI16(3) * 4 + index).toString() + ": ").println()
+        ("        Count of keys and values: " + keysAndValues.unsafe_getI64(0).toString()).println()
+        ("        Keys and values:").println()
+        for :(keyIndex Int = 0) keyIndex < keysAndValues.unsafe_getI64(0); keyIndex++
+            var key $Any = keysAndValues.unsafe_getI64(keyIndex * 2 + 1)
+            key.unsafe_setType(keyTypeNumber)
+            var value $Any = keysAndValues.unsafe_getI64(keyIndex * 2 + 2)
+            value.unsafe_setType(valueTypeNumber)
+            ("          Key " + (keyIndex + 1).toString() + ": " + key.toString() + "\n          Value " + (keyIndex + 1).toString() + ": " + value.toString()).println()
+            key.unsafe_setType(Int.typeNumber~())
+            value.unsafe_setType(Int.typeNumber~())
+
+def testMap(write ok Int, write errorsCoordinates List)
+    testMap_MemoryManagement(ok, errorsCoordinates)
+    testMap_Part1(ok, errorsCoordinates)
+    testMap_Part2(ok, errorsCoordinates)
+    testMap_Part3(ok, errorsCoordinates)
+    testMap_Part4(ok, errorsCoordinates)
+
+#noinline
+def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
+    var k String = "123".clone()
+    var v String = "12".clone()
+    var d1 Map = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d1.put("0", v).nothing?()
+        d1.put(k, v).nothing?()
+        d1.put("2", "3").nothing?()
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 3
+    var d2 Map = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d2.put(k, d1).nothing?()
+        d2.put("1", d1).nothing?()
+        k.unsafe_getI64(0) == 3
+        v.unsafe_getI64(0) == 3
+    var count Int = 0
+    try
+        parse key, value = d2
+            count++
+            key.type!(String)
+            value.type!(Map)
+    catch
+        count = 0
+    test: ok, errorsCoordinates
+        k.unsafe_getI64(0) == 3
+        v.unsafe_getI64(0) == 3
+        count == 2
+    var d3 Map = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d3.put("0", v).nothing?()
+        d3.put(k, v).nothing?()
+        d3.put("2", "3").nothing?()
+        k.unsafe_getI64(0) == 4
+        v.unsafe_getI64(0) == 5
+    var d4 Map = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d4.put(k, d3).nothing?()
+        d4.put("1", d3).nothing?()
+        k.unsafe_getI64(0) == 5
+        v.unsafe_getI64(0) == 5
+    test: ok, errorsCoordinates
+        unsafe_map_getCounter(d1) == 3
+        unsafe_map_getCounter(d2) == 1
+        k.unsafe_getI64(0) == 5
+        v.unsafe_getI64(0) == 5
+    d1.shar__rc_free()
+    test: ok, errorsCoordinates
+        unsafe_map_getCounter(d1) == 2
+        unsafe_map_getCounter(d2) == 1
+        k.unsafe_getI64(0) == 5
+        v.unsafe_getI64(0) == 5
+    d1.shar__rc_use()
+    test: ok, errorsCoordinates
+        unsafe_map_getCounter(d1) == 3
+        unsafe_map_getCounter(d2) == 1
+        k.unsafe_getI64(0) == 5
+        v.unsafe_getI64(0) == 5
+    d2 = Map.createEmpty()
+    test: ok, errorsCoordinates
+        unsafe_map_getCounter(d1) == 1
+        unsafe_map_getCounter(d2) == 0
+        k.unsafe_getI64(0) == 4
+        v.unsafe_getI64(0) == 5
+    d1.shar__to_const()
+    test: ok, errorsCoordinates
+        unsafe_map_getCounter(d1) == 0
+        unsafe_map_getCounter(d2) == 0
+        k.unsafe_getI64(0) == 0
+        v.unsafe_getI64(0) == 0
+        d1.use?()
+        d3.use?()
+        !d4.use?()
+        d1.constant?()
+        !d3.constant?()
+        !d4.constant?()
+    d1 = d1.clone()
+    d2 = d3.clone()
+    var d5 Map = d4.clone()
+    test: ok, errorsCoordinates
+        unsafe_map_getCounter(d1) == 1
+        unsafe_map_getCounter(d2) == 1
+        unsafe_map_getCounter(d3) == 3
+        unsafe_map_getCounter(d4) == 1
+        unsafe_map_getCounter(d5) == 1
+        k.unsafe_getI64(0) == 0
+        v.unsafe_getI64(0) == 0
+        !d1.use?()
+        !d1.constant?()
+        !d2.use?()
+        !d2.constant?()
+    k = k.clone()
+    v = v.clone()
+    d1 = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d1.put("0", v).nothing?()
+        d1.put(k, v).nothing?()
+        d1.put("2", "3").nothing?()
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 3
+    d2 = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d2.put(k, d1).nothing?()
+        d2.put("1", d1).nothing?()
+        k.unsafe_getI64(0) == 3
+        v.unsafe_getI64(0) == 3
+    d2.shar__to_const()
+    test: ok, errorsCoordinates
+        unsafe_map_getCounter(d1) == 0
+        unsafe_map_getCounter(d2) == 0
+        unsafe_map_getCounter(d3) == 3
+        unsafe_map_getCounter(d4) == 1
+        unsafe_map_getCounter(d5) == 1
+        d1.use?()
+        d1.constant?()
+        d2.use?()
+        d2.constant?()
+        k.unsafe_getI64(0) == 0
+        v.unsafe_getI64(0) == 0
+    k = k.clone()
+    v = v.clone()
+    d1 = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d1.put("0", v).nothing?()
+        d1.put(k, v).nothing?()
+        d1.put("2", "3").nothing?()
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 3
+    d2 = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d2.put(k, d1).nothing?()
+        d2.put("1", d1).nothing?()
+        k.unsafe_getI64(0) == 3
+        v.unsafe_getI64(0) == 3
+        d1.unsafe_map_getCounter() == 3
+        d2.put(k, nothing).type?(Map)
+        d1.unsafe_map_getCounter() == 2
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 3
+        d2.put("1", nothing).type?(Map)
+        d1.unsafe_map_getCounter() == 1
+        d1.put("2", nothing) == "3"
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 3
+        d1.put("0", nothing) == v
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 2
+        d1.put(k, nothing) == v
+        k.unsafe_getI64(0) == 1
+        v.unsafe_getI64(0) == 1
+    d1 = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d1.put("0", v).nothing?()
+        d1.put(k, v).nothing?()
+        d1.put("2", "3").nothing?()
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 3
+    d2 = d1
+    test: ok, errorsCoordinates
+        d1.put("123", "") == v
+        d2.put("123", "") == v
+    d1 = Map.createEmpty()
+    d2 = Map.createEmpty()
+    test: ok, errorsCoordinates
+        k.unsafe_getI64(0) == 1
+        v.unsafe_getI64(0) == 1
+    var allOk Bool = false
+    try
+        for :(i Int = 0) i < 300; i++
+            d1.put(i, i)
+        d2 = d1
+        for :(i Int = 1) i < 150; i++
+            d1.put(i, i + 1)
+        allOk = d1[0] == 0
+        if allOk
+            for :(i Int = 1) i < 150; i++
+                allOk = d1[i] == i + 1
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 150) i < 300; i++
+                allOk = d1[i] == i
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 0) i < 300; i++
+                allOk = d2[i] == i
+                if !allOk
+                    end i
+        d3 = d2
+        for :(i Int = 300) i < 400; i++
+            d2.put(i, i)
+        allOk = allOk && d1[0] == 0
+        if allOk
+            for :(i Int = 1) i < 150; i++
+                allOk = d1[i] == i + 1
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 150) i < 300; i++
+                allOk = d1[i] == i
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 0) i < 400; i++
+                allOk = d2[i] == i
+                if !allOk
+                    end i
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d1.length~() == 300
+        d2.length~() == 400
+        d3.length~() == 300
+
+#noinline
+def testMap_Part1(write ok Int, write errorsCoordinates List)
+    const ed Map = Map.createEmpty()
+    var d Map = Map.createEmpty()
+    var s String = "123".clone()
+    test: ok, errorsCoordinates
+        ed.length~() == 0
+        ed.keyTypeNumber~() == Nothing.typeNumber~()
+        ed.valueTypeNumber~() == Nothing.typeNumber~()
+        ed[12].nothing?()
+        ed[0].nothing?()
+        ed["asdf"].nothing?()
+        ed[""].nothing?()
+        ed['c'].nothing?()
+        d.put(0, "72").nothing?()
+        d.length~() == 1
+        d.keyTypeNumber~() == Int.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        d[12].nothing?()
+        d[0] == "72"
+        d["asdf"] : error_invalidType
+        d[""]: error_invalidType
+        d['c'] : error_invalidType
+        d.put("", 123) : error_invalidType
+        d.put(0, "Ha") == "72"
+        d.length~() == 1
+        d.keyTypeNumber~() == Int.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        d[12].nothing?()
+        d[0] == "Ha"
+        d["asdf"] : error_invalidType
+        d[""]: error_invalidType
+        d['c'] : error_invalidType
+        d.put(0, 12) : error_invalidType
+        d.put(-1, "").nothing?()
+        d.length~() == 2
+        d.keyTypeNumber~() == Int.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        d[12].nothing?()
+        d[0] == "Ha"
+        d[-1] == ""
+        d["asdf"] : error_invalidType
+        d[""]: error_invalidType
+        d['c'] : error_invalidType
+        d.put(0, 'c') : error_invalidType
+        d.put(3589, "c").nothing?()
+        d.length~() == 3
+        d.keyTypeNumber~() == Int.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        d[-2].nothing?()
+        d[0] == "Ha"
+        d[-1] == ""
+        d[3589] == "c"
+        d.put(0, "One") == "Ha"
+        d.put(-1, "2") == ""
+        d.put(3589, "some") == "c"
+        d.length~() == 3
+        d.keyTypeNumber~() == Int.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        d[-2].nothing?()
+        d[0] == "One"
+        d[-1] == "2"
+        d[3589] == "some"
+        s.unsafe_getI64(0) == 1
+        d.put(17, s).nothing?()
+        d.length~() == 4
+        d.keyTypeNumber~() == Int.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        d[17] == s
+        s.unsafe_getI64(0) == 2
+        d.put(-1, nothing) == "2"
+        d.length~() == 3
+        d.keyTypeNumber~() == Int.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        d[0] == "One"
+        d[-1].nothing?()
+        d[3589] == "some"
+        d[17] == s
+        d.put(3589, nothing) == "some"
+        d.length~() == 2
+        d.keyTypeNumber~() == Int.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        d[0] == "One"
+        d[-1].nothing?()
+        d[3589].nothing?()
+        d[17] == s
+        d.put(17, nothing) == s
+        d.length~() == 1
+        d.keyTypeNumber~() == Int.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        d[0] == "One"
+        d[-1].nothing?()
+        d[3589].nothing?()
+        d[17].nothing?()
+        s.unsafe_getI64(0) == 1
+        d.put(0, nothing) == "One"
+        d.length~() == 0
+        d.keyTypeNumber~() == Nothing.typeNumber~()
+        d.valueTypeNumber~() == Nothing.typeNumber~()
+        d[0].nothing?()
+        d[-1].nothing?()
+        d[3589].nothing?()
+        d[17].nothing?()
+        d.put(s, s).nothing?()
+        d.length~() == 1
+        d.keyTypeNumber~() == String.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        s.unsafe_getI64(0) == 3
+        d[0] : error_invalidType
+        d[s] == s
+        d[""].nothing?()
+        d["1230"].nothing?()
+        d["122"].nothing?()
+        d.put("fg", "44").nothing?()
+        d.length~() == 2
+        d.keyTypeNumber~() == String.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        s.unsafe_getI64(0) == 3
+        d[0] : error_invalidType
+        d[s] == s
+        d["fg"] == "44"
+        d[""].nothing?()
+        d["1230"].nothing?()
+        d["122"].nothing?()
+        d.put(s, nothing) == s
+        d.length~() == 1
+        d.keyTypeNumber~() == String.typeNumber~()
+        d.valueTypeNumber~() == String.typeNumber~()
+        s.unsafe_getI64(0) == 1
+        d[0] : error_invalidType
+        d["fg"] == "44"
+        d[s].nothing?()
+        d[""].nothing?()
+        d["1230"].nothing?()
+        d["122"].nothing?()
+        d.put("fg", nothing) == "44"
+        d.length~() == 0
+        d.keyTypeNumber~() == Nothing.typeNumber~()
+        d.valueTypeNumber~() == Nothing.typeNumber~()
+        s.unsafe_getI64(0) == 1
+        d[0].nothing?()
+        d["fg"].nothing?()
+        d[s].nothing?()
+        d[""].nothing?()
+        d["1230"].nothing?()
+        d["122"].nothing?()
+
+#noinline
+def testMap_Part2(write ok Int, write errorsCoordinates List)
+    var d Map = Map.createEmpty()
+    var allOk Bool = true
+    try
+        parse _, _ = d
+            allOk = false
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 0
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = d.put(index, index << 2).nothing?()
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    var count Int = 0
+    try
+        parse :(parse) key, value = d
+            count++
+            allOk = value == (key << 2)
+            if !allOk
+                end parse
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        count == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = d.put(index, index << 1) == (index << 2)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = d.put(index, nothing) == (index << 1)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 100
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = d[index].nothing?()
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d[index] == (index << 1)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d.put(index, nothing) == (index << 1)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 0
+
+#noinline
+def testMap_Part3(write ok Int, write errorsCoordinates List)
+    var d Map = Map.createEmpty()
+    var a Array = []
+    for :(index Int = 0) index < 200; index++
+        a += [Int.getRandom(), Int.getRandom()]
+    var allOk Bool = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = d.put(a[index * 2], a[index * 2 + 1]).nothing?()
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = d.put(a[index * 2], index) == a[index * 2 + 1]
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = d.put(a[index * 2], nothing) == index
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 100
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = d[a[index * 2]].nothing?()
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d[a[index * 2]] == index
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d.put(a[index * 2], nothing) == index
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 0
+
+#noinline
+def testMap_Part4(write ok Int, write errorsCoordinates List)
+    var d Map = Map.createEmpty()
+    var allOk Bool = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = d.put(index.map_toBad(), index << 2).nothing?()
+            if !allOk
+                end index
+    catch
+        allOk = false
+    allOk = false
+    var count Int = 0
+    try
+        parse :(parse) key, value = d
+            count++
+            allOk = value == (key.map_toGood() << 2)
+            if !allOk
+                end parse
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        count == 200
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = d.put(index.map_toBad(), index << 1) == (index << 2)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = d.put(index.map_toBad(), nothing) == (index << 1)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 100
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = d[index.map_toBad()].nothing?()
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d[index.map_toBad()] == (index << 1)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d.put(index.map_toBad(), nothing) == (index << 1)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 0

@@ -1,0 +1,17 @@
+module STD
+
+//@Group member "STD::Hashable" is a type for which objects can be hashed.
+export group Hashable
+    //@The function calculates the hash of the object.
+    //@For the same object, the hash is always the same.
+    getHash(This) Int
+    //@The function calculates the hash of the object.
+    //@For one and the same object, during the operation of the application, the hash remains the same, but with each new start of the application, measures are taken to change the value of this hash.
+    getRandomizedHash(This) Int
+
+//@The function creates a randomized 32 bit hash based on a randomized 64 bit hash.
+#this(Hashable) alwaysinline
+export def getShortRandomizedHash(object This) Int
+    const randomNumber Int = const::staticRandomNumber
+    const fullHash Int = object.getRandomizedHash()
+    return ((fullHash >> ((randomNumber & 0xf) + 32)) + (fullHash << (((randomNumber & 0xf0) >> 4) + 32)) + (fullHash & 0xffffffff)) & 0xffffffff

@@ -1,0 +1,61 @@
+module STD
+
+export primitive File
+
+export enum
+    fmode_read
+    fmode_write
+    fmode_append
+    fmode_readAndWriteFromBegin
+    fmode_readAndWriteNew
+    fmode_readAndWriteFromEnd
+
+#alwaysinline
+def sharModeToCMode(sharFMode Int) Int
+    eSwitch sharFMode
+    case fmode_read
+        return 25202
+    case fmode_write
+        return 25207
+    case fmode_append
+        return 25185
+    case fmode_readAndWriteFromBegin
+        return 6433650
+    case fmode_readAndWriteNew
+        return 6433655
+    case fmode_readAndWriteFromEnd
+        return 6433633
+    inthrow
+        throw(enum::error_invalidFileMode, "Invalid file open mode.")
+
+#override(STD) alwaysinline
+def shar__rc_free(file File)
+    const counter Int = file.unsafe_getI64(0)
+    if counter > 1
+        file.unsafe_setI64(0, counter - 1)
+    elif counter == 1
+        unsafe_os_closeFile(file)
+        file.unsafe_free()
+
+#override(STD) alwaysinline
+def shar__rc_use(file File)
+    const counter Int = file.unsafe_getI64(0)
+    if counter != 0
+        file.unsafe_setI64(0, counter + 1)
+
+#override(STD)
+def shar__to_const(file File)
+    if file.unsafe_getI64(0) != 0
+        file.unsafe_setI64(0, 0)
+
+#override(STD) alwaysinline nothrow
+def use?(file File) Bool
+    return file.unsafe_getI64(0) != 1
+
+#override(STD) alwaysinline nothrow
+def constant?(file File) Bool
+    return file.unsafe_getI64(0) == 0
+
+#override(STD) cold
+def clone(file File) File
+    throw(enum::error_clone, "Files cannot be cloned.")

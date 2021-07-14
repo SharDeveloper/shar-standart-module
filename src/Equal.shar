@@ -1,0 +1,6 @@
+module STD
+
+//@Group member "STD::Equal" is a type whose objects can be compared for equality.
+//@If the first argument of the "STD::shar__sugar__equal" function is an object with a type that is a member of the "STD::Equal" group, then this function returns "true" if the first argument of the function is equal to the second, otherwise "false" is returned.
+//@If the first argument of the "STD::shar__sugar__notEqual" function is an object with a type that is a member of the "STD::Equal" group, then this function returns "false" if the first argument of the function is equal to the second, otherwise "true" is returned.
+export group Equal: Shar__sugar__equal, Shar__sugar__notEqual

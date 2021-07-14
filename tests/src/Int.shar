@@ -1,0 +1,975 @@
+module Main
+
+def realAsInt_testInt(real Real) Int
+    llvm
+        %##nreg##result## = insertvalue [2 x i64] %0, i64 ##tnum##STD::Int##, 0
+        ret [2 x i64] %##reg##result##
+
+def testInt(write ok Int, write errorsCoordinates List)
+    testInt_Any(ok, errorsCoordinates)
+    testInt_Equal(ok, errorsCoordinates)
+    testInt_Ordered(ok, errorsCoordinates)
+    testInt_Number(ok, errorsCoordinates)
+    testInt_StringWriter(ok, errorsCoordinates)
+    testInt_StringReader(ok, errorsCoordinates)
+    testInt_BitArray(ok, errorsCoordinates)
+    testInt_IntToChar(ok, errorsCoordinates)
+    testInt_IntToReal(ok, errorsCoordinates)
+    testInt_IntToTime(ok, errorsCoordinates)
+    testInt_Hashed(ok, errorsCoordinates)
+    testInt_IntToHex(ok, errorsCoordinates)
+    testInt_HexToInt(ok, errorsCoordinates)
+    testInt_BinarySerializable(ok, errorsCoordinates)
+
+#noinline
+def testInt_Any(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        1.use?() == false
+        2.use?() == false
+        1.constant?() == false
+        2.constant?() == false
+        3.clone() == 3
+        -1.clone() == -1
+
+#noinline
+def testInt_Equal(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0 == 0
+        4 == 4
+        9223372036854775807 == 9223372036854775807
+        -9223372036854775808 == -9223372036854775808
+        0 != 9223372036854775807
+        0 != -9223372036854775808
+        4 != 3
+        -9223372036854775808 != 9223372036854775807
+        9223372036854775807 != -9223372036854775808
+        9223372036854775807 != 9223372036854775806
+        0 != -1
+        1 != -1
+
+#noinline
+def testInt_Ordered(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0 > -9223372036854775808
+        0 > -1
+        1 > 0
+        9223372036854775807 > 0
+        9223372036854775807 > 9223372036854775806
+        9223372036854775807 > -9223372036854775807
+        9223372036854775807 > -9223372036854775808
+        -9223372036854775807 > -9223372036854775808
+        !(-9223372036854775808 > 0)
+        !(-1 > 0)
+        !(0 > 1)
+        !(0 > 9223372036854775807)
+        !(9223372036854775806 > 9223372036854775807)
+        !(-9223372036854775807 > 9223372036854775807)
+        !(-9223372036854775808 > 9223372036854775807)
+        !(-9223372036854775808 > -9223372036854775807)
+        !(-9223372036854775808 > -9223372036854775808)
+        !(-1 > -1)
+        !(0 > 0)
+        !(1 > 1)
+        !(9223372036854775807 > 9223372036854775807)
+        0 >= -9223372036854775808
+        0 >= -1
+        1 >= 0
+        9223372036854775807 >= 0
+        9223372036854775807 >= 9223372036854775806
+        9223372036854775807 >= -9223372036854775807
+        9223372036854775807 >= -9223372036854775808
+        -9223372036854775807 >= -9223372036854775808
+        -1 >= -1
+        0 >= 0
+        1 >= 1
+        9223372036854775807 >= 9223372036854775807
+        -9223372036854775808 >= -9223372036854775808
+        !(-9223372036854775808 >= 0)
+        !(-1 >= 0)
+        !(0 >= 1)
+        !(0 >= 9223372036854775807)
+        !(9223372036854775806 >= 9223372036854775807)
+        !(-9223372036854775807 >= 9223372036854775807)
+        !(-9223372036854775808 >= 9223372036854775807)
+        !(-9223372036854775808 >= -9223372036854775807)
+        -9223372036854775808 < 0
+        -1 < 0
+        0 < 1
+        0 < 9223372036854775807
+        9223372036854775806 < 9223372036854775807
+        -9223372036854775807 < 9223372036854775807
+        -9223372036854775808 < 9223372036854775807
+        -9223372036854775808 < -9223372036854775807
+        !(0 < -9223372036854775808)
+        !(0 < -1)
+        !(1 < 0)
+        !(9223372036854775807 < 0)
+        !(9223372036854775807 < 9223372036854775806)
+        !(9223372036854775807 < -9223372036854775807)
+        !(9223372036854775807 < -9223372036854775808)
+        !(-9223372036854775807 < -9223372036854775808)
+        !(-9223372036854775808 < -9223372036854775808)
+        !(-1 < -1)
+        !(0 < 0)
+        !(1 < 1)
+        !(9223372036854775807 < 9223372036854775807)
+        -9223372036854775808 <= 0
+        -1 <= 0
+        0 <= 1
+        0 <= 9223372036854775807
+        9223372036854775806 <= 9223372036854775807
+        -9223372036854775807 <= 9223372036854775807
+        -9223372036854775808 <= 9223372036854775807
+        -9223372036854775808 <= -9223372036854775807
+        -1 <= -1
+        0 <= 0
+        1 <= 1
+        9223372036854775807 <= 9223372036854775807
+        -9223372036854775808 <= -9223372036854775808
+        !(0 <= -9223372036854775808)
+        !(0 <= -1)
+        !(1 <= 0)
+        !(9223372036854775807 <= 0)
+        !(9223372036854775807 <= 9223372036854775806)
+        !(9223372036854775807 <= -9223372036854775807)
+        !(9223372036854775807 <= -9223372036854775808)
+        !(-9223372036854775807 <= -9223372036854775808)
+
+#noinline
+def testInt_Number(write ok Int, write errorsCoordinates List)
+    var int1 Int = -9223372036854775808
+    var int2 Int = 0
+    test: ok, errorsCoordinates
+        (int1++).nothing?()
+        int1 == -9223372036854775807
+        (int1--).nothing?()
+        int1 == -9223372036854775808
+        (int1--).nothing?()
+        int1 == 9223372036854775807
+        (int1--).nothing?()
+        int1 == 9223372036854775806
+        (int1++).nothing?()
+        int1 == 9223372036854775807
+        (int1++).nothing?()
+        int1 == -9223372036854775808
+        (int2++).nothing?()
+        int2 == 1
+        (int2--).nothing?()
+        int2 == 0
+        (int2--).nothing?()
+        int2 == -1
+        (int2++).nothing?()
+        int2 == 0
+        !0 == 0
+        !1 == -1
+        !9223372036854775807 == -9223372036854775807
+        !100 == -100
+        !(-1) == 1
+        !(-9223372036854775807) == 9223372036854775807
+        !(-9223372036854775808) == -9223372036854775808
+        0 * 0 == 0
+        1 * 0 == 0
+        0 * 1 == 0
+        -9223372036854775808 * 0 == 0
+        9223372036854775807 * 0 == 0
+        9223372036854775807 * 1 == 9223372036854775807
+        9223372036854775807 * -1 == -9223372036854775807
+        -9223372036854775807 * -1 == 9223372036854775807
+        10 * 26 == 260
+        9223372036854775807 * 701 == 9223372036854775107
+        0 / 0 : error_divisionByZero
+        1 / 0 : error_divisionByZero
+        -9223372036854775808 / 1 == -9223372036854775808
+        -1 / -9223372036854775808 == 0
+        -9223372036854775808 / -1 == -9223372036854775808
+        -9223372036854775807 / -1 == 9223372036854775807
+        9223372036854775807 / -1 == -9223372036854775807
+        9223372036854775807 / 1 == 9223372036854775807
+        144 / 12 == 12
+        144 / 7 == 20
+        144 / 5 == 28
+        -144 / 12 == -12
+        144 / -7 == -20
+        -144 / -5 == 28
+        0 % 0 : error_divisionByZero
+        1 % 0 : error_divisionByZero
+        -9223372036854775808 % 1 == 0
+        -1 % -9223372036854775808 == -1
+        -9223372036854775808 % -1 == 0
+        -9223372036854775807 % -1 == 0
+        9223372036854775807 % -1 == 0
+        9223372036854775807 % 1 == 0
+        144 % 12 == 0
+        144 % 7 == 4
+        144 % 5 == 4
+        -144 % 12 == 0
+        -144 % 11 == -1
+        144 % -7 == 4
+        1970 % 4 == 2
+        1970 % 100 == 70
+        -144 % -5 == -4
+        340 % 60 == 40
+        -340 % 60 == -40
+        0 + 0 == 0
+        0 + 1 == 1
+        1 + 0 == 1
+        -9223372036854775808 + 2 == -9223372036854775806
+        -9223372036854775808 + -1 == 9223372036854775807
+        9223372036854775807 + 1 == -9223372036854775808
+        12 + 133 == 145
+        0 - 0 == 0
+        0 - 1 == -1
+        1 - 0 == 1
+        -9223372036854775808 - 2 == 9223372036854775806
+        -9223372036854775808 - -1 == -9223372036854775807
+        9223372036854775807 - 1 == 9223372036854775806
+        12 - 133 == -121
+    int1 = -9223372036854775807
+    int2 = 9223372036854775807
+    var int3 Int = -9223372036854775808
+    var int4 Int = 9223372036854775806
+    var int5 Int = 0
+    var int6 Int = -2
+    var int7 Int = 2
+    var int8 Int = 0
+    var int9 Int = 1
+    var int10 Int = -1
+    test: ok, errorsCoordinates
+        (int1 += -2).nothing?()
+        int1 == 9223372036854775807
+        (int2 += 1).nothing?()
+        int2 == -9223372036854775808
+        (int3 += 2).nothing?()
+        int3 == -9223372036854775806
+        (int4 += -2).nothing?()
+        int4 == 9223372036854775804
+        (int5 += 3).nothing?()
+        int5 == 3
+        (int6 += 3).nothing?()
+        int6 == 1
+        (int7 += -4).nothing?()
+        int7 == -2
+        (int8 += -4).nothing?()
+        int8 == -4
+        (int9 += 0).nothing?()
+        int9 == 1
+        (int10 += 0).nothing?()
+        int10 == -1
+        (int1 -= -2).nothing?()
+        int1 == -9223372036854775807
+        (int2 -= 1).nothing?()
+        int2 == 9223372036854775807
+        (int3 -= 2).nothing?()
+        int3 == -9223372036854775808
+        (int4 -= -2).nothing?()
+        int4 == 9223372036854775806
+        (int5 -= 3).nothing?()
+        int5 == 0
+        (int6 -= 3).nothing?()
+        int6 == -2
+        (int7 -= -4).nothing?()
+        int7 == 2
+        (int8 -= -4).nothing?()
+        int8 == 0
+        (int9 -= 0).nothing?()
+        int9 == 1
+        (int10 -= 0).nothing?()
+        int10 == -1
+        (int1 *= -2).nothing?()
+        int1 == -2
+        (int2 *= 1).nothing?()
+        int2 == 9223372036854775807
+        (int3 *= 2).nothing?()
+        int3 == 0
+        (int4 *= -2).nothing?()
+        int4 == 4
+        (int5 *= 3).nothing?()
+        int5 == 0
+        (int6 *= 3).nothing?()
+        int6 == -6
+        (int7 *= -4).nothing?()
+        int7 == -8
+        (int8 *= -4).nothing?()
+        int8 == 0
+        (int9 *= 0).nothing?()
+        int9 == 0
+        (int10 *= 0).nothing?()
+        int10 == 0
+    int5 = -9223372036854775808
+    int8 = 9223372036854775807
+    int9 = 10000
+    test: ok, errorsCoordinates
+        (int1 /= -2).nothing?()
+        int1 == 1
+        (int2 /= 1).nothing?()
+        int2 == 9223372036854775807
+        (int3 /= 2).nothing?()
+        int3 == 0
+        (int4 /= -2).nothing?()
+        int4 == -2
+        (int5 /= -1).nothing?()
+        int5 == -9223372036854775808
+        (int6 /= 3).nothing?()
+        int6 == -2
+        (int7 /= -4).nothing?()
+        int7 == 2
+        (int8 /= -1).nothing?()
+        int8 == -9223372036854775807
+        (int9 /= 1000).nothing?()
+        int9 == 10
+        int10 /= 0 : error_divisionByZero
+        int10 == 0
+    int5 = -9223372036854775808
+    int8 = 9223372036854775807
+    int9 = 10000
+    test: ok, errorsCoordinates
+        (int1 %= -2).nothing?()
+        int1 == 1
+        (int2 %= 1).nothing?()
+        int2 == 0
+        (int3 %= 2).nothing?()
+        int3 == 0
+        (int4 %= -2).nothing?()
+        int4 == 0
+        (int5 %= -1).nothing?()
+        int5 == 0
+        (int6 %= 3).nothing?()
+        int6 == -2
+        (int7 %= -4).nothing?()
+        int7 == 2
+        (int8 %= -1).nothing?()
+        int8 == 0
+        (int9 %= 1000).nothing?()
+        int9 == 0
+        int10 %= 0 : error_divisionByZero
+        int10 == 0
+        0.abs() == 0
+        -1.abs() == 1
+        1.abs() == 1
+        10.abs() == 10
+        -10.abs() == 10
+        -9223372036854775807.abs() == 9223372036854775807
+        9223372036854775807.abs() == 9223372036854775807
+        -9223372036854775808.abs() == -9223372036854775808
+        0.power(0) == 1
+        0.power(1) == 0
+        0.power(2) == 0
+        0.power(9223372036854775807) == 0
+        0.power(-1) == 0
+        0.power(-9223372036854775808) == 0
+        1.power(0) == 1
+        1.power(1) == 1
+        1.power(2) == 1
+        1.power(9223372036854775807) == 1
+        1.power(-1) == 0
+        1.power(-9223372036854775808) == 0
+        -1.power(0) == 1
+        -1.power(1) == -1
+        -1.power(2) == 1
+        -1.power(9223372036854775807) == -1
+        -1.power(-1) == 0
+        -1.power(-9223372036854775808) == 0
+        9223372036854775807.power(0) == 1
+        9223372036854775807.power(1) == 9223372036854775807
+        9223372036854775807.power(2) == 1
+        9223372036854775807.power(9223372036854775807) == 9223372036854775807
+        9223372036854775807.power(-1) == 0
+        9223372036854775807.power(-9223372036854775808) == 0
+        -9223372036854775807.power(0) == 1
+        -9223372036854775807.power(1) == -9223372036854775807
+        -9223372036854775807.power(2) == 1
+        -9223372036854775807.power(9223372036854775807) == -9223372036854775807
+        -9223372036854775807.power(-1) == 0
+        -9223372036854775807.power(-9223372036854775808) == 0
+        -9223372036854775808.power(0) == 1
+        -9223372036854775808.power(1) == -9223372036854775808
+        -9223372036854775808.power(2) == 0
+        -9223372036854775808.power(9223372036854775807) == 0
+        -9223372036854775808.power(-1) == 0
+        -9223372036854775808.power(-9223372036854775808) == 0
+        3.power(4) == 81
+        -3.power(4) == 81
+        7.power(2) == 49
+        Int.getRandom().type?(Int)
+        Int.getCryptographicRandom().type?(Int)
+
+#noinline
+def testInt_StringWriter(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0.toString() == "0"
+        0.toString() != ""
+        1.toString() == "1"
+        -1.toString() == "-1"
+        -9223372036854775808.toString() == "-9223372036854775808"
+        9223372036854775807.toString() == "9223372036854775807"
+        1313.toString() == "1313"
+        9.toString() == "9"
+        10.toString() == "10"
+        -9.toString() == "-9"
+        -10.toString() == "-10"
+
+#noinline
+def testInt_StringReader(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        Int.fromString("0") == 0
+        Int.fromString("1") == 1
+        Int.fromString("-1") == -1
+        Int.fromString("-9223372036854775808") == -9223372036854775808
+        Int.fromString("9223372036854775807") == 9223372036854775807
+        Int.fromString("1313") == 1313
+        Int.fromString("9") == 9
+        Int.fromString("10") == 10
+        Int.fromString("-9") == -9
+        Int.fromString("-10") == -10
+        Int.fromString("+10") == 10
+        Int.fromString("+0010") == 10
+        Int.fromString("9223372036854775808") : error_readFromString
+        Int.fromString("9223372036854775809") : error_readFromString
+        Int.fromString("10000000000000000000") : error_readFromString
+        Int.fromString("-9223372036854775809") : error_readFromString
+        Int.fromString("-9223372036854775810") : error_readFromString
+        Int.fromString("-15656156193372036854775808") : error_readFromString
+        Int.fromString("3a") : error_readFromString
+        Int.fromString("3 ") : error_readFromString
+        Int.fromString("5645a") : error_readFromString
+        Int.fromString("a5456") : error_readFromString
+        Int.fromString(" 4") : error_readFromString
+        Int.fromString("- 3") : error_readFromString
+        Int.fromString("3-") : error_readFromString
+        Int.fromString("+-3") : error_readFromString
+        Int.fromString("-+3") : error_readFromString
+        Int.fromString("+") : error_readFromString
+        Int.fromString("-") : error_readFromString
+        Int.fromString("") : error_readFromString
+
+#noinline
+def testInt_BitArray(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        (-6148914691236517206 & 6148914691236517205) == 0
+        (6148914691236517205 & -6148914691236517206) == 0
+        (6148914691236517205 & 6148914691236517205) == 6148914691236517205
+        (-6148914691236517206 & -6148914691236517206) == -6148914691236517206
+        (8070450532247928839 & 6148914691236517205) == 5764607523034234885
+        (-2305843009213693938 & -6148914691236517206) == -6917529027641081846
+        (-6148914691236517206 | 6148914691236517205) == -1
+        (6148914691236517205 | -6148914691236517206) == -1
+        (6148914691236517205 | 6148914691236517205) == 6148914691236517205
+        (-6148914691236517206 | -6148914691236517206) == -6148914691236517206
+        (8070450532247928839 | 6148914691236517205) == 8454757700450211159
+        (-2305843009213693938 | -6148914691236517206) == -1537228672809129298
+        (-6148914691236517206 ^ 6148914691236517205) == -1
+        (6148914691236517205 ^ -6148914691236517206) == -1
+        (6148914691236517205 ^ 6148914691236517205) == 0
+        (-6148914691236517206 ^ -6148914691236517206) == 0
+        (8070450532247928839 ^ 6148914691236517205) == 2690150177415976274
+        (-2305843009213693938 ^ -6148914691236517206) == 5380300354831952548
+        (0 << 1) == 0
+        (0 << 63) == 0
+        (1 << 63) == -9223372036854775808
+        (-9223372036854775808 << 1) == 0
+        (-9223372036854775808 << 63) == 0
+        (-1 << 63) == -9223372036854775808
+        (7 << 2) == 28
+        (0 << 64) : error_invalidShiftsNumber
+        (0 << 67) : error_invalidShiftsNumber
+        (1 << 64) : error_invalidShiftsNumber
+        (1 << 67) : error_invalidShiftsNumber
+        (-1 << 64) : error_invalidShiftsNumber
+        (-1 << 67) : error_invalidShiftsNumber
+        (-1 << -1) : error_invalidShiftsNumber
+        (0 << -1) : error_invalidShiftsNumber
+        (1 << -1) : error_invalidShiftsNumber
+        (-1 << -9223372036854775808) : error_invalidShiftsNumber
+        (0 << -9223372036854775808) : error_invalidShiftsNumber
+        (1 << -9223372036854775808) : error_invalidShiftsNumber
+        (0 >> 1) == 0
+        (0 >> 63) == 0
+        (1 >> 63) == 0
+        (-9223372036854775808 >> 1) == 4611686018427387904
+        (-9223372036854775808 >> 63) == 1
+        (-1 >> 63) == 1
+        (7 >> 2) == 1
+        (0 >> 64) : error_invalidShiftsNumber
+        (0 >> 67) : error_invalidShiftsNumber
+        (1 >> 64) : error_invalidShiftsNumber
+        (1 >> 67) : error_invalidShiftsNumber
+        (-1 >> 64) : error_invalidShiftsNumber
+        (-1 >> 67) : error_invalidShiftsNumber
+        (-1 << -1) : error_invalidShiftsNumber
+        (0 << -1) : error_invalidShiftsNumber
+        (1 << -1) : error_invalidShiftsNumber
+        (-1 << -9223372036854775808) : error_invalidShiftsNumber
+        (0 << -9223372036854775808) : error_invalidShiftsNumber
+        (1 << -9223372036854775808) : error_invalidShiftsNumber
+        0.getBit(0) == false
+        0.getBit(1) == false
+        0.getBit(2) == false
+        0.getBit(63) == false
+        1.getBit(0) == true
+        1.getBit(1) == false
+        1.getBit(2) == false
+        1.getBit(63) == false
+        2.getBit(0) == false
+        2.getBit(1) == true
+        2.getBit(2) == false
+        2.getBit(63) == false
+        -1.getBit(0) == true
+        -1.getBit(1) == true
+        -1.getBit(2) == true
+        -1.getBit(63) == true
+        -9223372036854775808.getBit(0) == false
+        -9223372036854775808.getBit(1) == false
+        -9223372036854775808.getBit(2) == false
+        -9223372036854775808.getBit(63) == true
+        0.getBit(64) : error_outOfRange
+        0.getBit(9223372036854775807) : error_outOfRange
+        0.getBit(9223372036854775806) : error_outOfRange
+        0.getBit(-1) : error_outOfRange
+        0.getBit(-9223372036854775808) : error_outOfRange
+        -1.getBit(64) : error_outOfRange
+        -1.getBit(9223372036854775807) : error_outOfRange
+        -1.getBit(9223372036854775806) : error_outOfRange
+        -1.getBit(-1) : error_outOfRange
+        -1.getBit(-9223372036854775808) : error_outOfRange
+        1.getBit(64) : error_outOfRange
+        1.getBit(9223372036854775807) : error_outOfRange
+        1.getBit(9223372036854775806) : error_outOfRange
+        1.getBit(-1) : error_outOfRange
+        1.getBit(-9223372036854775808) : error_outOfRange
+        0.setBit$(0, true) == 1
+        0.setBit$(0, false) == 0
+        0.setBit$(1, true) == 2
+        0.setBit$(2, true) == 4
+        0.setBit$(63, true) == -9223372036854775808
+        0.setBit$(63, false) == 0
+        1.setBit$(0, true) == 1
+        1.setBit$(0, false) == 0
+        1.setBit$(1, true) == 3
+        1.setBit$(2, true) == 5
+        1.setBit$(63, true) == -9223372036854775807
+        1.setBit$(63, false) == 1
+        2.setBit$(0, true) == 3
+        2.setBit$(1, true) == 2
+        2.setBit$(2, true) == 6
+        2.setBit$(2, false) == 2
+        2.setBit$(63, true) == -9223372036854775806
+        -1.setBit$(0, true) == -1
+        -1.setBit$(0, false) == -2
+        -1.setBit$(1, true) == -1
+        -1.setBit$(2, false) == -5
+        -1.setBit$(63, true) == -1
+        -1.setBit$(63, false) == 9223372036854775807
+        -9223372036854775808.setBit$(0, true) == -9223372036854775807
+        -9223372036854775808.setBit$(0, false) == -9223372036854775808
+        -9223372036854775808.setBit$(1, true) == -9223372036854775806
+        -9223372036854775808.setBit$(2, true) == -9223372036854775804
+        -9223372036854775808.setBit$(63, true) == -9223372036854775808
+        0.setBit$(64, true) : error_outOfRange
+        0.setBit$(64, false) : error_outOfRange
+        0.setBit$(9223372036854775807, true) : error_outOfRange
+        0.setBit$(9223372036854775806, false) : error_outOfRange
+        0.setBit$(-1, true) : error_outOfRange
+        0.setBit$(-1, false) : error_outOfRange
+        0.setBit$(-9223372036854775808, true) : error_outOfRange
+        -1.setBit$(64, true) : error_outOfRange
+        -1.setBit$(9223372036854775807, true) : error_outOfRange
+        -1.setBit$(9223372036854775806, false) : error_outOfRange
+        -1.setBit$(-1, true) : error_outOfRange
+        -1.setBit$(-9223372036854775808, true) : error_outOfRange
+        1.setBit$(64, false) : error_outOfRange
+        1.setBit$(9223372036854775807, false) : error_outOfRange
+        1.setBit$(9223372036854775806, true) : error_outOfRange
+        1.setBit$(-1, true) : error_outOfRange
+        1.setBit$(-9223372036854775808, false) : error_outOfRange
+        0.bitsCount~() == 64
+        -1.not() == 0
+        1.not() == -2
+        -9223372036854775808.not() == 9223372036854775807
+        -9223372036854775808.not().not() == -9223372036854775808
+    var int1 Int = -6148914691236517206
+    var int2 Int = 6148914691236517205
+    var int3 Int = 6148914691236517205
+    var int4 Int = -6148914691236517206
+    var int5 Int = 8070450532247928839
+    var int6 Int = -2305843009213693938
+    test: ok, errorsCoordinates
+        (int1 &= 6148914691236517205).nothing?()
+        (int2 &= -6148914691236517206).nothing?()
+        (int3 &= 6148914691236517205).nothing?()
+        (int4 &= -6148914691236517206).nothing?()
+        (int5 &= 6148914691236517205).nothing?()
+        (int6 &= -6148914691236517206).nothing?()
+        int1 == 0
+        int2 == 0
+        int3 == 6148914691236517205
+        int4 == -6148914691236517206
+        int5 == 5764607523034234885
+        int6 == -6917529027641081846
+    int1 = -6148914691236517206
+    int2 = 6148914691236517205
+    int3 = 6148914691236517205
+    int4 = -6148914691236517206
+    int5 = 8070450532247928839
+    int6 = -2305843009213693938
+    test: ok, errorsCoordinates
+        (int1 |= 6148914691236517205).nothing?()
+        (int2 |= -6148914691236517206).nothing?()
+        (int3 |= 6148914691236517205).nothing?()
+        (int4 |= -6148914691236517206).nothing?()
+        (int5 |= 6148914691236517205).nothing?()
+        (int6 |= -6148914691236517206).nothing?()
+        int1 == -1
+        int2 == -1
+        int3 == 6148914691236517205
+        int4 == -6148914691236517206
+        int5 == 8454757700450211159
+        int6 == -1537228672809129298
+    int1 = -6148914691236517206
+    int2 = 6148914691236517205
+    int3 = 6148914691236517205
+    int4 = -6148914691236517206
+    int5 = 8070450532247928839
+    int6 = -2305843009213693938
+    test: ok, errorsCoordinates
+        (int1 ^= 6148914691236517205).nothing?()
+        (int2 ^= -6148914691236517206).nothing?()
+        (int3 ^= 6148914691236517205).nothing?()
+        (int4 ^= -6148914691236517206).nothing?()
+        (int5 ^= 6148914691236517205).nothing?()
+        (int6 ^= -6148914691236517206).nothing?()
+        int1 == -1
+        int2 == -1
+        int3 == 0
+        int4 == 0
+        int5 == 2690150177415976274
+        int6 == 5380300354831952548
+    int1 = 0
+    int2 = 0
+    int3 = 1
+    int4 = -9223372036854775808
+    int5 = -9223372036854775808
+    int6 = -1
+    var int7 Int = 7
+    test: ok, errorsCoordinates
+        (int1 <<= 1).nothing?()
+        (int2 <<= 63).nothing?()
+        (int3 <<= 63).nothing?()
+        (int4 <<= 1).nothing?()
+        (int5 <<= 63).nothing?()
+        (int6 <<= 63).nothing?()
+        (int7 <<= 2).nothing?()
+        int1 == 0
+        int2 == 0
+        int3 == -9223372036854775808
+        int4 == 0
+        int5 == 0
+        int6 == -9223372036854775808
+        int7 == 28
+    int1 = 0
+    int2 = 0
+    int3 = 1
+    int4 = -9223372036854775808
+    int5 = -9223372036854775808
+    int6 = -1
+    int7 = 7
+    test: ok, errorsCoordinates
+        (int1 >>= 1).nothing?()
+        (int2 >>= 63).nothing?()
+        (int3 >>= 63).nothing?()
+        (int4 >>= 1).nothing?()
+        (int5 >>= 63).nothing?()
+        (int6 >>= 63).nothing?()
+        (int7 >>= 2).nothing?()
+        int1 == 0
+        int2 == 0
+        int3 == 0
+        int4 == 4611686018427387904
+        int5 == 1
+        int6 == 1
+        int7 == 1
+    int1 = 0
+    int2 = 0
+    int3 = 1
+    int4 = 1
+    int5 = -1
+    int6 = -1
+    int7 = -1
+    var int8 Int = 0
+    var int9 Int = 1
+    var int10 Int = -1
+    var int11 Int = 0
+    var int12 Int = 1
+    test: ok, errorsCoordinates
+        (int1 <<= 64) : error_invalidShiftsNumber
+        int1 == 0
+        (int2 <<= 67) : error_invalidShiftsNumber
+        int2 == 0
+        (int3 <<= 64) : error_invalidShiftsNumber
+        int3 == 1
+        (int4 <<= 67) : error_invalidShiftsNumber
+        int4 == 1
+        (int5 <<= 64) : error_invalidShiftsNumber
+        int5 == -1
+        (int6 <<= 67) : error_invalidShiftsNumber
+        int6 == -1
+        (int7 <<= -1) : error_invalidShiftsNumber
+        int7 == -1
+        (int8 <<= -1) : error_invalidShiftsNumber
+        int8 == 0
+        (int9 <<= -1) : error_invalidShiftsNumber
+        int9 == 1
+        (int10 <<= -9223372036854775808) : error_invalidShiftsNumber
+        int10 == -1
+        (int11 <<= -9223372036854775808) : error_invalidShiftsNumber
+        int11 == 0
+        (int12 <<= -9223372036854775808) : error_invalidShiftsNumber
+        int12 == 1
+    int1 = 0
+    int2 = 0
+    int3 = 1
+    int4 = 1
+    int5 = -1
+    int6 = -1
+    int7 = -1
+    int8 = 0
+    int9 = 1
+    int10 = -1
+    int11 = 0
+    int12 = 1
+    test: ok, errorsCoordinates
+        (int1 >>= 64) : error_invalidShiftsNumber
+        int1 == 0
+        (int2 >>= 67) : error_invalidShiftsNumber
+        int2 == 0
+        (int3 >>= 64) : error_invalidShiftsNumber
+        int3 == 1
+        (int4 >>= 67) : error_invalidShiftsNumber
+        int4 == 1
+        (int5 >>= 64) : error_invalidShiftsNumber
+        int5 == -1
+        (int6 >>= 67) : error_invalidShiftsNumber
+        int6 == -1
+        (int7 >>= -1) : error_invalidShiftsNumber
+        int7 == -1
+        (int8 >>= -1) : error_invalidShiftsNumber
+        int8 == 0
+        (int9 >>= -1) : error_invalidShiftsNumber
+        int9 == 1
+        (int10 >>= -9223372036854775808) : error_invalidShiftsNumber
+        int10 == -1
+        (int11 >>= -9223372036854775808) : error_invalidShiftsNumber
+        int11 == 0
+        (int12 >>= -9223372036854775808) : error_invalidShiftsNumber
+        int12 == 1
+    int1 = 0
+    int2 = 0
+    int3 = 0
+    int4 = 0
+    int5 = 0
+    int6 = 0
+    int7 = 1
+    int8 = 1
+    int9 = 1
+    int10 = 1
+    int11 = 1
+    int12 = 1
+    test: ok, errorsCoordinates
+        int1.setBit(0, true).nothing?()
+        int1 == 1
+        int2.setBit(0, false).nothing?()
+        int2 == 0
+        int3.setBit(1, true).nothing?()
+        int3 == 2
+        int4.setBit(2, true).nothing?()
+        int4 == 4
+        int5.setBit(63, true).nothing?()
+        int5 == -9223372036854775808
+        int6.setBit(63, false).nothing?()
+        int6 == 0
+        int7.setBit(0, true).nothing?()
+        int7 == 1
+        int8.setBit(0, false).nothing?()
+        int8 == 0
+        int9.setBit(1, true).nothing?()
+        int9 == 3
+        int10.setBit(2, true).nothing?()
+        int10 == 5
+        int11.setBit(63, true).nothing?()
+        int11 == -9223372036854775807
+        int12.setBit(63, false).nothing?()
+        int12 == 1
+    int1 = 2
+    int2 = 2
+    int3 = 4
+    int4 = 2
+    int5 = 2
+    int6 = -1
+    int7 = -1
+    int8 = -1
+    int9 = -1
+    int10 = -1
+    int11 = -1
+    int12 = -9223372036854775808
+    test: ok, errorsCoordinates
+        int1.setBit(0, true).nothing?()
+        int1 == 3
+        int2.setBit(1, true).nothing?()
+        int2 == 2
+        int3.setBit(1, true).nothing?()
+        int3 == 6
+        int4.setBit(2, false).nothing?()
+        int4 == 2
+        int5.setBit(63, true).nothing?()
+        int5 == -9223372036854775806
+        int6.setBit(0, true).nothing?()
+        int6 == -1
+        int7.setBit(0, false).nothing?()
+        int7 == -2
+        int8.setBit(1, true).nothing?()
+        int8 == -1
+        int9.setBit(2, false).nothing?()
+        int9 == -5
+        int10.setBit(63, true).nothing?()
+        int10 == -1
+        int11.setBit(63, false).nothing?()
+        int11 == 9223372036854775807
+        int12.setBit(0, true).nothing?()
+        int12 == -9223372036854775807
+    int1 = -9223372036854775808
+    int2 = -9223372036854775808
+    int3 = -9223372036854775808
+    int4 = -9223372036854775808
+    test: ok, errorsCoordinates
+        int1.setBit(0, false).nothing?()
+        int1 == -9223372036854775808
+        int2.setBit(1, true).nothing?()
+        int2 == -9223372036854775806
+        int3.setBit(2, true).nothing?()
+        int3 == -9223372036854775804
+        int4.setBit(63, true).nothing?()
+        int4 == -9223372036854775808
+        int5.setBit(64, true) : error_outOfRange
+        int5 == -9223372036854775806
+        int5.setBit(64, false) : error_outOfRange
+        int5 == -9223372036854775806
+        int5.setBit(9223372036854775807, true) : error_outOfRange
+        int5 == -9223372036854775806
+        int5.setBit(9223372036854775806, false) : error_outOfRange
+        int5 == -9223372036854775806
+        int5.setBit(-1, true) : error_outOfRange
+        int5 == -9223372036854775806
+        int5.setBit(-1, false) : error_outOfRange
+        int5 == -9223372036854775806
+        int5.setBit(-9223372036854775808, true) : error_outOfRange
+        int5 == -9223372036854775806
+
+#noinline
+def testInt_IntToChar(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        intToChar(0) == '\0000'
+        intToChar(32) == ' '
+        intToChar(255) == '\00ff'
+        intToChar(65535) == '\ffff'
+        intToChar(-1) : error_outOfRange
+        intToChar(-9223372036854775808) : error_outOfRange
+        intToChar(65536) : error_outOfRange
+
+#noinline
+def testInt_IntToReal(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        intToReal(0).realAsInt_testInt() == 0
+        intToReal(10).realAsInt_testInt() == 4621819117588971520
+        intToReal(9223372036854775807).realAsInt_testInt() == 4890909195324358656
+        intToReal(-9223372036854775808).realAsInt_testInt() == -4332462841530417152
+
+#noinline
+def testInt_IntToTime(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        intToTime(0).type?(Time)
+        intToTime(9223372036854775807).type?(Time)
+        intToTime(-1) : error_outOfRange
+        intToTime(-9223372036854775808) : error_outOfRange
+
+#noinline
+def testInt_Hashed(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0.getHash() == 0.getHash()
+        -1.getHash() == -1.getHash()
+        -9223372036854775808.getHash() == -9223372036854775808.getHash()
+        1.getHash() == 1.getHash()
+        9223372036854775807.getHash() == 9223372036854775807.getHash()
+        0.getRandomizedHash() == 0.getRandomizedHash()
+        -1.getRandomizedHash() == -1.getRandomizedHash()
+        -9223372036854775808.getRandomizedHash() == -9223372036854775808.getRandomizedHash()
+        1.getRandomizedHash() == 1.getRandomizedHash()
+        9223372036854775807.getRandomizedHash() == 9223372036854775807.getRandomizedHash()
+
+#noinline
+def testInt_IntToHex(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0.intToHex() == "0x0"
+        1.intToHex() == "0x1"
+        9.intToHex() == "0x9"
+        10.intToHex() == "0xA"
+        11.intToHex() == "0xB"
+        15.intToHex() == "0xF"
+        16.intToHex() == "0x10"
+        -1.intToHex() == "0xFFFFFFFFFFFFFFFF"
+        5239975550145005584.intToHex() == "0x48B8220012200810"
+
+#noinline
+def testInt_HexToInt(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        "0x0".hexToInt() == 0
+        "0xfF".hexToInt() == 255
+        "0xFf".hexToInt() == 255
+        "0xff".hexToInt() == 255
+        "0xFF".hexToInt() == 255
+        "0xF".hexToInt() == 15
+        "0xa".hexToInt() == 10
+        "0x9".hexToInt() == 9
+        "0x1".hexToInt() == 1
+        "0xFFFFFFFFFFFFFFFF".hexToInt() == -1
+        "0x48B8220012200810".hexToInt() == 5239975550145005584
+        "48B8220012200810".hexToInt() : error_readFromString
+        "0x48B82200122008100".hexToInt() : error_readFromString
+        "".hexToInt() : error_readFromString
+        "0x".hexToInt() : error_readFromString
+        "-0x1".hexToInt() : error_readFromString
+        "-0x2".hexToInt() : error_readFromString
+        "-0x".hexToInt() : error_readFromString
+
+#noinline
+def testInt_BinarySerializable(write ok Int, write errorsCoordinates List)
+    var bytes Bytes = Bytes.createEmpty()
+    var position Int = 0
+    test: ok, errorsCoordinates
+        0.serialize(bytes).nothing?()
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes)
+        0xfc1b0234.serialize(bytes).nothing?()
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0, 0x34, 2, 0x1b, 0xfc, 0, 0, 0, 0].repackTo(Bytes)
+        Int.deserialize(bytes, position) == 0
+        position == 8
+        Int.deserialize(bytes, position) == 0xfc1b0234
+        position == 16
+        Int.deserialize(bytes, position) : error_outOfRange
+    position = 0
+    test: ok, errorsCoordinates
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        position == 0
+        Int.deserialize([0].repackTo(Bytes), position) : error_outOfRange
+        position == 0
+        Int.deserialize([].repackTo(Bytes), position) : error_outOfRange
+        position == 0
+    position = 1
+    test: ok, errorsCoordinates
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = -1
+    test: ok, errorsCoordinates
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = -9223372036854775808
+    test: ok, errorsCoordinates
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+    position = 9223372036854775807
+    test: ok, errorsCoordinates
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange

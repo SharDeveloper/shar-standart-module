@@ -1,0 +1,419 @@
+module Main
+
+def testUnsafe(write ok Int, write errorsCoordinates List)
+    testUnsafe_unsafe_getI8(ok, errorsCoordinates)
+    testUnsafe_unsafe_getI16(ok, errorsCoordinates)
+    testUnsafe_unsafe_getI32(ok, errorsCoordinates)
+    testUnsafe_unsafe_getI64(ok, errorsCoordinates)
+    testUnsafe_unsafe_get2xI64(ok, errorsCoordinates)
+    testUnsafe_unsafe_setI8(ok, errorsCoordinates)
+    testUnsafe_unsafe_setI16(ok, errorsCoordinates)
+    testUnsafe_unsafe_setI32(ok, errorsCoordinates)
+    testUnsafe_unsafe_setI64(ok, errorsCoordinates)
+    testUnsafe_unsafe_set2xI64(ok, errorsCoordinates)
+    testUnsafe_unsafe_malloc_free(ok, errorsCoordinates)
+    testUnsafe_unsafe_realloc_free(ok, errorsCoordinates)
+    testUnsafe_unsafe_setType(ok, errorsCoordinates)
+    testUnsafe_unsafe_getValue(ok, errorsCoordinates)
+    testUnsafe_unsafe_setValue(ok, errorsCoordinates)
+    testUnsafe_unsafe_offset(ok, errorsCoordinates)
+    testUnsafe_unsafe_memcpy(ok, errorsCoordinates)
+    testUnsafe_unsafe_memmove(ok, errorsCoordinates)
+    testUnsafe_unsafe_memset(ok, errorsCoordinates)
+
+#noinline
+def testUnsafe_unsafe_getI8(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(0) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(1) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(8) == 3
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(9) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(16) == (Int.typeNumber~() & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(17) == ((Int.typeNumber~() >> 8) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(18) == ((Int.typeNumber~() >> 16) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(19) == ((Int.typeNumber~() >> 24) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(20) == ((Int.typeNumber~() >> 32) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(21) == ((Int.typeNumber~() >> 40) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(22) == ((Int.typeNumber~() >> 48) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(23) == ((Int.typeNumber~() >> 56) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(24) == 0xef
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(25) == 0xcd
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(26) == 0xab
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(27) == 0x89
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(28) == 0x67
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(29) == 0x45
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(30) == 0x23
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(31) == 0x01
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(32) == 0x01
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(33) == 0xef
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(34) == 0xcd
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(35) == 0xab
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(36) == 0x89
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(37) == 0x67
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(38) == 0x45
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(39) == 0x23
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(40) == 0x23
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(41) == 0x01
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(42) == 0xef
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(43) == 0xcd
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(44) == 0xab
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(45) == 0x89
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(46) == 0x67
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(47) == 0x45
+
+#noinline
+def testUnsafe_unsafe_getI16(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(0) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(1) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(4) == 3
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(5) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(8) == (Int.typeNumber~() & 0xffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(9) == ((Int.typeNumber~() >> 16) & 0xffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(10) == ((Int.typeNumber~() >> 32) & 0xffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(11) == ((Int.typeNumber~() >> 48) & 0xffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(12) == 0xcdef
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(13) == 0x89ab
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(14) == 0x4567
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(15) == 0x0123
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(16) == 0xef01
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(17) == 0xabcd
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(18) == 0x6789
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(19) == 0x2345
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(20) == 0x0123
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(21) == 0xcdef
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(22) == 0x89ab
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(23) == 0x4567
+
+#noinline
+def testUnsafe_unsafe_getI32(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(0) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(1) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(2) == 3
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(3) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(4) == (Int.typeNumber~() & 0xffffffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(5) == ((Int.typeNumber~() >> 32) & 0xffffffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(6) == 0x89abcdef
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(7) == 0x01234567
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(8) == 0xabcdef01
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(9) == 0x23456789
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(10) == 0xcdef0123
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(11) == 0x456789ab
+
+#noinline
+def testUnsafe_unsafe_getI64(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(0) == 0
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(1) == 3
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(2) == Int.typeNumber~()
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(3) == 0x0123456789abcdef
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(4) == 0x23456789abcdef01
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(5) == 0x456789abcdef0123
+
+#noinline
+def testUnsafe_unsafe_get2xI64(write ok Int, write errorsCoordinates List)
+    var v $Any = 'a'
+    test: ok, errorsCoordinates
+        [0, Int.typeNumber~(), 0x0123456789abcdef, Int.typeNumber~(), 0x23456789abcdef01].unsafe_get2xI64(2, v).nothing?()
+        v == 0x0123456789abcdef
+        [0, Int.typeNumber~(), 0x0123456789abcdef, Int.typeNumber~(), 0x23456789abcdef01].unsafe_get2xI64(3, v).nothing?()
+        v == 0x23456789abcdef01
+
+#noinline
+def testUnsafe_unsafe_setI8(write ok Int, write errorsCoordinates List)
+    var a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
+    a.unsafe_setI8(24, 0x77)
+    test: ok, errorsCoordinates
+        a == [0x0123456789abcd77, 0x23456789abcdef01, 0x456789abcdef0123]
+    a.unsafe_setI8(31, 0x77)
+    test: ok, errorsCoordinates
+        a == [0x7723456789abcd77, 0x23456789abcdef01, 0x456789abcdef0123]
+    a.unsafe_setI8(32, 0x77)
+    test: ok, errorsCoordinates
+        a == [0x7723456789abcd77, 0x23456789abcdef77, 0x456789abcdef0123]
+    a.unsafe_setI8(39, 0x77)
+    test: ok, errorsCoordinates
+        a == [0x7723456789abcd77, 0x77456789abcdef77, 0x456789abcdef0123]
+    a.unsafe_setI8(40, 0x77)
+    test: ok, errorsCoordinates
+        a == [0x7723456789abcd77, 0x77456789abcdef77, 0x456789abcdef0177]
+    a.unsafe_setI8(47, 0x77)
+    test: ok, errorsCoordinates
+        a == [0x7723456789abcd77, 0x77456789abcdef77, 0x776789abcdef0177]
+
+#noinline
+def testUnsafe_unsafe_setI16(write ok Int, write errorsCoordinates List)
+    var a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
+    a.unsafe_setI16(12, 0x7799)
+    test: ok, errorsCoordinates
+        a == [0x0123456789ab7799, 0x23456789abcdef01, 0x456789abcdef0123]
+    a.unsafe_setI16(15, 0x7799)
+    test: ok, errorsCoordinates
+        a == [0x7799456789ab7799, 0x23456789abcdef01, 0x456789abcdef0123]
+    a.unsafe_setI16(16, 0x7799)
+    test: ok, errorsCoordinates
+        a == [0x7799456789ab7799, 0x23456789abcd7799, 0x456789abcdef0123]
+    a.unsafe_setI16(19, 0x7799)
+    test: ok, errorsCoordinates
+        a == [0x7799456789ab7799, 0x77996789abcd7799, 0x456789abcdef0123]
+    a.unsafe_setI16(20, 0x7799)
+    test: ok, errorsCoordinates
+        a == [0x7799456789ab7799, 0x77996789abcd7799, 0x456789abcdef7799]
+    a.unsafe_setI16(23, 0x7799)
+    test: ok, errorsCoordinates
+        a == [0x7799456789ab7799, 0x77996789abcd7799, 0x779989abcdef7799]
+
+#noinline
+def testUnsafe_unsafe_setI32(write ok Int, write errorsCoordinates List)
+    var a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
+    a.unsafe_setI32(6, 0x66778899)
+    test: ok, errorsCoordinates
+        a == [0x0123456766778899, 0x23456789abcdef01, 0x456789abcdef0123]
+    a.unsafe_setI32(7, 0x66778899)
+    test: ok, errorsCoordinates
+        a == [0x6677889966778899, 0x23456789abcdef01, 0x456789abcdef0123]
+    a.unsafe_setI32(8, 0x66778899)
+    test: ok, errorsCoordinates
+        a == [0x6677889966778899, 0x2345678966778899, 0x456789abcdef0123]
+    a.unsafe_setI32(9, 0x66778899)
+    test: ok, errorsCoordinates
+        a == [0x6677889966778899, 0x6677889966778899, 0x456789abcdef0123]
+    a.unsafe_setI32(10, 0x66778899)
+    test: ok, errorsCoordinates
+        a == [0x6677889966778899, 0x6677889966778899, 0x456789ab66778899]
+    a.unsafe_setI32(11, 0x66778899)
+    test: ok, errorsCoordinates
+        a == [0x6677889966778899, 0x6677889966778899, 0x6677889966778899]
+
+#noinline
+def testUnsafe_unsafe_setI64(write ok Int, write errorsCoordinates List)
+    var a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
+    a.unsafe_setI64(3, 0x77bbcc00112233ff)
+    test: ok, errorsCoordinates
+        a == [0x77bbcc00112233ff, 0x23456789abcdef01, 0x456789abcdef0123]
+    a.unsafe_setI64(4, 0x77bbcc00112233ff)
+    test: ok, errorsCoordinates
+        a == [0x77bbcc00112233ff, 0x77bbcc00112233ff, 0x456789abcdef0123]
+    a.unsafe_setI64(5, 0x77bbcc00112233ff)
+    test: ok, errorsCoordinates
+        a == [0x77bbcc00112233ff, 0x77bbcc00112233ff, 0x77bbcc00112233ff]
+
+#noinline
+def testUnsafe_unsafe_set2xI64(write ok Int, write errorsCoordinates List)
+    var a Array = [0, 0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123, 0x0123456789abcdef].clone()
+    a.unsafe_set2xI64(2, 0x00aa11bb22cc33dd)
+    test: ok, errorsCoordinates
+        a == [0, Int.typeNumber~(), 0x00aa11bb22cc33dd, 0x456789abcdef0123, 0x0123456789abcdef]
+    a.unsafe_set2xI64(3, 0x00aa11bb22cc33dd)
+    test: ok, errorsCoordinates
+        a == [0, Int.typeNumber~(), 0x00aa11bb22cc33dd, Int.typeNumber~(), 0x00aa11bb22cc33dd]
+
+#noinline
+def testUnsafe_unsafe_malloc_free(write ok Int, write errorsCoordinates List)
+    const m Int = unsafe_malloc(14)
+    m.unsafe_setI64(0, 0x00aa11bb22cc33dd)
+    m.unsafe_setI32(2, 0xaabbccdd)
+    m.unsafe_setI16(6, 0xeeff)
+    test: ok, errorsCoordinates
+        m.unsafe_getI16(0) == 0x33dd
+        m.unsafe_getI16(1) == 0x22cc
+        m.unsafe_getI16(2) == 0x11bb
+        m.unsafe_getI16(3) == 0x00aa
+        m.unsafe_getI16(4) == 0xccdd
+        m.unsafe_getI16(5) == 0xaabb
+        m.unsafe_getI16(6) == 0xeeff
+    m.unsafe_free()
+
+#noinline
+def testUnsafe_unsafe_realloc_free(write ok Int, write errorsCoordinates List)
+    var m Int = unsafe_malloc(14)
+    m.unsafe_setI64(0, 0x00aa11bb22cc33dd)
+    m.unsafe_setI32(2, 0xaabbccdd)
+    m.unsafe_setI16(6, 0xeeff)
+    m.unsafe_realloc(16)
+    m.unsafe_setI16(7, 0x1234)
+    test: ok, errorsCoordinates
+        m.unsafe_getI16(0) == 0x33dd
+        m.unsafe_getI16(1) == 0x22cc
+        m.unsafe_getI16(2) == 0x11bb
+        m.unsafe_getI16(3) == 0x00aa
+        m.unsafe_getI16(4) == 0xccdd
+        m.unsafe_getI16(5) == 0xaabb
+        m.unsafe_getI16(6) == 0xeeff
+        m.unsafe_getI16(7) == 0x1234
+    m.unsafe_realloc(8)
+    test: ok, errorsCoordinates
+        m.unsafe_getI32(0) == 0x22cc33dd
+        m.unsafe_getI32(1) == 0x00aa11bb
+    m.unsafe_free()
+
+#noinline
+def testUnsafe_unsafe_setType(write ok Int, write errorsCoordinates List)
+    var m $Any = unsafe_malloc(40)
+    m.unsafe_setI64(0, 1)
+    m.unsafe_setI64(1, 2)
+    m.unsafe_setI64(2, Int.typeNumber~())
+    m.unsafe_setI64(3, 0x00aa11bb22cc33dd)
+    m.unsafe_setI64(4, 0x00aaffbb22cc33dd)
+    m.unsafe_setType(Array.typeNumber~())
+    test: ok, errorsCoordinates
+        m == [0x00aa11bb22cc33dd, 0x00aaffbb22cc33dd].clone()
+
+#noinline
+def testUnsafe_unsafe_getValue(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        12.unsafe_getValue() == 12
+        -12.unsafe_getValue() == -12
+        0.0.unsafe_getValue() == 0
+        0.0.unsafe_getValue() == 0
+        (10.0 * 26.0).unsafe_getValue() == 4643281584563159040
+
+#noinline
+def testUnsafe_unsafe_setValue(write ok Int, write errorsCoordinates List)
+    var l List = {1, 2}
+    l.unsafe_setValue({3, 4})
+    test: ok, errorsCoordinates
+        l == {3, 4}
+
+#noinline
+def testUnsafe_unsafe_offset(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        13.unsafe_offsetI8(10) == 23
+        1.unsafe_offsetI8(10) == 11
+        13.unsafe_offsetI16(10) == 33
+        1.unsafe_offsetI16(10) == 21
+        13.unsafe_offsetI32(10) == 53
+        1.unsafe_offsetI32(10) == 41
+        13.unsafe_offsetI64(10) == 93
+        1.unsafe_offsetI64(10) == 81
+
+#noinline
+def testUnsafe_unsafe_memcpy(write ok Int, write errorsCoordinates List)
+    var a $Any = unsafe_malloc(24)
+    a.unsafe_setType(String.typeNumber~())
+    unsafe_memcpyI8(a, "0123", 24)
+    test: ok, errorsCoordinates
+        a == "0123"
+    unsafe_memcpyI16(a, "abcd", 12)
+    test: ok, errorsCoordinates
+        a == "abcd"
+    unsafe_memcpyI32(a, "0123", 6)
+    test: ok, errorsCoordinates
+        a == "0123"
+    unsafe_memcpyI64(a, "abcd", 3)
+    test: ok, errorsCoordinates
+        a == "abcd"
+    unsafe_memcpyI8(a, "0123", 0)
+    test: ok, errorsCoordinates
+        a == "abcd"
+    unsafe_memcpyI16(a, "0123", 0)
+    test: ok, errorsCoordinates
+        a == "abcd"
+    unsafe_memcpyI32(a, "0123", 0)
+    test: ok, errorsCoordinates
+        a == "abcd"
+    unsafe_memcpyI64(a, "0123", 0)
+    test: ok, errorsCoordinates
+        a == "abcd"
+
+#noinline
+def testUnsafe_unsafe_memmove(write ok Int, write errorsCoordinates List)
+    var a String = "012345678".clone()
+    unsafe_memmoveI8(a.unsafe_offsetI8(16), a.unsafe_offsetI8(18), 16)
+    test: ok, errorsCoordinates
+        a == "123456788"
+    unsafe_memmoveI8(a.unsafe_offsetI8(18), a.unsafe_offsetI8(16), 16)
+    test: ok, errorsCoordinates
+        a == "112345678"
+    unsafe_memmoveI16(a.unsafe_offsetI16(8), a.unsafe_offsetI16(9), 8)
+    test: ok, errorsCoordinates
+        a == "123456788"
+    unsafe_memmoveI16(a.unsafe_offsetI16(9), a.unsafe_offsetI16(8), 8)
+    test: ok, errorsCoordinates
+        a == "112345678"
+    unsafe_memmoveI32(a.unsafe_offsetI32(4), a.unsafe_offsetI32(5), 3)
+    test: ok, errorsCoordinates
+        a == "234567678"
+    unsafe_memmoveI32(a.unsafe_offsetI32(5), a.unsafe_offsetI32(4), 3)
+    test: ok, errorsCoordinates
+        a == "232345678"
+    unsafe_memmoveI64(a.unsafe_offsetI64(2), a.unsafe_offsetI64(3), 1)
+    test: ok, errorsCoordinates
+        a == "456745678"
+    a = "012345678".clone()
+    unsafe_memmoveI64(a.unsafe_offsetI64(3), a.unsafe_offsetI64(2), 1)
+    test: ok, errorsCoordinates
+        a == "012301238"
+    unsafe_memmoveI8(a, "0123", 0)
+    test: ok, errorsCoordinates
+        a == "012301238"
+    unsafe_memmoveI16(a, "0123", 0)
+    test: ok, errorsCoordinates
+        a == "012301238"
+    unsafe_memmoveI32(a, "0123", 0)
+    test: ok, errorsCoordinates
+        a == "012301238"
+    unsafe_memmoveI64(a, "0123", 0)
+    test: ok, errorsCoordinates
+        a == "012301238"
+
+#noinline
+def testUnsafe_unsafe_memset(write ok Int, write errorsCoordinates List)
+    var a Array = [0, 1, 2, 3, 4].clone()
+    unsafe_memsetI8(a.unsafe_offsetI64(3), 0x12, 40)
+    test: ok, errorsCoordinates
+        a == [0x1212121212121212, 0x1212121212121212, 0x1212121212121212, 0x1212121212121212, 0x1212121212121212]
+    unsafe_memsetI16(a.unsafe_offsetI64(3), 0x3456, 20)
+    test: ok, errorsCoordinates
+        a == [0x3456345634563456, 0x3456345634563456, 0x3456345634563456, 0x3456345634563456, 0x3456345634563456]
+    unsafe_memsetI32(a.unsafe_offsetI64(3), 0x127890ab, 10)
+    test: ok, errorsCoordinates
+        a == [0x127890ab127890ab, 0x127890ab127890ab, 0x127890ab127890ab, 0x127890ab127890ab, 0x127890ab127890ab]
+    unsafe_memsetI64(a.unsafe_offsetI64(3), 0x3513934aaaccb341, 5)
+    test: ok, errorsCoordinates
+        a == [0x3513934aaaccb341, 0x3513934aaaccb341, 0x3513934aaaccb341, 0x3513934aaaccb341, 0x3513934aaaccb341]
+    a = [0, 1, 2, 3].clone()
+    unsafe_memsetI8(a.unsafe_offsetI64(3), 0x12, 32)
+    test: ok, errorsCoordinates
+        a == [0x1212121212121212, 0x1212121212121212, 0x1212121212121212, 0x1212121212121212]
+    unsafe_memsetI16(a.unsafe_offsetI64(3), 0x3456, 16)
+    test: ok, errorsCoordinates
+        a == [0x3456345634563456, 0x3456345634563456, 0x3456345634563456, 0x3456345634563456]
+    unsafe_memsetI32(a.unsafe_offsetI64(3), 0x127890ab, 8)
+    test: ok, errorsCoordinates
+        a == [0x127890ab127890ab, 0x127890ab127890ab, 0x127890ab127890ab, 0x127890ab127890ab]
+    unsafe_memsetI64(a.unsafe_offsetI64(3), 0x3513934aaaccb341, 4)
+    test: ok, errorsCoordinates
+        a == [0x3513934aaaccb341, 0x3513934aaaccb341, 0x3513934aaaccb341, 0x3513934aaaccb341]
+    a = [0].clone()
+    unsafe_memsetI8(a.unsafe_offsetI64(3), 0x12, 8)
+    test: ok, errorsCoordinates
+        a == [0x1212121212121212]
+    unsafe_memsetI16(a.unsafe_offsetI64(3), 0x3456, 4)
+    test: ok, errorsCoordinates
+        a == [0x3456345634563456]
+    unsafe_memsetI32(a.unsafe_offsetI64(3), 0x127890ab, 2)
+    test: ok, errorsCoordinates
+        a == [0x127890ab127890ab]
+    unsafe_memsetI64(a.unsafe_offsetI64(3), 0x3513934aaaccb341, 1)
+    test: ok, errorsCoordinates
+        a == [0x3513934aaaccb341]
+    unsafe_memsetI8(a, 1, 0)
+    unsafe_memsetI16(a, 1, 0)
+    unsafe_memsetI32(a, 1, 0)
+    unsafe_memsetI64(a, 1, 0)
+    unsafe_memset2xI64(a, 1, 0)
+    var l List = {12, 13, 14}.clone()
+    unsafe_memset2xI64(l.unsafe_offsetI64(2), 0x3513934aaaccb341, 3)
+    test: ok, errorsCoordinates
+        l == {0x3513934aaaccb341, 0x3513934aaaccb341, 0x3513934aaaccb341}
+    unsafe_memset2xI64(l.unsafe_offsetI64(2), 1.0, 2)
+    test: ok, errorsCoordinates
+        l == {1.0, 1.0, 0x3513934aaaccb341}
+    unsafe_memset2xI64(l.unsafe_offsetI64(2), "abc", 1)
+    test: ok, errorsCoordinates
+        l == {"abc", 1.0, 0x3513934aaaccb341}
+    unsafe_memset2xI64(l.unsafe_offsetI64(2), 123, 0)
+    test: ok, errorsCoordinates
+        l == {"abc", 1.0, 0x3513934aaaccb341}

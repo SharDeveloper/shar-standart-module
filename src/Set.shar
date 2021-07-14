@@ -1,0 +1,332 @@
+module STD
+
+//@Members of the "STD::Set" group are types whose objects contain zero or more objects (called "items"), without any order, grouped into one object, and for which operations are available to find, add, and delete an item in the object.
+//@If the first argument of the "STD::shar__sugar__getItem" function is an object with a type that is a member of the "STD::Set" group, then this function searches for the item specified by the second function argument in the set and returns "true" if the item is in the set, otherwise the function returns "false".
+export group Set: Iterable, Empty, Shar__sugar__getItem
+    //@The function adds an item to the set.
+    //@If the set already contains an added item, then the existing item is overwritten with a new one, and the function returns "true", otherwise the function returns "false".
+    add(write This, ${Equal, Hashable}) Bool
+    //@The function removes an item from the set, if the deleted item is in the set, the function returns "true", otherwise the function returns "false".
+    remove(write This, ${Equal, Hashable}) Bool
+
+//@A type is a set of items of the same type.
+export primitive Set
+
+#override(STD)
+def shar__rc_free(set Set)
+    const counter Int = set.unsafe_set_getCounter()
+    if counter > 1
+        set.unsafe_set_setCounter(counter - 1)
+    elif counter == 1
+        const hashPartsCount Int = set.unsafe_set_getHashPartsCount()
+        for :(index Int = 0) index < hashPartsCount; index++
+            const node SetNode = set.unsafe_set_getNodeByIndex(index)
+            const nodeCounter Int = node.unsafe_setNode_getCounter()
+            if nodeCounter > 1
+                node.unsafe_setNode_setCounter(nodeCounter - 1)
+            elif nodeCounter == 1
+                node.unsafe_setNode_free(set.itemTypeNumber~())
+        set.unsafe_free()
+
+#override(STD) alwaysinline
+def shar__rc_use(set Set)
+    const counter Int = set.unsafe_set_getCounter()
+    if counter != 0
+        set.unsafe_set_setCounter(counter + 1)
+
+#override(STD)
+def shar__to_const(set Set)
+    if set.unsafe_set_getCounter() != 0
+        const hashPartsCount Int = set.unsafe_set_getHashPartsCount()
+        for :(index Int = 0) index < hashPartsCount; index++
+            const node SetNode = set.unsafe_set_getNodeByIndex(index)
+            if node.unsafe_setNode_getCounter() != 0
+                node.unsafe_setNode_toConst(set.itemTypeNumber~())
+        set.unsafe_set_setCounter(0)
+
+#override(STD) alwaysinline nothrow
+def use?(set Set) Bool
+    return set.unsafe_set_getCounter() != 1
+
+#override(STD) alwaysinline nothrow
+def constant?(set Set) Bool
+    return set.unsafe_set_getCounter() == 0
+
+#override(STD) nothrow
+def clone(set Set) Set
+    const hashPartsCount Int = set.unsafe_set_getHashPartsCount()
+    for :(index Int = 0) index < hashPartsCount; index++
+        const node SetNode = set.unsafe_set_getNodeByIndex(index)
+        const nodeCounter Int = node.unsafe_setNode_getCounter()
+        if nodeCounter != 0
+            node.unsafe_setNode_setCounter(nodeCounter + 1)
+    const setSizeInI8 Int = hashPartsCount * 9 + 24
+    var result $Any = unsafe_malloc(setSizeInI8)
+    unsafe_memcpyI8(result, set, setSizeInI8)
+    result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
+    result.unsafe_setType(Set.typeNumber~())
+    return result
+
+attach Set to Empty
+    #alwaysinline nothrow
+    def createEmpty(noread type Set) Set
+        llvm
+            ret [2 x i64] [i64 ##tnum##STD::Set##, i64 ptrtoint ([3 x i64]* ##llvmconst##>private unnamed_addr constant [3 x i64] zeroinitializer, align 8<## to i64)]
+
+attach Set to Long
+    #alwaysinline nothrow
+    def length~(set Set) Int
+        return set.unsafe_getI64(1)
+
+attach Set to Shar__sugar__getItem
+    //@If the search takes place in a non-empty set and the type of the searched item does not match the type of the already existing items, then the function returns an error with the code "enum::STD::error_invalidType".
+    def shar__sugar__getItem(set Set, item ${Equal, Hashable}) Bool
+        const itemTypeNumberInSet Int = set.itemTypeNumber~()
+        if itemTypeNumberInSet == Nothing.typeNumber~()
+            return false
+        inthrow
+            if itemTypeNumberInSet != item.typeNumber~()
+                throw(enum::error_invalidType, "Invalid type.")
+        const hash Int = item.getShortRandomizedHash()
+        const lowHashPart Int = hash & 0xff
+        const highHashPart Int = (hash >> 8) & 0xffff
+        var unneeded1 Int = 0
+        var unneeded2 Int = 0
+        var unneeded3 Int = 0
+        var itemsEqualError List = {}
+        const node <>SetNode = set.unsafe_set_getNodeByHash(lowHashPart, unneeded1, unneeded2)
+        var result Bool = false
+        if node.type?(SetNode)
+            result = node.unsafe_setNode_itemExist?(highHashPart, item, unneeded1, unneeded2, unneeded3, itemsEqualError)
+        inthrow
+            if !itemsEqualError.empty?()
+                throw(itemsEqualError[0], itemsEqualError[1])
+        return result
+
+attach Set to Iterable
+    #alwaysinline nothrow
+    def parse__init(set Set) $Any
+        return 0
+
+    #alwaysinline nothrow
+    def parse__predicate(set Set, index $Any) Bool
+        const currenNodeIndex Int = index & 0x1ff
+        return currenNodeIndex < set.unsafe_set_getHashPartsCount()
+
+    #alwaysinline unsafewrite nothrow
+    def parse__next(set Set, write index $Any)
+        var nodeIndex Int = index & 0x1ff
+        var arrayIndex Int = (index >> 9) & 0xffff
+        var itemIndex Int = (index >> 25) + 1
+        const node SetNode = set.unsafe_set_getNodeByIndex(nodeIndex)
+        const array Int = node.unsafe_getI64(1 + arrayIndex)
+        const itemsCount Int = array.unsafe_getI64(0)
+        if itemIndex == itemsCount
+            itemIndex = 0
+            arrayIndex++
+            const arrayCount Int = node.unsafe_setNode_getHashPartsCount()
+            if arrayIndex == arrayCount
+                arrayIndex = 0
+                nodeIndex++
+        index = (((itemIndex << 16) | arrayIndex) << 9) | nodeIndex
+
+    #alwaysinline nothrow
+    def parse__get__key(set Set, index $Any) $Any
+        const nodeIndex Int = index & 0x1ff
+        const arrayIndex Int = (index >> 9) & 0xffff
+        const itemIndex Int = index >> 25
+        const node SetNode = set.unsafe_set_getNodeByIndex(nodeIndex)
+        const array Int = node.unsafe_getI64(1 + arrayIndex)
+        var item $Any = array.unsafe_getI64(itemIndex + 1)
+        item.unsafe_setType(set.itemTypeNumber~())
+        item.shar__rc_use()
+        return item
+
+    #alwaysinline nothrow
+    def parse__get__item(set Set, index $Any) $Any
+        const nodeIndex Int = index & 0x1ff
+        const arrayIndex Int = (index >> 9) & 0xffff
+        const itemIndex Int = index >> 25
+        const node SetNode = set.unsafe_set_getNodeByIndex(nodeIndex)
+        const array Int = node.unsafe_getI64(1 + arrayIndex)
+        var item $Any = array.unsafe_getI64(itemIndex + 1)
+        item.unsafe_setType(set.itemTypeNumber~())
+        item.shar__rc_use()
+        return item
+
+attach Set to Set
+    //@If an item is added to a non-empty set and the type of the added item does not match the type of already existing items, the function returns an error with the code "enum::STD::error_invalidType".
+    def add(write set Set, item ${Equal, Hashable}) Bool
+        const itemTypeNumberInSet Int = set.itemTypeNumber~()
+        inthrow
+            if itemTypeNumberInSet != item.typeNumber~() && itemTypeNumberInSet != Nothing.typeNumber~()
+                throw(enum::error_invalidType, "Invalid type.")
+        const hash Int = item.getShortRandomizedHash()
+        const lowHashPart Int = hash & 0xff
+        const highHashPart Int = (hash >> 8) & 0xffff
+        var nodeIndex Int = -1
+        var nodeInsertIndex Int = -1
+        var itemsIndex Int = -1
+        var itemsInsertIndex Int = -1
+        var itemIndex Int = -1
+        var itemsEqualError List = {}
+        var node <>SetNode = set.unsafe_set_getNodeByHash(lowHashPart, nodeIndex, nodeInsertIndex)
+        var result Bool = false
+        if node.type?(SetNode)
+            result = node.unsafe_setNode_itemExist?(highHashPart, item, itemsIndex, itemsInsertIndex, itemIndex, itemsEqualError)
+        inthrow
+            if !itemsEqualError.empty?()
+                throw(itemsEqualError[0], itemsEqualError[1])
+        if set.use?()
+            set = set.clone()
+        set.unsafe_setI64(2, item.typeNumber~())
+        item.shar__rc_use()
+        if node.type?(SetNode)
+            const nodeCounter Int = node.unsafe_setNode_getCounter()
+            if nodeCounter != 1
+                const oldNode SetNode = node
+                node = node.unsafe_setNode_clone(itemTypeNumberInSet)
+                if nodeCounter != 0
+                    oldNode.unsafe_setNode_setCounter(nodeCounter - 1)
+            if itemsIndex == -1
+                node.unsafe_setNode_addItemWithNewHashCode(highHashPart, itemsInsertIndex, item)
+            else
+                node.unsafe_setNode_addItemWithExistedHashCode(itemsIndex, itemIndex, item)
+        else
+            node = unsafe_setNode_createNewNode(highHashPart, item)
+        if nodeIndex == -1
+            set.unsafe_set_addNode(lowHashPart, nodeInsertIndex, node)
+        else
+            set.unsafe_setI64(nodeIndex + 3, node)
+        if !result
+            set.unsafe_setI64(1, set.length~() + 1)
+        return result
+
+    //@If an item is deleted in a non-empty set and the type of the deleted item does not match the type of the existing items, the function returns an error with the code "enum::STD::error_invalidType".
+    def remove(write set Set, item ${Equal, Hashable}) Bool
+        const itemTypeNumberInSet Int = set.itemTypeNumber~()
+        inthrow
+            if itemTypeNumberInSet != item.typeNumber~() && itemTypeNumberInSet != Nothing.typeNumber~()
+                throw(enum::error_invalidType, "Invalid type.")
+        const hash Int = item.getShortRandomizedHash()
+        const lowHashPart Int = hash & 0xff
+        const highHashPart Int = (hash >> 8) & 0xffff
+        var nodeIndex Int = -1
+        var nodeInsertIndex Int = -1
+        var itemsIndex Int = -1
+        var itemsInsertIndex Int = -1
+        var itemIndex Int = -1
+        var itemsEqualError List = {}
+        var node <>SetNode = set.unsafe_set_getNodeByHash(lowHashPart, nodeIndex, nodeInsertIndex)
+        var result Bool = false
+        if node.type?(SetNode)
+            result = node.unsafe_setNode_itemExist?(highHashPart, item, itemsIndex, itemsInsertIndex, itemIndex, itemsEqualError)
+        inthrow
+            if !itemsEqualError.empty?()
+                throw(itemsEqualError[0], itemsEqualError[1])
+        if !result
+            return false
+        elif set.length~() == 1
+            set = Set.createEmpty()
+            return true
+        if set.use?()
+            set = set.clone()
+        const nodeCounter Int = node.unsafe_setNode_getCounter()
+        if nodeCounter != 1
+            const oldNode SetNode = node
+            node = node.unsafe_setNode_clone(itemTypeNumberInSet)
+            if nodeCounter != 0
+                oldNode.unsafe_setNode_setCounter(nodeCounter - 1)
+        node.unsafe_setNode_deleteItem(itemsIndex, itemIndex, itemTypeNumberInSet)
+        if node.nothing?()
+            set.unsafe_set_removeNode(nodeIndex)
+            set.unsafe_setI64(1, set.length~() - 1)
+            return result
+        if nodeIndex == -1
+            set.unsafe_set_addNode(lowHashPart, nodeInsertIndex, node)
+        else
+            set.unsafe_setI64(nodeIndex + 3, node)
+        set.unsafe_setI64(1, set.length~() - 1)
+        return result
+
+#alwaysinline nothrow
+def unsafe_set_getCounter(set $Any) Int
+    return set.unsafe_getI64(0) & 0xffffffffffff
+
+#alwaysinline nothrow
+def unsafe_set_setCounter(set, newCounter $Any)
+    set.unsafe_setI64(0, (set.unsafe_getI64(0) & -281474976710656) | (newCounter & 0xffffffffffff))
+
+#alwaysinline nothrow
+def unsafe_set_getHashPartsCount(set $Any) Int
+    return set.unsafe_getI16(3)
+
+#alwaysinline nothrow
+def unsafe_set_getNodeByIndex(set, index $Any) SetNode
+    var result $Any = set.unsafe_getI64(index + 3)
+    result.unsafe_setType(SetNode.typeNumber~())
+    return result
+
+#alwaysinline unsafewrite nothrow
+def unsafe_set_getNodeByHash(set, hashPart, write nodeIndex, write nodeInsertIndex $Any) <>SetNode
+    const hashPartsCount Int = set.unsafe_set_getHashPartsCount()
+    const nodes Int = set.unsafe_offsetI64(3)
+    const hashParts Int = nodes.unsafe_offsetI64(hashPartsCount)
+    if hashPartsCount.inRange?(1, 256)
+        var leftIndex Int = 0
+        var rightEdge Int = hashPartsCount
+        for :(loop)
+            const length Int = rightEdge - leftIndex
+            if length == 0
+                nodeInsertIndex = leftIndex
+                end loop
+            const centerIndex Int = (length >> 1) + leftIndex
+            const centerHashPart Int = hashParts.unsafe_getI8(centerIndex)
+            if centerHashPart == hashPart
+                nodeIndex = centerIndex
+                var result $Any = nodes.unsafe_getI64(centerIndex)
+                result.unsafe_setType(SetNode.typeNumber~())
+                return result
+            if centerHashPart < hashPart
+                leftIndex = centerIndex + 1
+            else
+                rightEdge = centerIndex
+    elif hashPartsCount == 256
+        nodeIndex = hashPart
+        var result $Any = nodes.unsafe_getI64(hashPart)
+        result.unsafe_setType(SetNode.typeNumber~())
+        return result
+    else
+        nodeInsertIndex = 0
+    return nothing
+
+#inline unsafewrite nothrow
+def unsafe_set_removeNode(write set, nodeIndex $Any)
+    const hashPartsCount Int = set.unsafe_set_getHashPartsCount()
+    const nodes Int = set.unsafe_offsetI64(3)
+    const hashParts Int = nodes.unsafe_offsetI64(hashPartsCount)
+    const countOfMovedHashParts Int = hashPartsCount - 1 - nodeIndex
+    const countOfMovedNodesAndMovedHashPartsInI8 Int = countOfMovedHashParts * 8 + hashPartsCount - 1
+    unsafe_memmoveI8(hashParts.unsafe_offsetI8(nodeIndex), hashParts.unsafe_offsetI8(nodeIndex + 1), countOfMovedHashParts)
+    set.unsafe_setI16(3, hashPartsCount - 1)
+    unsafe_memmoveI8(nodes.unsafe_offsetI64(nodeIndex), nodes.unsafe_offsetI64(nodeIndex + 1), countOfMovedNodesAndMovedHashPartsInI8)
+    set.unsafe_realloc(hashPartsCount * 9 + 15)
+
+#inline unsafewrite nothrow
+def unsafe_set_addNode(write set, hashPart, nodeInsertIndex, node $Any)
+    const hashPartsCount Int = set.unsafe_set_getHashPartsCount()
+    set.unsafe_realloc(hashPartsCount * 9 + 33)
+    const oldNodesInNewSet Int = set.unsafe_offsetI64(3)
+    const oldHashPartsInNewSet Int = oldNodesInNewSet.unsafe_offsetI64(hashPartsCount)
+    const countOfMovedHashPartsInEnd Int = hashPartsCount - nodeInsertIndex
+    const countOfMovedNodesAndHashPartsInBeginInI8 Int = countOfMovedHashPartsInEnd * 8 + nodeInsertIndex
+    unsafe_memmoveI8(oldHashPartsInNewSet.unsafe_offsetI8(nodeInsertIndex + 9), oldHashPartsInNewSet.unsafe_offsetI8(nodeInsertIndex), countOfMovedHashPartsInEnd)
+    set.unsafe_setI16(3, set.unsafe_getI16(3) + 1)
+    unsafe_memmoveI8(oldNodesInNewSet.unsafe_offsetI64(nodeInsertIndex + 1), oldNodesInNewSet.unsafe_offsetI64(nodeInsertIndex), countOfMovedNodesAndHashPartsInBeginInI8)
+    oldNodesInNewSet.unsafe_setI64(nodeInsertIndex, node)
+    oldHashPartsInNewSet.unsafe_setI8(nodeInsertIndex + 8, hashPart)
+
+attach Set to ItemTypeNumber
+    #alwaysinline nothrow
+    def itemTypeNumber~(set Set) Int
+        return set.unsafe_getI64(2)

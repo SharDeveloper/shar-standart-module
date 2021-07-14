@@ -1,0 +1,1443 @@
+module STD
+
+//@The type is an implementation of an array of bytes.
+//@If array "a" is empty, and array "b" is not empty, then array "a" is less than array "b".
+//@If array "a" has zero or more items equal to the same number of items in array "b", and the next item of array "a" is less than the next item of array "b", then array "a" is less than array "b".
+//@If array "a" is equal to the beginning of array "b", but at the same time array "b" contains more items than array "a", then array "a" is less than array "b".
+//@When comparing two arrays for more, less, equal, the comparison occurs from the beginning of the array to the end. Comparison takes place until the result is clear.
+export primitive Bytes
+
+#override(STD) alwaysinline
+def shar__rc_free(bytes Bytes)
+    const counter Int = bytes.unsafe_getI64(0)
+    if counter > 1
+        bytes.unsafe_setI64(0, counter - 1)
+    elif counter == 1
+        bytes.unsafe_free()
+
+#override(STD) alwaysinline
+def shar__rc_use(bytes Bytes)
+    const counter Int = bytes.unsafe_getI64(0)
+    if counter != 0
+        bytes.unsafe_setI64(0, counter + 1)
+
+#override(STD) alwaysinline
+def shar__to_const(bytes Bytes)
+    if bytes.unsafe_getI64(0) != 0
+        bytes.unsafe_setI64(0, 0)
+
+#override(STD) alwaysinline nothrow
+def use?(bytes Bytes) Bool
+    return bytes.unsafe_getI64(0) != 1
+
+#override(STD) alwaysinline nothrow
+def constant?(bytes Bytes) Bool
+    return bytes.unsafe_getI64(0) == 0
+
+#override(STD) nothrow
+def clone(bytes Bytes) Bytes
+    var result Bytes = unsafe_bytes_createDummy(bytes.length~())
+    unsafe_memcpyI8(result.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length~())
+    return result
+
+#alwaysinline nothrow
+def unsafe_bytes_createDummy(length $Any) Bytes
+    var result $Any = unsafe_malloc(length + 16)
+    result.unsafe_setI64(0, 1)
+    result.unsafe_setI64(1, length)
+    result.unsafe_setType(Bytes.typeNumber~())
+    return result
+
+attach Bytes to Equal
+
+attach Bytes to Shar__sugar__equal
+    #alwaysinline nothrow
+    def shar__sugar__equal(bytes1, bytes2 Bytes) Bool
+        return bytes1.length~() == bytes2.length~() && bytes1.partsEqual?(0, bytes2, 0, bytes1.length~())
+
+attach Bytes to Shar__sugar__notEqual
+    #alwaysinline nothrow
+    def shar__sugar__notEqual(bytes1, bytes2 Bytes) Bool
+        return !(bytes1 == bytes2)
+
+attach Bytes to Ordered
+
+attach Bytes to Shar__sugar__less
+    #alwaysinline nothrow
+    def shar__sugar__less(bytes1, bytes2 Bytes) Bool
+        const length1 Int = bytes1.length~()
+        const length2 Int = bytes2.length~()
+        const generalLength Int = length1.min(length2)
+        return unsafe_bytes_less(bytes1.unsafe_offsetI64(2), bytes2.unsafe_offsetI64(2), generalLength, length1, length2)
+
+#alwaysinline nothrow
+def unsafe_bytes_less(address1, address2, generalLength, length1, length2 $Any) Bool
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address b1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address b1## = inttoptr i64 %##reg##address b1 i64## to <32 x i8>*
+        %##nreg##address b2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##address b2## = inttoptr i64 %##reg##address b2 i64## to <32 x i8>*
+        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
+        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##address b1 1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##address b2 1## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##vector from address b1## = load <32 x i8>, <32 x i8>* %##reg##address b1 1##, align 1
+        %##nreg##vector from address b2## = load <32 x i8>, <32 x i8>* %##reg##address b2 1##, align 1
+        %##nreg##vector compare result## = icmp ne <32 x i8> %##reg##vector from address b1##, %##reg##vector from address b2##
+        %##nreg##vector compare result i32## = bitcast <32 x i1> %##reg##vector compare result## to i32
+        %##nreg##vectors not equal?## = icmp ne i32 %##reg##vector compare result i32##, 0
+        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
+        ##nreg##vector equal label##:
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new simd address b1## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b1 1##, i64 1
+        %##nreg##new simd address b2## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b2 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##vector not equal label##:
+        ##llvmdeclare##llvm.cttz.i32##declare i32 @llvm.cttz.i32(i32, i1)##
+        %##nreg##vector index## = call i32 @llvm.cttz.i32(i32 %##reg##vector compare result i32##, i1 1)
+        %##nreg##item from vector b1## = extractelement <32 x i8> %##reg##vector from address b1##, i32 %##reg##vector index##
+        %##nreg##item from vector b2## = extractelement <32 x i8> %##reg##vector from address b2##, i32 %##reg##vector index##
+        %##nreg##simd result i1## = icmp ult i8 %##reg##item from vector b1##, %##reg##item from vector b2##
+        %##nreg##simd result i64## = zext i1 %##reg##simd result i1## to i64
+        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##simd result i64##, 1
+        ret [2 x i64] %##reg##simd result##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##vector address b1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##vector address b2## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##address b1 2## = bitcast <32 x i8>* %##reg##vector address b1## to i8*
+        %##nreg##address b2 2## = bitcast <32 x i8>* %##reg##vector address b2## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##equal label##]
+        %##nreg##address b1 3## = phi i8* [%##reg##address b1 2##, %##reg##scalar label##], [%##reg##new address b1 3##, %##reg##equal label##]
+        %##nreg##address b2 3## = phi i8* [%##reg##address b2 2##, %##reg##scalar label##], [%##reg##new address b2 3##, %##reg##equal label##]
+        %##nreg##item from address b1## = load i8, i8* %##reg##address b1 3##, align 1
+        %##nreg##item from address b2## = load i8, i8* %##reg##address b2 3##, align 1
+        %##nreg##items not equal?## = icmp ne i8 %##reg##item from address b1##, %##reg##item from address b2##
+        br i1 %##reg##items not equal?##, label %##reg##not equal label##, label %##reg##equal label##
+        ##nreg##equal label##:
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new address b1 3## = getelementptr i8, i8* %##reg##address b1 3##, i64 1
+        %##nreg##new address b2 3## = getelementptr i8, i8* %##reg##address b2 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##not equal label##:
+        %##nreg##scalar result i1## = icmp ult i8 %##reg##item from address b1##, %##reg##item from address b2##
+        %##nreg##scalar result i64## = zext i1 %##reg##scalar result i1## to i64
+        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##scalar result i64##, 1
+        ret [2 x i64] %##reg##scalar result##
+        ##nreg##end label##:
+        %##nreg##length b1## = extractvalue [2 x i64] %3, 1
+        %##nreg##length b2## = extractvalue [2 x i64] %4, 1
+        %##nreg##result i1## = icmp ult i64 %##reg##length b1##, %##reg##length b2##
+        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
+
+attach Bytes to Shar__sugar__great
+    #alwaysinline nothrow
+    def shar__sugar__great(bytes1, bytes2 Bytes) Bool
+        const length1 Int = bytes1.length~()
+        const length2 Int = bytes2.length~()
+        const generalLength Int = length1.min(length2)
+        return unsafe_bytes_great(bytes1.unsafe_offsetI64(2), bytes2.unsafe_offsetI64(2), generalLength, length1, length2)
+
+#alwaysinline nothrow
+def unsafe_bytes_great(address1, address2, generalLength, length1, length2 $Any) Bool
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address b1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address b1## = inttoptr i64 %##reg##address b1 i64## to <32 x i8>*
+        %##nreg##address b2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##address b2## = inttoptr i64 %##reg##address b2 i64## to <32 x i8>*
+        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
+        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##address b1 1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##address b2 1## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##vector from address b1## = load <32 x i8>, <32 x i8>* %##reg##address b1 1##, align 1
+        %##nreg##vector from address b2## = load <32 x i8>, <32 x i8>* %##reg##address b2 1##, align 1
+        %##nreg##vector compare result## = icmp ne <32 x i8> %##reg##vector from address b1##, %##reg##vector from address b2##
+        %##nreg##vector compare result i32## = bitcast <32 x i1> %##reg##vector compare result## to i32
+        %##nreg##vectors not equal?## = icmp ne i32 %##reg##vector compare result i32##, 0
+        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
+        ##nreg##vector equal label##:
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new simd address b1## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b1 1##, i64 1
+        %##nreg##new simd address b2## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b2 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##vector not equal label##:
+        ##llvmdeclare##llvm.cttz.i32##declare i32 @llvm.cttz.i32(i32, i1)##
+        %##nreg##vector index## = call i32 @llvm.cttz.i32(i32 %##reg##vector compare result i32##, i1 1)
+        %##nreg##item from vector b1## = extractelement <32 x i8> %##reg##vector from address b1##, i32 %##reg##vector index##
+        %##nreg##item from vector b2## = extractelement <32 x i8> %##reg##vector from address b2##, i32 %##reg##vector index##
+        %##nreg##simd result i1## = icmp ugt i8 %##reg##item from vector b1##, %##reg##item from vector b2##
+        %##nreg##simd result i64## = zext i1 %##reg##simd result i1## to i64
+        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##simd result i64##, 1
+        ret [2 x i64] %##reg##simd result##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##vector address b1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##vector address b2## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##address b1 2## = bitcast <32 x i8>* %##reg##vector address b1## to i8*
+        %##nreg##address b2 2## = bitcast <32 x i8>* %##reg##vector address b2## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##equal label##]
+        %##nreg##address b1 3## = phi i8* [%##reg##address b1 2##, %##reg##scalar label##], [%##reg##new address b1 3##, %##reg##equal label##]
+        %##nreg##address b2 3## = phi i8* [%##reg##address b2 2##, %##reg##scalar label##], [%##reg##new address b2 3##, %##reg##equal label##]
+        %##nreg##item from address b1## = load i8, i8* %##reg##address b1 3##, align 1
+        %##nreg##item from address b2## = load i8, i8* %##reg##address b2 3##, align 1
+        %##nreg##items not equal?## = icmp ne i8 %##reg##item from address b1##, %##reg##item from address b2##
+        br i1 %##reg##items not equal?##, label %##reg##not equal label##, label %##reg##equal label##
+        ##nreg##equal label##:
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new address b1 3## = getelementptr i8, i8* %##reg##address b1 3##, i64 1
+        %##nreg##new address b2 3## = getelementptr i8, i8* %##reg##address b2 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##not equal label##:
+        %##nreg##scalar result i1## = icmp ugt i8 %##reg##item from address b1##, %##reg##item from address b2##
+        %##nreg##scalar result i64## = zext i1 %##reg##scalar result i1## to i64
+        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##scalar result i64##, 1
+        ret [2 x i64] %##reg##scalar result##
+        ##nreg##end label##:
+        %##nreg##length b1## = extractvalue [2 x i64] %3, 1
+        %##nreg##length b2## = extractvalue [2 x i64] %4, 1
+        %##nreg##result i1## = icmp ugt i64 %##reg##length b1##, %##reg##length b2##
+        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
+
+attach Bytes to Shar__sugar__lessOrEqual
+    #alwaysinline nothrow
+    def shar__sugar__lessOrEqual(bytes1, bytes2 Bytes) Bool
+        const length1 Int = bytes1.length~()
+        const length2 Int = bytes2.length~()
+        const generalLength Int = length1.min(length2)
+        return unsafe_bytes_lessOrEqual(bytes1.unsafe_offsetI64(2), bytes2.unsafe_offsetI64(2), generalLength, length1, length2)
+
+#alwaysinline nothrow
+def unsafe_bytes_lessOrEqual(address1, address2, generalLength, length1, length2 $Any) Bool
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address b1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address b1## = inttoptr i64 %##reg##address b1 i64## to <32 x i8>*
+        %##nreg##address b2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##address b2## = inttoptr i64 %##reg##address b2 i64## to <32 x i8>*
+        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
+        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##address b1 1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##address b2 1## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##vector from address b1## = load <32 x i8>, <32 x i8>* %##reg##address b1 1##, align 1
+        %##nreg##vector from address b2## = load <32 x i8>, <32 x i8>* %##reg##address b2 1##, align 1
+        %##nreg##vector compare result## = icmp ne <32 x i8> %##reg##vector from address b1##, %##reg##vector from address b2##
+        %##nreg##vector compare result i32## = bitcast <32 x i1> %##reg##vector compare result## to i32
+        %##nreg##vectors not equal?## = icmp ne i32 %##reg##vector compare result i32##, 0
+        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
+        ##nreg##vector equal label##:
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new simd address b1## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b1 1##, i64 1
+        %##nreg##new simd address b2## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b2 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##vector not equal label##:
+        ##llvmdeclare##llvm.cttz.i32##declare i32 @llvm.cttz.i32(i32, i1)##
+        %##nreg##vector index## = call i32 @llvm.cttz.i32(i32 %##reg##vector compare result i32##, i1 1)
+        %##nreg##item from vector b1## = extractelement <32 x i8> %##reg##vector from address b1##, i32 %##reg##vector index##
+        %##nreg##item from vector b2## = extractelement <32 x i8> %##reg##vector from address b2##, i32 %##reg##vector index##
+        %##nreg##simd result i1## = icmp ult i8 %##reg##item from vector b1##, %##reg##item from vector b2##
+        %##nreg##simd result i64## = zext i1 %##reg##simd result i1## to i64
+        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##simd result i64##, 1
+        ret [2 x i64] %##reg##simd result##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##vector address b1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##vector address b2## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##address b1 2## = bitcast <32 x i8>* %##reg##vector address b1## to i8*
+        %##nreg##address b2 2## = bitcast <32 x i8>* %##reg##vector address b2## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##equal label##]
+        %##nreg##address b1 3## = phi i8* [%##reg##address b1 2##, %##reg##scalar label##], [%##reg##new address b1 3##, %##reg##equal label##]
+        %##nreg##address b2 3## = phi i8* [%##reg##address b2 2##, %##reg##scalar label##], [%##reg##new address b2 3##, %##reg##equal label##]
+        %##nreg##item from address b1## = load i8, i8* %##reg##address b1 3##, align 1
+        %##nreg##item from address b2## = load i8, i8* %##reg##address b2 3##, align 1
+        %##nreg##items not equal?## = icmp ne i8 %##reg##item from address b1##, %##reg##item from address b2##
+        br i1 %##reg##items not equal?##, label %##reg##not equal label##, label %##reg##equal label##
+        ##nreg##equal label##:
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new address b1 3## = getelementptr i8, i8* %##reg##address b1 3##, i64 1
+        %##nreg##new address b2 3## = getelementptr i8, i8* %##reg##address b2 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##not equal label##:
+        %##nreg##scalar result i1## = icmp ult i8 %##reg##item from address b1##, %##reg##item from address b2##
+        %##nreg##scalar result i64## = zext i1 %##reg##scalar result i1## to i64
+        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##scalar result i64##, 1
+        ret [2 x i64] %##reg##scalar result##
+        ##nreg##end label##:
+        %##nreg##length b1## = extractvalue [2 x i64] %3, 1
+        %##nreg##length b2## = extractvalue [2 x i64] %4, 1
+        %##nreg##result i1## = icmp ule i64 %##reg##length b1##, %##reg##length b2##
+        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
+
+attach Bytes to Shar__sugar__greatOrEqual
+    #alwaysinline nothrow
+    def shar__sugar__greatOrEqual(bytes1, bytes2 Bytes) Bool
+        const length1 Int = bytes1.length~()
+        const length2 Int = bytes2.length~()
+        const generalLength Int = length1.min(length2)
+        return unsafe_bytes_greatOrEqual(bytes1.unsafe_offsetI64(2), bytes2.unsafe_offsetI64(2), generalLength, length1, length2)
+
+#alwaysinline nothrow
+def unsafe_bytes_greatOrEqual(address1, address2, generalLength, length1, length2 $Any) Bool
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address b1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address b1## = inttoptr i64 %##reg##address b1 i64## to <32 x i8>*
+        %##nreg##address b2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##address b2## = inttoptr i64 %##reg##address b2 i64## to <32 x i8>*
+        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
+        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##address b1 1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##address b2 1## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##vector from address b1## = load <32 x i8>, <32 x i8>* %##reg##address b1 1##, align 1
+        %##nreg##vector from address b2## = load <32 x i8>, <32 x i8>* %##reg##address b2 1##, align 1
+        %##nreg##vector compare result## = icmp ne <32 x i8> %##reg##vector from address b1##, %##reg##vector from address b2##
+        %##nreg##vector compare result i32## = bitcast <32 x i1> %##reg##vector compare result## to i32
+        %##nreg##vectors not equal?## = icmp ne i32 %##reg##vector compare result i32##, 0
+        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
+        ##nreg##vector equal label##:
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new simd address b1## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b1 1##, i64 1
+        %##nreg##new simd address b2## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b2 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##vector not equal label##:
+        ##llvmdeclare##llvm.cttz.i32##declare i32 @llvm.cttz.i32(i32, i1)##
+        %##nreg##vector index## = call i32 @llvm.cttz.i32(i32 %##reg##vector compare result i32##, i1 1)
+        %##nreg##item from vector b1## = extractelement <32 x i8> %##reg##vector from address b1##, i32 %##reg##vector index##
+        %##nreg##item from vector b2## = extractelement <32 x i8> %##reg##vector from address b2##, i32 %##reg##vector index##
+        %##nreg##simd result i1## = icmp ugt i8 %##reg##item from vector b1##, %##reg##item from vector b2##
+        %##nreg##simd result i64## = zext i1 %##reg##simd result i1## to i64
+        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##simd result i64##, 1
+        ret [2 x i64] %##reg##simd result##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##vector address b1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##vector address b2## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##address b1 2## = bitcast <32 x i8>* %##reg##vector address b1## to i8*
+        %##nreg##address b2 2## = bitcast <32 x i8>* %##reg##vector address b2## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##equal label##]
+        %##nreg##address b1 3## = phi i8* [%##reg##address b1 2##, %##reg##scalar label##], [%##reg##new address b1 3##, %##reg##equal label##]
+        %##nreg##address b2 3## = phi i8* [%##reg##address b2 2##, %##reg##scalar label##], [%##reg##new address b2 3##, %##reg##equal label##]
+        %##nreg##item from address b1## = load i8, i8* %##reg##address b1 3##, align 1
+        %##nreg##item from address b2## = load i8, i8* %##reg##address b2 3##, align 1
+        %##nreg##items not equal?## = icmp ne i8 %##reg##item from address b1##, %##reg##item from address b2##
+        br i1 %##reg##items not equal?##, label %##reg##not equal label##, label %##reg##equal label##
+        ##nreg##equal label##:
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new address b1 3## = getelementptr i8, i8* %##reg##address b1 3##, i64 1
+        %##nreg##new address b2 3## = getelementptr i8, i8* %##reg##address b2 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##not equal label##:
+        %##nreg##scalar result i1## = icmp ugt i8 %##reg##item from address b1##, %##reg##item from address b2##
+        %##nreg##scalar result i64## = zext i1 %##reg##scalar result i1## to i64
+        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##scalar result i64##, 1
+        ret [2 x i64] %##reg##scalar result##
+        ##nreg##end label##:
+        %##nreg##length b1## = extractvalue [2 x i64] %3, 1
+        %##nreg##length b2## = extractvalue [2 x i64] %4, 1
+        %##nreg##result i1## = icmp uge i64 %##reg##length b1##, %##reg##length b2##
+        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
+
+attach Bytes to Shar__sugar__getRange
+    #alwaysinline
+    def shar__sugar__getRange(bytes Bytes, from, to Int) Bytes
+        inthrow
+            if !(from >= 0 && from <= to && to <= bytes.length~())
+                throw(enum::error_outOfRange, "Out of range.")
+        var result Bytes = Bytes.createEmpty()
+        const length Int = to - from
+        if length != 0
+            result = unsafe_bytes_createDummy(length)
+            copy(result, 0, bytes, from, length)
+        return result
+
+attach Bytes to Shar__sugar__getItem
+    //@The result of the function is of type "STD::Int", and the byte is stored in the first eight bits of the result.
+    #alwaysinline
+    def shar__sugar__getItem(bytes Bytes, index Int) Int
+        inthrow
+            if !index.inRange?(0, bytes.length~())
+                throw(enum::error_outOfRange, "Out of range.")
+        return bytes.unsafe_getI8(index + 16)
+
+attach Bytes to Shar__sugar__add
+    #inline nothrow
+    def shar__sugar__add(bytes, addedBytes Bytes) Bytes
+        var result Bytes = unsafe_bytes_createDummy(bytes.length~() + addedBytes.length~())
+        copy(result, 0, bytes, 0, bytes.length~())
+        copy(result, bytes.length~(), addedBytes, 0, addedBytes.length~())
+        return result
+
+attach Bytes to Shar__sugar__addSet
+    #inline nothrow
+    def shar__sugar__addSet(write bytes, addedBytes Bytes)
+        if bytes.use?()
+            bytes = bytes + addedBytes
+        elif !addedBytes.empty?()
+            const startBytesLength Int = bytes.length~()
+            const newLength Int = startBytesLength + addedBytes.length~()
+            bytes.unsafe_setI64(1, newLength)
+            bytes.unsafe_realloc(newLength + 16)
+            copy(bytes, startBytesLength, addedBytes, 0, addedBytes.length~())
+
+attach Bytes to StringWriter
+    //@The function returns an object of type "STD::String".
+    #nothrow
+    def toString(bytes Bytes) String
+        var result String = ""
+        if !bytes.empty?()
+            const realBytes Int = bytes.unsafe_offsetI64(2)
+            for :(index Int = 0) index < bytes.length~(); index++
+                const byte Int = realBytes.unsafe_getI8(index)
+                var bits Int = byte >> 4
+                var char1 Int = 0
+                var char2 Int = 0
+                switch bits
+                case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+                    char1 = bits + '0'.charToInt()
+                case 10, 11, 12, 13, 14, 15
+                    char1 = bits + 'A'.charToInt() - 10
+                bits = byte & 0xf
+                switch bits
+                case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+                    char2 = bits + '0'.charToInt()
+                case 10, 11, 12, 13, 14, 15
+                    char2 = bits + 'A'.charToInt() - 10
+                result.addItem(char1.intToChar())
+                result.addItem(char2.intToChar())
+        return result
+
+attach Bytes to StringReader
+    def fromString(noread type Bytes, string $String) Bytes
+        var result Bytes = Bytes.createEmpty()
+        var stringIsCorrect Bool = (string.length~() & 1) == 0
+        if stringIsCorrect
+            for :(index Int = 0) index < string.length~(); index += 2
+                var byte Int = 0
+                var char Char = string[index]
+                switch char
+                case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+                    byte = char.charToInt() - '0'.charToInt()
+                case 'a', 'b', 'c', 'd', 'e', 'f'
+                    byte = char.charToInt() - 'a'.charToInt() + 10
+                case 'A', 'B', 'C', 'D', 'E', 'F'
+                    byte = char.charToInt() - 'A'.charToInt() + 10
+                default
+                    stringIsCorrect = false
+                    end index
+                byte <<= 4
+                char = string[index + 1]
+                switch char
+                case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+                    byte |= char.charToInt() - '0'.charToInt()
+                case 'a', 'b', 'c', 'd', 'e', 'f'
+                    byte |= char.charToInt() - 'a'.charToInt() + 10
+                case 'A', 'B', 'C', 'D', 'E', 'F'
+                    byte |= char.charToInt() - 'A'.charToInt() + 10
+                default
+                    stringIsCorrect = false
+                    end index
+                result.addItem(byte)
+        inthrow
+            if !stringIsCorrect
+                throw(enum::error_readFromString, "Reading from the string caused an error.")
+        return result
+
+attach Bytes to Hashable
+    #alwaysinline nothrow
+    def getHash(bytes Bytes) Int
+        var result Int = bytes.length~()
+        result += result << 10
+        result ^= result >> 6
+        const realBytes Int = bytes.unsafe_offsetI64(2)
+        for :(index Int = 0) index < bytes.length~(); index++
+            result += realBytes.unsafe_getI8(index).getHash()
+            result += result << 10
+            result ^= result >> 6
+        result += result << 3
+        result ^= result >> 11
+        result += result << 15
+        return result
+
+    #alwaysinline nothrow
+    def getRandomizedHash(bytes Bytes) Int
+        const randomNumber Int = const::staticRandomNumber
+        var result Int = randomNumber + bytes.length~()
+        const rightShifts Int = (randomNumber & 0xf) + 32
+        const leftShifts Int = ((randomNumber & 0xf0) >> 4) + 32
+        result += result << 10
+        result ^= result >> 6
+        const realBytes Int = bytes.unsafe_offsetI64(2)
+        for :(index Int = 0) index < bytes.length~(); index++
+            result = (result >> rightShifts) + (result << leftShifts) + (result & 0xffffffff)
+            result += realBytes.unsafe_getI8(index).getHash()
+            result += result << 10
+            result ^= result >> 6
+        result += result << 3
+        result ^= result >> 11
+        result += result << 15
+        return result
+
+attach Bytes to Long
+    #alwaysinline nothrow
+    def length~(bytes Bytes) Int
+        return bytes.unsafe_getI64(1)
+
+attach Bytes to Empty
+    #alwaysinline nothrow
+    def createEmpty(noread type Bytes) Bytes
+        llvm
+            ret [2 x i64] [i64 ##tnum##STD::Bytes##, i64 ptrtoint ([2 x i64]* ##llvmconst##>private unnamed_addr constant [2 x i64] zeroinitializer, align 8<## to i64)]
+
+attach Bytes to Put
+    //@The result of the function and the new byte are of type "STD::Int", and the byte is stored in the first eight bits of the integer.
+    #alwaysinline
+    def put(write bytes Bytes, index, newByte Int) Int
+        inthrow
+            if !index.inRange?(0, bytes.length~())
+                throw(enum::error_outOfRange, "Out of range.")
+        const oldByte Int = bytes.unsafe_getI8(index + 16)
+        if bytes.use?()
+            bytes = bytes.clone()
+        bytes.unsafe_setI8(index + 16, newByte)
+        return oldByte
+
+attach Bytes to Iterable
+    #alwaysinline nothrow
+    def parse__init(bytes Bytes) Int
+        return 0
+
+    #alwaysinline nothrow
+    def parse__predicate(bytes Bytes, index Int) Bool
+        return index != bytes.length~()
+
+    #alwaysinline unsafewrite nothrow
+    def parse__next(bytes Bytes, write index Int)
+        index++
+
+    #alwaysinline nothrow
+    def parse__get__key(bytes Bytes, index Int) Int
+        return index
+
+    #alwaysinline nothrow
+    def parse__get__item(bytes Bytes, index Int) Int
+        return bytes.unsafe_getI8(index + 16)
+
+attach Bytes to Container
+    //@The new byte is of type "STD::Int", and the byte is stored in the first eight bits of the integer.
+    #alwaysinline
+    def addItem(write bytes Bytes, newByte Int)
+        if bytes.use?()
+            bytes = bytes.addItem$(newByte)
+        else
+            const newLength Int = bytes.length~() + 1
+            bytes.unsafe_setI64(1, newLength)
+            bytes.unsafe_realloc(newLength + 16)
+            bytes.unsafe_setI8(newLength + 15, newByte)
+
+    //@The new byte is of type "STD::Int", and the byte is stored in the first eight bits of the integer.
+    #alwaysinline
+    def addItem$(bytes Bytes, newByte Int) Bytes
+        const newLength Int = bytes.length~() + 1
+        var newBytes Bytes = unsafe_bytes_createDummy(newLength)
+        unsafe_memcpyI8(newBytes.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length~())
+        newBytes.unsafe_setI8(newLength + 15, newByte)
+        return newBytes
+
+#override(STD) alwaysinline
+def copy(write destination Bytes, destinationPosition Int, source Bytes, sourcePosition, length Int)
+    const destinationLength Int = destination.length~()
+    const sourceLength Int = source.length~()
+    inthrow
+        if {
+            !(
+                destinationPosition >= 0 && destinationPosition <= destinationLength &&
+                sourcePosition >= 0 && sourcePosition <= sourceLength &&
+                length >= 0 && length <= (destinationLength - destinationPosition).min(sourceLength - sourcePosition)
+            )
+        }
+            throw(enum::error_outOfRange, "Out of range.")
+    if destination.use?()
+        var newBytes Bytes = unsafe_bytes_createDummy(destinationLength)
+        unsafe_memcpyI8(newBytes.unsafe_offsetI64(2), destination.unsafe_offsetI64(2), destinationPosition)
+        unsafe_memcpyI8(destination.unsafe_offsetI8(16 + destinationPosition), source.unsafe_offsetI8(16 + sourcePosition), length)
+        const lastPartStartIndex Int = destinationPosition + length
+        unsafe_memcpyI8(newBytes.unsafe_offsetI8(16 + lastPartStartIndex), destination.unsafe_offsetI8(16 + lastPartStartIndex), destination.length~() - lastPartStartIndex)
+        destination = newBytes
+    else
+        unsafe_memcpyI8(destination.unsafe_offsetI8(16 + destinationPosition), source.unsafe_offsetI8(16 + sourcePosition), length)
+
+attach Bytes to BinarySerializable
+    #alwaysinline nothrow
+    def serialize(bytesInput, write bytesOutput Bytes)
+        bytesInput.length~().serialize(bytesOutput)
+        bytesOutput += bytesInput
+
+    #alwaysinline
+    def deserialize(noread type, bytes Bytes, write position Int) Bytes
+        const startPosition Int = position
+        const length Int = Int.deserialize(bytes, position)
+        inthrow
+            if bytes.length~() - position < length || position < 0
+                position = startPosition
+                throw(enum::error_outOfRange, "Out of range.")
+        var result Bytes = unsafe_bytes_createDummy(length)
+        unsafe_memcpyI8(result.unsafe_offsetI64(2), bytes.unsafe_offsetI8(position + 16), length)
+        position += length
+        return result
+
+#override(STD) alwaysinline
+def swap(write bytes Bytes, position1, position2 Int)
+    inthrow
+        if !(position1.inRange?(0, bytes.length~()) && position2.inRange?(0, bytes.length~()))
+            throw(enum::error_outOfRange, "Out of range.")
+    if bytes.use?()
+        bytes = bytes.clone()
+    const items Int = bytes.unsafe_offsetI64(2)
+    const tmpItem Int = items.unsafe_getI8(position1)
+    items.unsafe_setI8(position1, items.unsafe_getI8(position2))
+    items.unsafe_setI8(position2, tmpItem)
+
+#override(STD) alwaysinline
+def setItem(write bytes Bytes, index, newItem Int)
+    bytes.put(index, newItem)
+
+#override(STD) alwaysinline
+def countFromAtoB(bytes Bytes, item, a, b Int) Int
+    inthrow
+        if !(a >= 0 && a <= b && b <= bytes.length~())
+            throw(enum::error_outOfRange, "Out of range.")
+    return unsafe_bytes_countFromAtoB(bytes.unsafe_offsetI8(a + 16), item, b - a)
+
+#alwaysinline nothrow
+def unsafe_bytes_countFromAtoB(address, item, length $Any) Int
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
+        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item## = trunc i64 %##reg##item 64## to i8
+        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
+        br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
+        ##nreg##simd label##:
+        %##nreg##<1 x item>## = insertelement <1 x i8> zeroinitializer, i8 %##reg##item##, i32 0
+        %##nreg##<32 x item>## = shufflevector <1 x i8> %##reg##<1 x item>##, <1 x i8> zeroinitializer, <32 x i32> zeroinitializer
+        br label %##reg##simd loop##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##length##, %##reg##simd label##], [%##reg##new remain items 1##, %##reg##simd loop##]
+        %##nreg##result 1## = phi i64 [0, %##reg##simd label##], [%##reg##new result 1##, %##reg##simd loop##]
+        %##nreg##address 1## = phi <32 x i8>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##simd loop##]
+        %##nreg##vector from address## = load <32 x i8>, <32 x i8>* %##reg##address 1##, align 1
+        %##nreg##vector compare result## = icmp eq <32 x i8> %##reg##vector from address##, %##reg##<32 x item>##
+        %##nreg##vector compare result i32## = bitcast <32 x i1> %##reg##vector compare result## to i32
+        ##llvmdeclare##llvm.ctpop.i32##declare i32 @llvm.ctpop.i32(i32)##
+        %##nreg##count of items in vector## = call i32 @llvm.ctpop.i32(i32 %##reg##vector compare result i32##)
+        %##nreg##count of items in vector i64## = zext i32 %##reg##count of items in vector## to i64
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new result 1## = add i64 %##reg##result 1##, %##reg##count of items in vector i64##
+        %##nreg##new simd address## = getelementptr <32 x i8>, <32 x i8>* %##reg##address 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##simd loop##]
+        %##nreg##result 2## = phi i64 [0, %##reg##start##], [%##reg##new result 1##, %##reg##simd loop##]
+        %##nreg##vector address## = phi <32 x i8>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##simd loop##]
+        %##nreg##address 2## = bitcast <32 x i8>* %##reg##vector address## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##scalar loop##]
+        %##nreg##result 3## = phi i64 [%##reg##result 2##, %##reg##scalar label##], [%##reg##new result 3##, %##reg##scalar loop##]
+        %##nreg##address 3## = phi i8* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##scalar loop##]
+        %##nreg##item from address## = load i8, i8* %##reg##address 3##, align 1
+        %##nreg##found item?## = icmp eq i8 %##reg##item from address##, %##reg##item##
+        %##nreg##found item? i64## = zext i1 %##reg##found item?## to i64
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new result 3## = add i64 %##reg##result 3##, %##reg##found item? i64##
+        %##nreg##new address 3## = getelementptr i8, i8* %##reg##address 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##end label##:
+        %##nreg##result 4## = phi i64 [%##reg##result 2##, %##reg##scalar label##], [%##reg##new result 3##, %##reg##scalar loop##]
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result 4##, 1
+        ret [2 x i64] %##reg##result##
+
+#override(STD) inline
+def countPartFromAtoB(bytes, part Bytes, a, b Int) Int
+    const partLength Int = part.length~()
+    const bytesLength Int = bytes.length~()
+    inthrow
+        if !(a >= 0 && a <= b && b <= bytesLength)
+            throw(enum::error_outOfRange, "Out of range.")
+        if partLength == 0
+            throw(enum::error_nothingToLook, "There is nothing to count.")
+    var result Int = 0
+    const edge Int = b - partLength + 1
+    if edge > 0
+        const firstByte Int = part.unsafe_getI8(16)
+        for :(index Int = a) index < edge
+            const indexOfFirstByte <>Int = bytes.lookFromAtoB(firstByte, index, edge)
+            if indexOfFirstByte.nothing?()
+                end index
+            if bytes.partsEqual?(indexOfFirstByte, part, 0, partLength)
+                result++
+                index = indexOfFirstByte + partLength
+            else
+                index = indexOfFirstByte + 1
+    return result
+
+#override(STD) alwaysinline nothrow
+def partsEqual?(bytes1 Bytes, from1 Int, bytes2 Bytes, from2, length Int) Bool
+    const bytes1Length Int = bytes1.length~()
+    const bytes2Length Int = bytes2.length~()
+    return {
+        from1 >= 0 && from1 <= bytes1Length &&
+        from2 >= 0 && from2 <= bytes2Length &&
+        length >= 0 && length <= (bytes1Length - from1).min(bytes2Length - from2) &&
+        unsafe_bytes_partsEqual?(bytes1.unsafe_offsetI8(from1 + 16), bytes2.unsafe_offsetI8(from2 + 16), length)
+    }
+
+#alwaysinline nothrow
+def unsafe_bytes_partsEqual?(address1, address2, length $Any) Bool
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address b1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address b1## = inttoptr i64 %##reg##address b1 i64## to <32 x i8>*
+        %##nreg##address b2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##address b2## = inttoptr i64 %##reg##address b2 i64## to <32 x i8>*
+        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
+        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##address b1 1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##address b2 1## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##vector from address b1## = load <32 x i8>, <32 x i8>* %##reg##address b1 1##, align 1
+        %##nreg##vector from address b2## = load <32 x i8>, <32 x i8>* %##reg##address b2 1##, align 1
+        %##nreg##vector compare result## = icmp eq <32 x i8> %##reg##vector from address b1##, %##reg##vector from address b2##
+        %##nreg##vector compare result i32## = bitcast <32 x i1> %##reg##vector compare result## to i32
+        %##nreg##vectors not equal?## = icmp ne i32 %##reg##vector compare result i32##, -1
+        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
+        ##nreg##vector not equal label##:
+        ret [2 x i64] [i64 ##tnum##STD::Bool##, i64 0]
+        ##nreg##vector equal label##:
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new simd address b1## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b1 1##, i64 1
+        %##nreg##new simd address b2## = getelementptr <32 x i8>, <32 x i8>* %##reg##address b2 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
+        %##nreg##vector address b1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
+        %##nreg##vector address b2## = phi <32 x i8>* [%##reg##address b2##, %##reg##start##], [%##reg##new simd address b2##, %##reg##vector equal label##]
+        %##nreg##address b1 2## = bitcast <32 x i8>* %##reg##vector address b1## to i8*
+        %##nreg##address b2 2## = bitcast <32 x i8>* %##reg##vector address b2## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##scalar loop##]
+        %##nreg##address b1 3## = phi i8* [%##reg##address b1 2##, %##reg##scalar label##], [%##reg##new address b1 3##, %##reg##scalar loop##]
+        %##nreg##address b2 3## = phi i8* [%##reg##address b2 2##, %##reg##scalar label##], [%##reg##new address b2 3##, %##reg##scalar loop##]
+        %##nreg##result i1## = phi i1 [1, %##reg##scalar label##], [%##reg##new result i1##, %##reg##scalar loop##]
+        %##nreg##item from address b1## = load i8, i8* %##reg##address b1 3##, align 1
+        %##nreg##item from address b2## = load i8, i8* %##reg##address b2 3##, align 1
+        %##nreg##item equal?## = icmp eq i8 %##reg##item from address b1##, %##reg##item from address b2##
+        %##nreg##new result i1## = and i1 %##reg##result i1##, %##reg##item equal?##
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new address b1 3## = getelementptr i8, i8* %##reg##address b1 3##, i64 1
+        %##nreg##new address b2 3## = getelementptr i8, i8* %##reg##address b2 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##end label##:
+        %##nreg##end result i1## = phi i1 [1, %##reg##scalar label##], [%##reg##new result i1##, %##reg##scalar loop##]
+        %##nreg##end result i64## = zext i1 %##reg##end result i1## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##end result i64##, 1
+        ret [2 x i64] %##reg##result##
+
+#override(STD) alwaysinline
+def lookNFromAtoB(bytes Bytes, item, n, a, b Int) <>Int
+    inthrow
+        if !(n > 0 && a >= 0 && a <= b && b <= bytes.length~())
+            throw(enum::error_outOfRange, "Out of range.")
+    return unsafe_bytes_lookNFromAtoB(bytes.unsafe_offsetI8(a + 16), item, n, a, b)
+
+#alwaysinline nothrow
+def unsafe_bytes_lookNFromAtoB(address, item, n, a, b $Any) <>Int
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
+        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item## = trunc i64 %##reg##item 64## to i8
+        %##nreg##n## = extractvalue [2 x i64] %2, 1
+        %##nreg##a## = extractvalue [2 x i64] %3, 1
+        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
+        %##nreg##use simd## = icmp uge i64 %##reg##range size##, 32
+        br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
+        ##nreg##simd label##:
+        %##nreg##<1 x item>## = insertelement <1 x i8> zeroinitializer, i8 %##reg##item##, i32 0
+        %##nreg##<32 x item>## = shufflevector <1 x i8> %##reg##<1 x item>##, <1 x i8> zeroinitializer, <32 x i32> zeroinitializer
+        br label %##reg##simd loop##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##range size##, %##reg##simd label##], [%##reg##new remain items 1##, %##reg##continue simd search##]
+        %##nreg##n 1## = phi i64 [%##reg##n##, %##reg##simd label##], [%##reg##n in simd look##, %##reg##continue simd search##]
+        %##nreg##address 1## = phi <32 x i8>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##continue simd search##]
+        %##nreg##vector from address## = load <32 x i8>, <32 x i8>* %##reg##address 1##, align 1
+        %##nreg##vector compare result## = icmp eq <32 x i8> %##reg##vector from address##, %##reg##<32 x item>##
+        %##nreg##vector compare result i32## = bitcast <32 x i1> %##reg##vector compare result## to i32
+        br label %##reg##look loop##
+        ##nreg##look loop##:
+        %##nreg##items as bits## = phi i32 [%##reg##vector compare result i32##, %##reg##simd loop##], [%##reg##new items as bits##, %##reg##look label##]
+        %##nreg##offset## = phi i64 [0, %##reg##simd loop##], [%##reg##new offset##, %##reg##look label##]
+        %##nreg##n in simd look## = phi i64 [%##reg##n 1##, %##reg##simd loop##], [%##reg##new n in simd look##, %##reg##look label##]
+        %##nreg##found items?## = icmp ne i32 %##reg##items as bits##, 0
+        br i1 %##reg##found items?##, label %##reg##look label##, label %##reg##continue simd search##
+        ##nreg##look label##:
+        %##nreg##item as bit## = and i32 %##reg##items as bits##, 1
+        %##nreg##item as bit i64## = zext i32 %##reg##item as bit## to i64
+        %##nreg##new n in simd look## = sub i64 %##reg##n in simd look##, %##reg##item as bit i64##
+        %##nreg##new items as bits## = lshr i32 %##reg##items as bits##, 1
+        %##nreg##new offset## = add i64 %##reg##offset##, 1
+        %##nreg##simd found item?## = icmp eq i64 %##reg##new n in simd look##, 0
+        br i1 %##reg##simd found item?##, label %##reg##simd found label##, label %##reg##look loop##
+        ##nreg##simd found label##:
+        %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain items 1##
+        %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
+        %##nreg##full simd index## = add i64 %##reg##start index##, %##reg##offset##
+        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
+        ret [2 x i64] %##reg##simd result##
+        ##nreg##continue simd search##:
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new simd address## = getelementptr <32 x i8>, <32 x i8>* %##reg##address 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##range size##, %##reg##start##], [%##reg##new remain items 1##, %##reg##continue simd search##]
+        %##nreg##n 2## = phi i64 [%##reg##n##, %##reg##start##], [%##reg##n in simd look##, %##reg##continue simd search##]
+        %##nreg##vector address## = phi <32 x i8>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##continue simd search##]
+        %##nreg##address 2## = bitcast <32 x i8>* %##reg##vector address## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##continue scalar search##]
+        %##nreg##n 3## = phi i64 [%##reg##n 2##, %##reg##scalar label##], [%##reg##new n 3##, %##reg##continue scalar search##]
+        %##nreg##address 3## = phi i8* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##continue scalar search##]
+        %##nreg##item from address## = load i8, i8* %##reg##address 3##, align 1
+        %##nreg##found item?## = icmp eq i8 %##reg##item from address##, %##reg##item##
+        %##nreg##found item? i64## = zext i1 %##reg##found item?## to i64
+        %##nreg##new n 3## = sub i64 %##reg##n 3##, %##reg##found item? i64##
+        %##nreg##final found item## = icmp eq i64 %##reg##new n 3##, 0
+        br i1 %##reg##final found item##, label %##reg##final found item label##, label %##reg##continue scalar search##
+        ##nreg##continue scalar search##:
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new address 3## = getelementptr i8, i8* %##reg##address 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##final found item label##:
+        %##nreg##scalar offset## = sub i64 %##reg##range size##, %##reg##remain items 3##
+        %##nreg##full scalar index## = add i64 %##reg##scalar offset##, %##reg##a##
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
+        ret [2 x i64] %##reg##result##
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#override(STD) inline
+def lookNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
+    const partLength Int = part.length~()
+    const bytesLength Int = bytes.length~()
+    inthrow
+        if !(n > 0 && a >= 0 && a <= b && b <= bytesLength)
+            throw(enum::error_outOfRange, "Out of range.")
+        if partLength == 0
+            throw(enum::error_nothingToLook, "There is nothing to look for.")
+    const edge Int = b - partLength + 1
+    if edge > 0
+        var mutN Int = n
+        const firstByte Int = part.unsafe_getI8(16)
+        for :(index Int = a) index < edge
+            const indexOfFirstByte <>Int = bytes.lookFromAtoB(firstByte, index, edge)
+            if indexOfFirstByte.nothing?()
+                end index
+            if bytes.partsEqual?(indexOfFirstByte, part, 0, partLength)
+                if mutN == 1
+                    return indexOfFirstByte
+                mutN--
+                index = indexOfFirstByte + partLength
+            else
+                index = indexOfFirstByte + 1
+    return nothing
+
+#override(STD) alwaysinline
+def lookAllFromAtoB(bytes Bytes, item, a, b Int) Array
+    inthrow
+        if !(a >= 0 && a <= b && b <= bytes.length~())
+            throw(enum::error_outOfRange, "Out of range.")
+    var result Array = [].clone()
+    unsafe_bytes_lookAllFromAtoB(bytes.unsafe_offsetI8(a + 16), item, a, b, result)
+    return result
+
+#alwaysinline nothrow unsafewrite
+def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
+        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item## = trunc i64 %##reg##item 64## to i8
+        %##nreg##a## = extractvalue [2 x i64] %2, 1
+        %##nreg##b## = extractvalue [2 x i64] %3, 1
+        %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
+        %##nreg##use simd## = icmp uge i64 %##reg##range size##, 32
+        br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
+        ##nreg##simd label##:
+        %##nreg##<1 x item>## = insertelement <1 x i8> zeroinitializer, i8 %##reg##item##, i32 0
+        %##nreg##<32 x item>## = shufflevector <1 x i8> %##reg##<1 x item>##, <1 x i8> zeroinitializer, <32 x i32> zeroinitializer
+        br label %##reg##simd loop##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##range size##, %##reg##simd label##], [%##reg##new remain items 1##, %##reg##simd continue search##]
+        %##nreg##address 1## = phi <32 x i8>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##simd continue search##]
+        %##nreg##vector from address## = load <32 x i8>, <32 x i8>* %##reg##address 1##, align 1
+        %##nreg##vector compare result## = icmp eq <32 x i8> %##reg##vector from address##, %##reg##<32 x item>##
+        %##nreg##vector compare result i32## = bitcast <32 x i1> %##reg##vector compare result## to i32
+        %##nreg##have items?## = icmp ne i32 %##reg##vector compare result i32##, 0
+        br i1 %##reg##have items?##, label %##reg##simd add indexes##, label %##reg##simd continue search##
+        ##nreg##simd add indexes##:
+        %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain items 1##
+        %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
+        %##nreg##start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##start index##, 1
+        ##llvmdeclare##llvm.ctpop.i32##declare i32 @llvm.ctpop.i32(i32)##
+        %##nreg##count of items in vector## = call i32 @llvm.ctpop.i32(i32 %##reg##vector compare result i32##)
+        %##nreg##count of items in vector i64## = zext i32 %##reg##count of items in vector## to i64
+        %##nreg##count of items in vector arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##count of items in vector i64##, 1
+        %##nreg##vector compare result i64## = zext i32 %##reg##vector compare result i32## to i64
+        %##nreg##vector compare result arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##vector compare result i64##, 1
+        %##nreg##unneeded 1## = call [2 x i64] ##ancntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndexes_SIMD##([2 x i64] %##reg##start index arg##, [2 x i64] %##reg##count of items in vector arg##, [2 x i64] %##reg##vector compare result arg##, [2 x i64]* %4)
+        br label %##reg##simd continue search##
+        ##nreg##simd continue search##:
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new simd address## = getelementptr <32 x i8>, <32 x i8>* %##reg##address 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##range size##, %##reg##start##], [%##reg##new remain items 1##, %##reg##simd continue search##]
+        %##nreg##vector address## = phi <32 x i8>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##simd continue search##]
+        %##nreg##address 2## = bitcast <32 x i8>* %##reg##vector address## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##scalar continue search##]
+        %##nreg##address 3## = phi i8* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##scalar continue search##]
+        %##nreg##item from address## = load i8, i8* %##reg##address 3##, align 1
+        %##nreg##have item?## = icmp eq i8 %##reg##item from address##, %##reg##item##
+        br i1 %##reg##have item?##, label %##reg##scalar add index##, label %##reg##scalar continue search##
+        ##nreg##scalar add index##:
+        %##nreg##offset## = sub i64 %##reg##range size##, %##reg##remain items 3##
+        %##nreg##scalar start index## = add i64 %##reg##a##, %##reg##offset##
+        %##nreg##scalar start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar start index##, 1
+        %##nreg##unneeded 2## = call [2 x i64] ##ancntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndex_scalar##([2 x i64] %##reg##scalar start index arg##, [2 x i64]* %4)
+        br label %##reg##scalar continue search##
+        ##nreg##scalar continue search##:
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new address 3## = getelementptr i8, i8* %##reg##address 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##end label##:
+        %##nreg##result pointer of pointer## = getelementptr [2 x i64], [2 x i64]* %4, i64 0, i64 1
+        %##nreg##result pointer i64## = load i64, i64* %##reg##result pointer of pointer##, align 8
+        %##nreg##result pointer## = inttoptr i64 %##reg##result pointer i64## to i64*
+        %##nreg##result length pointer## = getelementptr i64, i64* %##reg##result pointer##, i64 1
+        %##nreg##result type pointer## = getelementptr i64, i64* %##reg##result pointer##, i64 2
+        %##nreg##result length## = load i64, i64* %##reg##result length pointer##, align 8
+        %##nreg##length == 0## = icmp eq i64 %##reg##result length##, 0
+        %##nreg##result new item type## = select i1 %##reg##length == 0##, i64 ##tnum##STD::Nothing##, i64 ##tnum##STD::Int##
+        store i64 %##reg##result new item type##, i64* %##reg##result type pointer##, align 8
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+def unsafe_bytes_lookAllFromAtoB_addIndexes_SIMD(startIndex, countOfNewIndexes, itemsAsBits Int, write indexes Array)
+    const oldLength Int = indexes.length~()
+    const newLength Int = oldLength + countOfNewIndexes
+    indexes.unsafe_setI64(1, newLength)
+    indexes.unsafe_realloc(newLength * 8 + 24)
+    const newIndexes Int = indexes.unsafe_offsetI64(3 + oldLength)
+    var mutItemsAsBits Int = itemsAsBits
+    var index Int = startIndex
+    var offset Int = 0
+    for :(loop)
+        if (mutItemsAsBits & 1) == 1
+            newIndexes.unsafe_setI64(offset, index)
+            offset++
+        mutItemsAsBits >>= 1
+        if mutItemsAsBits == 0
+            end loop
+        index++
+
+#alwaysinline nothrow
+def unsafe_bytes_lookAllFromAtoB_addIndex_scalar(index Int, write indexes Array)
+    const oldLength Int = indexes.length~()
+    const newLength Int = oldLength + 1
+    indexes.unsafe_setI64(1, newLength)
+    indexes.unsafe_realloc(newLength * 8 + 24)
+    indexes.unsafe_setI64(oldLength + 3, index)
+
+#override(STD) alwaysinline
+def lookAllPartsFromAtoB(bytes, part Bytes, a, b Int) Array
+    const partLength Int = part.length~()
+    const bytesLength Int = bytes.length~()
+    inthrow
+        if !(a >= 0 && a <= b && b <= bytesLength)
+            throw(enum::error_outOfRange, "Out of range.")
+        if partLength == 0
+            throw(enum::error_nothingToLook, "There is nothing to count.")
+    var result Array = []
+    const edge Int = b - partLength + 1
+    if edge > 0
+        const firstByte Int = part.unsafe_getI8(16)
+        for :(index Int = a) index < edge
+            const indexOfFirstByte <>Int = bytes.lookFromAtoB(firstByte, index, edge)
+            if indexOfFirstByte.nothing?()
+                end index
+            if bytes.partsEqual?(indexOfFirstByte, part, 0, partLength)
+                result.addItem(indexOfFirstByte)
+                index = indexOfFirstByte + partLength
+            else
+                index = indexOfFirstByte + 1
+    return result
+
+#override(STD) alwaysinline
+def lookBackNFromAtoB(bytes Bytes, item, n, a, b Int) <>Int
+    inthrow
+        if !(n > 0 && a >= 0 && a <= b && b <= bytes.length~())
+            throw(enum::error_outOfRange, "Out of range.")
+    return unsafe_bytes_lookBackNFromAtoB(bytes.unsafe_offsetI8(b + 16), item, n, a, b)
+
+#alwaysinline nothrow
+def unsafe_bytes_lookBackNFromAtoB(address, item, n, a, b $Any) <>Int
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
+        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item## = trunc i64 %##reg##item 64## to i8
+        %##nreg##n## = extractvalue [2 x i64] %2, 1
+        %##nreg##a## = extractvalue [2 x i64] %3, 1
+        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
+        %##nreg##use simd## = icmp uge i64 %##reg##range size##, 32
+        br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
+        ##nreg##simd label##:
+        %##nreg##<1 x item>## = insertelement <1 x i8> zeroinitializer, i8 %##reg##item##, i32 0
+        %##nreg##<32 x item>## = shufflevector <1 x i8> %##reg##<1 x item>##, <1 x i8> zeroinitializer, <32 x i32> zeroinitializer
+        br label %##reg##simd loop##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##range size##, %##reg##simd label##], [%##reg##new remain items 1##, %##reg##continue simd search##]
+        %##nreg##n 1## = phi i64 [%##reg##n##, %##reg##simd label##], [%##reg##n in simd look##, %##reg##continue simd search##]
+        %##nreg##after address 1## = phi <32 x i8>* [%##reg##address##, %##reg##simd label##], [%##reg##address 1##, %##reg##continue simd search##]
+        %##nreg##address 1## = getelementptr <32 x i8>, <32 x i8>* %##reg##after address 1##, i64 -1
+        %##nreg##vector from address## = load <32 x i8>, <32 x i8>* %##reg##address 1##, align 1
+        %##nreg##vector compare result## = icmp eq <32 x i8> %##reg##vector from address##, %##reg##<32 x item>##
+        %##nreg##vector compare result i32## = bitcast <32 x i1> %##reg##vector compare result## to i32
+        br label %##reg##look loop##
+        ##nreg##look loop##:
+        %##nreg##items as bits## = phi i32 [%##reg##vector compare result i32##, %##reg##simd loop##], [%##reg##new items as bits##, %##reg##look label##]
+        %##nreg##offset## = phi i64 [1, %##reg##simd loop##], [%##reg##new offset##, %##reg##look label##]
+        %##nreg##n in simd look## = phi i64 [%##reg##n 1##, %##reg##simd loop##], [%##reg##new n in simd look##, %##reg##look label##]
+        %##nreg##found items?## = icmp ne i32 %##reg##items as bits##, 0
+        br i1 %##reg##found items?##, label %##reg##look label##, label %##reg##continue simd search##
+        ##nreg##look label##:
+        %##nreg##item as bit << 31## = and i32 %##reg##items as bits##, 2147483648
+        %##nreg##item as bit## = lshr i32 %##reg##item as bit << 31##, 31
+        %##nreg##item as bit i64## = zext i32 %##reg##item as bit## to i64
+        %##nreg##new n in simd look## = sub i64 %##reg##n in simd look##, %##reg##item as bit i64##
+        %##nreg##new items as bits## = shl i32 %##reg##items as bits##, 1
+        %##nreg##new offset## = add i64 %##reg##offset##, 1
+        %##nreg##simd found item?## = icmp eq i64 %##reg##new n in simd look##, 0
+        br i1 %##reg##simd found item?##, label %##reg##simd found label##, label %##reg##look loop##
+        ##nreg##continue simd search##:
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##simd found label##:
+        %##nreg##start index## = add i64 %##reg##remain items 1##, %##reg##a##
+        %##nreg##full simd index## = sub i64 %##reg##start index##, %##reg##offset##
+        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
+        ret [2 x i64] %##reg##simd result##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##range size##, %##reg##start##], [%##reg##new remain items 1##, %##reg##continue simd search##]
+        %##nreg##n 2## = phi i64 [%##reg##n##, %##reg##start##], [%##reg##n in simd look##, %##reg##continue simd search##]
+        %##nreg##vector address## = phi <32 x i8>* [%##reg##address##, %##reg##start##], [%##reg##address 1##, %##reg##continue simd search##]
+        %##nreg##address 2## = bitcast <32 x i8>* %##reg##vector address## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##continue scalar search##]
+        %##nreg##n 3## = phi i64 [%##reg##n 2##, %##reg##scalar label##], [%##reg##new n 3##, %##reg##continue scalar search##]
+        %##nreg##after address 3## = phi i8* [%##reg##address 2##, %##reg##scalar label##], [%##reg##address 3##, %##reg##continue scalar search##]
+        %##nreg##address 3## = getelementptr i8, i8* %##reg##after address 3##, i64 -1
+        %##nreg##item from address## = load i8, i8* %##reg##address 3##, align 1
+        %##nreg##found item?## = icmp eq i8 %##reg##item from address##, %##reg##item##
+        %##nreg##found item? i64## = zext i1 %##reg##found item?## to i64
+        %##nreg##new n 3## = sub i64 %##reg##n 3##, %##reg##found item? i64##
+        %##nreg##final found item## = icmp eq i64 %##reg##new n 3##, 0
+        br i1 %##reg##final found item##, label %##reg##final found item label##, label %##reg##continue scalar search##
+        ##nreg##continue scalar search##:
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##final found item label##:
+        %##nreg##full scalar index + 1## = add i64 %##reg##remain items 3##, %##reg##a##
+        %##nreg##full scalar index## = sub i64 %##reg##full scalar index + 1##, 1
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
+        ret [2 x i64] %##reg##result##
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#override(STD) inline
+def lookBackNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
+    const partLength Int = part.length~()
+    const bytesLength Int = bytes.length~()
+    inthrow
+        if !(n > 0 && a >= 0 && a <= b && b <= bytesLength)
+            throw(enum::error_outOfRange, "Out of range.")
+        if partLength == 0
+            throw(enum::error_nothingToLook, "There is nothing to look for.")
+    const firstEdge Int = b - partLength + 1
+    if firstEdge > 0
+        var mutN Int = n
+        const firstByte Int = part.unsafe_getI8(16)
+        for :(edge Int = firstEdge) edge > a
+            const indexOfFirstByte <>Int = bytes.lookBackFromAtoB(firstByte, a, edge)
+            if indexOfFirstByte.nothing?()
+                end edge
+            if bytes.partsEqual?(indexOfFirstByte, part, 0, partLength)
+                if mutN == 1
+                    return indexOfFirstByte
+                mutN--
+                edge = indexOfFirstByte - partLength + 1
+            else
+                edge = indexOfFirstByte
+    return nothing
+
+#override(STD) alwaysinline
+def delete$(bytes Bytes, from, count Int) Bytes
+    const oldLength Int = bytes.length~()
+    const newLength Int = oldLength - count
+    inthrow
+        if {
+            !(from >= 0 && from <= oldLength &&
+            count >= 0 && count <= oldLength - from)
+        }
+            throw(enum::error_outOfRange, "Out of range.")
+    var result Bytes = unsafe_bytes_createDummy(newLength)
+    const resultItems Int = result.unsafe_offsetI8(16)
+    const bytesItems Int = bytes.unsafe_offsetI8(16)
+    unsafe_memcpyI8(resultItems, bytesItems, from)
+    unsafe_memcpyI8(resultItems.unsafe_offsetI8(from), bytesItems.unsafe_offsetI8(from + count), oldLength - from - count)
+    return result
+
+#override(STD) alwaysinline
+def delete(write bytes Bytes, from, count Int)
+    const oldLength Int = bytes.length~()
+    inthrow
+        if {
+            !(from >= 0 && from <= oldLength &&
+            count >= 0 && count <= oldLength - from)
+        }
+            throw(enum::error_outOfRange, "Out of range.")
+    if count == 0
+        return
+    const newLength Int = oldLength - count
+    const bytesItems Int = bytes.unsafe_offsetI8(16)
+    const lastPartIndex Int = from + count
+    const lastPartLength Int = oldLength - lastPartIndex
+    if bytes.use?()
+        var newBytes Bytes = unsafe_bytes_createDummy(newLength)
+        const newItems Int = newBytes.unsafe_offsetI8(16)
+        unsafe_memcpyI8(newItems, bytesItems, from)
+        unsafe_memcpyI8(newItems.unsafe_offsetI8(from), bytesItems.unsafe_offsetI8(lastPartIndex), lastPartLength)
+        bytes = newBytes
+    else
+        unsafe_memmoveI8(bytesItems.unsafe_offsetI8(from), bytesItems.unsafe_offsetI8(lastPartIndex), lastPartLength)
+        bytes.unsafe_setI64(1, newLength)
+        bytes.unsafe_realloc(16 + newLength)
+
+#override(STD) alwaysinline nothrow
+def replace$(bytes Bytes, oldItem, newItem Int) Bytes
+    const length Int = bytes.length~()
+    var result Bytes = unsafe_bytes_createDummy(length)
+    unsafe_bytes_replace$(result.unsafe_offsetI8(16), bytes.unsafe_offsetI8(16), oldItem, newItem, length)
+    return result
+
+#alwaysinline nothrow
+def unsafe_bytes_replace$(destination, source, oldItem, newItem, length $Any)
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to <32 x i8>*
+        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to <32 x i8>*
+        %##nreg##old item 64## = extractvalue [2 x i64] %2, 1
+        %##nreg##old item## = trunc i64 %##reg##old item 64## to i8
+        %##nreg##new item 64## = extractvalue [2 x i64] %3, 1
+        %##nreg##new item## = trunc i64 %##reg##new item 64## to i8
+        %##nreg##length## = extractvalue [2 x i64] %4, 1
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
+        br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
+        ##nreg##simd label##:
+        %##nreg##<1 x old item>## = insertelement <1 x i8> zeroinitializer, i8 %##reg##old item##, i32 0
+        %##nreg##<32 x old item>## = shufflevector <1 x i8> %##reg##<1 x old item>##, <1 x i8> zeroinitializer, <32 x i32> zeroinitializer
+        %##nreg##<1 x new item>## = insertelement <1 x i8> zeroinitializer, i8 %##reg##new item##, i32 0
+        %##nreg##<32 x new item>## = shufflevector <1 x i8> %##reg##<1 x new item>##, <1 x i8> zeroinitializer, <32 x i32> zeroinitializer
+        br label %##reg##simd loop##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##length##, %##reg##simd label##], [%##reg##new remain items 1##, %##reg##simd loop##]
+        %##nreg##destination 1## = phi <32 x i8>* [%##reg##destination##, %##reg##simd label##], [%##reg##new simd destination##, %##reg##simd loop##]
+        %##nreg##source 1## = phi <32 x i8>* [%##reg##source##, %##reg##simd label##], [%##reg##new simd source##, %##reg##simd loop##]
+        %##nreg##vector from source## = load <32 x i8>, <32 x i8>* %##reg##source 1##, align 1
+        %##nreg##vector compare result## = icmp eq <32 x i8> %##reg##vector from source##, %##reg##<32 x old item>##
+        %##nreg##vector from source with new item## = select <32 x i1> %##reg##vector compare result##, <32 x i8> %##reg##<32 x new item>##, <32 x i8> %##reg##vector from source##
+        store <32 x i8> %##reg##vector from source with new item##, <32 x i8>* %##reg##destination 1##, align 1
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new simd destination## = getelementptr <32 x i8>, <32 x i8>* %##reg##destination 1##, i64 1
+        %##nreg##new simd source## = getelementptr <32 x i8>, <32 x i8>* %##reg##source 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##simd loop##]
+        %##nreg##vector destination 2## = phi <32 x i8>* [%##reg##destination##, %##reg##start##], [%##reg##new simd destination##, %##reg##simd loop##]
+        %##nreg##vector source 2## = phi <32 x i8>* [%##reg##source##, %##reg##start##], [%##reg##new simd source##, %##reg##simd loop##]
+        %##nreg##destination 2## = bitcast <32 x i8>* %##reg##vector destination 2## to i8*
+        %##nreg##source 2## = bitcast <32 x i8>* %##reg##vector source 2## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##scalar loop##]
+        %##nreg##destination 3## = phi i8* [%##reg##destination 2##, %##reg##scalar label##], [%##reg##new destination 3##, %##reg##scalar loop##]
+        %##nreg##source 3## = phi i8* [%##reg##source 2##, %##reg##scalar label##], [%##reg##new source 3##, %##reg##scalar loop##]
+        %##nreg##item from source## = load i8, i8* %##reg##source 3##, align 1
+        %##nreg##old item?## = icmp eq i8 %##reg##item from source##, %##reg##old item##
+        %##nreg##result item## = select i1 %##reg##old item?##, i8 %##reg##new item##, i8 %##reg##item from source##
+        store i8 %##reg##result item##, i8* %##reg##destination 3##, align 1
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new destination 3## = getelementptr i8, i8* %##reg##destination 3##, i64 1
+        %##nreg##new source 3## = getelementptr i8, i8* %##reg##source 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline nothrow
+def replace(write bytes Bytes, oldItem, newItem Int)
+    const length Int = bytes.length~()
+    if bytes.use?()
+        bytes = bytes.replace$(oldItem, newItem)
+    else
+        unsafe_bytes_replace(bytes.unsafe_offsetI8(16), oldItem, newItem, length)
+
+#alwaysinline nothrow
+def unsafe_bytes_replace(address, oldItem, newItem, length $Any)
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
+        %##nreg##old item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##old item## = trunc i64 %##reg##old item 64## to i8
+        %##nreg##new item 64## = extractvalue [2 x i64] %2, 1
+        %##nreg##new item## = trunc i64 %##reg##new item 64## to i8
+        %##nreg##length## = extractvalue [2 x i64] %3, 1
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
+        br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
+        ##nreg##simd label##:
+        %##nreg##<1 x old item>## = insertelement <1 x i8> zeroinitializer, i8 %##reg##old item##, i32 0
+        %##nreg##<32 x old item>## = shufflevector <1 x i8> %##reg##<1 x old item>##, <1 x i8> zeroinitializer, <32 x i32> zeroinitializer
+        %##nreg##<1 x new item>## = insertelement <1 x i8> zeroinitializer, i8 %##reg##new item##, i32 0
+        %##nreg##<32 x new item>## = shufflevector <1 x i8> %##reg##<1 x new item>##, <1 x i8> zeroinitializer, <32 x i32> zeroinitializer
+        br label %##reg##simd loop##
+        ##nreg##simd loop##:
+        %##nreg##remain items 1## = phi i64 [%##reg##length##, %##reg##simd label##], [%##reg##new remain items 1##, %##reg##simd loop##]
+        %##nreg##address 1## = phi <32 x i8>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##simd loop##]
+        %##nreg##vector from address## = load <32 x i8>, <32 x i8>* %##reg##address 1##, align 1
+        %##nreg##vector compare result## = icmp eq <32 x i8> %##reg##vector from address##, %##reg##<32 x old item>##
+        %##nreg##vector from address with new item## = select <32 x i1> %##reg##vector compare result##, <32 x i8> %##reg##<32 x new item>##, <32 x i8> %##reg##vector from address##
+        store <32 x i8> %##reg##vector from address with new item##, <32 x i8>* %##reg##address 1##, align 1
+        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
+        %##nreg##new simd address## = getelementptr <32 x i8>, <32 x i8>* %##reg##address 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 32
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##scalar label##:
+        %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##simd loop##]
+        %##nreg##vector address 2## = phi <32 x i8>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##simd loop##]
+        %##nreg##address 2## = bitcast <32 x i8>* %##reg##vector address 2## to i8*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##scalar loop##]
+        %##nreg##address 3## = phi i8* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##scalar loop##]
+        %##nreg##item from address## = load i8, i8* %##reg##address 3##, align 1
+        %##nreg##old item?## = icmp eq i8 %##reg##item from address##, %##reg##old item##
+        %##nreg##result item## = select i1 %##reg##old item?##, i8 %##reg##new item##, i8 %##reg##item from address##
+        store i8 %##reg##result item##, i8* %##reg##address 3##, align 1
+        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
+        %##nreg##new address 3## = getelementptr i8, i8* %##reg##address 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline
+def insert$(bytes Bytes, index, newItem Int) Bytes
+    const oldLength Int = bytes.length~()
+    const newLength Int = oldLength + 1
+    inthrow
+        if !index.inRange?(0, newLength)
+            throw(enum::error_outOfRange, "Out of range.")
+    var result Bytes = unsafe_bytes_createDummy(newLength)
+    const resultItems Int = result.unsafe_offsetI8(16)
+    const bytesItems Int = bytes.unsafe_offsetI8(16)
+    unsafe_memcpyI8(resultItems, bytesItems, index)
+    resultItems.unsafe_setI8(index, newItem)
+    unsafe_memcpyI8(resultItems.unsafe_offsetI8(index + 1), bytesItems.unsafe_offsetI8(index), oldLength - index)
+    return result
+
+#override(STD) alwaysinline
+def insert(write bytes Bytes, index, newItem Int)
+    const oldLength Int = bytes.length~()
+    const newLength Int = oldLength + 1
+    inthrow
+        if !index.inRange?(0, newLength)
+            throw(enum::error_outOfRange, "Out of range.")
+    if bytes.use?()
+        var newBytes Bytes = unsafe_bytes_createDummy(newLength)
+        const newItems Int = newBytes.unsafe_offsetI8(16)
+        const bytesItems Int = bytes.unsafe_offsetI8(16)
+        unsafe_memcpyI8(newItems, bytesItems, index)
+        newItems.unsafe_setI8(index, newItem)
+        unsafe_memcpyI8(newItems.unsafe_offsetI8(index + 1), bytesItems.unsafe_offsetI8(index), oldLength - index)
+        bytes = newBytes
+    else
+        bytes.unsafe_setI64(1, newLength)
+        bytes.unsafe_realloc(newLength + 16)
+        const bytesItems Int = bytes.unsafe_offsetI8(16)
+        unsafe_memmoveI8(bytesItems.unsafe_offsetI8(index + 1), bytesItems.unsafe_offsetI8(index), oldLength - index)
+        bytesItems.unsafe_setI8(index, newItem)
+
+#override(STD) inline
+def insertPart$(bytes Bytes, index Int, addedBytes Bytes) Bytes
+    const oldLength Int = bytes.length~()
+    const addedLength Int = addedBytes.length~()
+    const newLength Int = oldLength + addedLength
+    inthrow
+        if !index.inRange?(0, oldLength + 1)
+            throw(enum::error_outOfRange, "Out of range.")
+    if addedLength == 0
+        return bytes
+    var result Bytes = unsafe_bytes_createDummy(newLength)
+    const resultItems Int = result.unsafe_offsetI8(16)
+    const bytesItems Int = bytes.unsafe_offsetI8(16)
+    const addedItems Int = addedBytes.unsafe_offsetI8(16)
+    unsafe_memcpyI8(resultItems, bytesItems, index)
+    unsafe_memcpyI8(resultItems.unsafe_offsetI8(index), addedItems, addedLength)
+    unsafe_memcpyI8(resultItems.unsafe_offsetI8(index + addedLength), bytesItems.unsafe_offsetI8(index), oldLength - index)
+    return result
+
+#override(STD) inline
+def insertPart(write bytes Bytes, index Int, addedBytes Bytes)
+    const oldLength Int = bytes.length~()
+    const addedLength Int = addedBytes.length~()
+    const newLength Int = oldLength + addedLength
+    inthrow
+        if !index.inRange?(0, oldLength + 1)
+            throw(enum::error_outOfRange, "Out of range.")
+    if addedLength == 0
+        return
+    const addedItems Int = addedBytes.unsafe_offsetI8(16)
+    if bytes.use?()
+        var newBytes Bytes = unsafe_bytes_createDummy(newLength)
+        const bytesItems Int = bytes.unsafe_offsetI8(16)
+        const newBytesItems Int = newBytes.unsafe_offsetI8(16)
+        unsafe_memcpyI8(newBytesItems, bytesItems, index)
+        unsafe_memcpyI8(newBytesItems.unsafe_offsetI8(index), addedItems, addedLength)
+        unsafe_memcpyI8(newBytesItems.unsafe_offsetI8(index + addedLength), bytesItems.unsafe_offsetI8(index), oldLength - index)
+        bytes = newBytes
+    else
+        bytes.unsafe_setI64(1, newLength)
+        bytes.unsafe_realloc(newLength + 16)
+        const bytesItems Int = bytes.unsafe_offsetI8(16)
+        unsafe_memmoveI8(bytesItems.unsafe_offsetI8(index + addedLength), bytesItems.unsafe_offsetI8(index), oldLength - index)
+        unsafe_memcpyI8(bytesItems.unsafe_offsetI8(index), addedItems, addedLength)
+
+#override(STD) alwaysinline
+def repeat(noread type Bytes, item, count Int) Bytes
+    inthrow
+        if count < 0
+            throw(enum::error_outOfRange, "Out of range.")
+    var result Bytes = unsafe_bytes_createDummy(count)
+    unsafe_memsetI8(result.unsafe_offsetI8(16), item, count)
+    return result
+
+#override(STD) alwaysinline
+def repeatPart(part Bytes, count Int) Bytes
+    inthrow
+        if count < 0
+            throw(enum::error_outOfRange, "Out of range.")
+    const partLength Int = part.length~()
+    const resultLength Int = count * partLength
+    var result Bytes = unsafe_bytes_createDummy(resultLength)
+    const resultItems Int = result.unsafe_offsetI8(16)
+    const partItems Int = part.unsafe_offsetI8(16)
+    for :(index Int = 0) index < resultLength; index += partLength
+        unsafe_memcpyI8(resultItems.unsafe_offsetI8(index), partItems, partLength)
+    return result

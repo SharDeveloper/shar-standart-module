@@ -1,0 +1,478 @@
+//@The file contains functions for low-level work with data, all of them are unsafe.
+module STD
+
+#alwaysinline nothrow
+export def unsafe_getI8(address, offset $Any) Int
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i8*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##result value i8 pointer## = getelementptr i8, i8* %##reg##address##, i64 %##reg##offset##
+        %##nreg##result value i8## = load i8, i8* %##reg##result value i8 pointer##, align 1
+        %##nreg##result value## = zext i8 %##reg##result value i8## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
+export def unsafe_getI16(address, offset $Any) Int
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i16*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##result value i16 pointer## = getelementptr i16, i16* %##reg##address##, i64 %##reg##offset##
+        %##nreg##result value i16## = load i16, i16* %##reg##result value i16 pointer##, align 2
+        %##nreg##result value## = zext i16 %##reg##result value i16## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
+export def unsafe_getI32(address, offset $Any) Int
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i32*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##result value i32 pointer## = getelementptr i32, i32* %##reg##address##, i64 %##reg##offset##
+        %##nreg##result value i32## = load i32, i32* %##reg##result value i32 pointer##, align 4
+        %##nreg##result value## = zext i32 %##reg##result value i32## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
+export def unsafe_getI64(address, offset $Any) Int
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i64*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##result value pointer## = getelementptr i64, i64* %##reg##address##, i64 %##reg##offset##
+        %##nreg##result value## = load i64, i64* %##reg##result value pointer##, align 8
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline unsafewrite nothrow
+export def unsafe_get2xI64(address, offset, write result $Any)
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to [2 x i64]*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##result 2 x i64 pointer## = getelementptr [2 x i64], [2 x i64]* %##reg##address##, i64 %##reg##offset##
+        %##nreg##result## = load [2 x i64], [2 x i64]* %##reg##result 2 x i64 pointer##, align 8
+        store [2 x i64] %##reg##result##, [2 x i64]* %2
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_setI8(address, offset, value $Any)
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i8*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##value i64## = extractvalue [2 x i64] %2, 1
+        %##nreg##value## = trunc i64 %##reg##value i64## to i8
+        %##nreg##value pointer## = getelementptr i8, i8* %##reg##address##, i64 %##reg##offset##
+        store i8 %##reg##value##, i8* %##reg##value pointer##, align 1
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_setI16(address, offset, value $Any)
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i16*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##value i64## = extractvalue [2 x i64] %2, 1
+        %##nreg##value## = trunc i64 %##reg##value i64## to i16
+        %##nreg##value pointer## = getelementptr i16, i16* %##reg##address##, i64 %##reg##offset##
+        store i16 %##reg##value##, i16* %##reg##value pointer##, align 2
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_setI32(address, offset, value $Any)
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i32*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##value i64## = extractvalue [2 x i64] %2, 1
+        %##nreg##value## = trunc i64 %##reg##value i64## to i32
+        %##nreg##value pointer## = getelementptr i32, i32* %##reg##address##, i64 %##reg##offset##
+        store i32 %##reg##value##, i32* %##reg##value pointer##, align 4
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_setI64(address, offset, value $Any)
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i64*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##value## = extractvalue [2 x i64] %2, 1
+        %##nreg##value pointer## = getelementptr i64, i64* %##reg##address##, i64 %##reg##offset##
+        store i64 %##reg##value##, i64* %##reg##value pointer##, align 8
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_set2xI64(address, offset, value $Any)
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to [2 x i64]*
+        %##nreg##offset## = extractvalue [2 x i64] %1, 1
+        %##nreg##value pointer## = getelementptr [2 x i64], [2 x i64]* %##reg##address##, i64 %##reg##offset##
+        store [2 x i64] %2, [2 x i64]* %##reg##value pointer##, align 8
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_malloc(sizeInBytes $Any) Int
+    llvm
+        %##nreg##memory size## = extractvalue [2 x i64] %0, 1
+        %##nreg##memory## = call i64* @shar.malloc(i64 %##reg##memory size##)
+        %##nreg##memory i64## = ptrtoint i64* %##reg##memory## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##memory i64##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline unsafewrite nothrow
+export def unsafe_realloc(write address, newSizeInBytes $Any)
+    llvm
+        %##nreg##memory pointer i64## = getelementptr [2 x i64], [2 x i64]* %0, i64 0, i64 1
+        %##nreg##memory i64## = load i64, i64* %##reg##memory pointer i64##, align 8
+        %##nreg##memory## = inttoptr i64 %##reg##memory i64## to i64*
+        %##nreg##memory size## = extractvalue [2 x i64] %1, 1
+        %##nreg##new memory## = call i64* @shar.realloc(i64* %##reg##memory##, i64 %##reg##memory size##)
+        %##nreg##new memory i64## = ptrtoint i64* %##reg##new memory## to i64
+        store i64 %##reg##new memory i64##, i64* %##reg##memory pointer i64##, align 8
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_free(address $Any)
+    llvm
+        %##nreg##memory i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##memory## = inttoptr i64 %##reg##memory i64## to i64*
+        call void @shar.free(i64* %##reg##memory##)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline unsafewrite nothrow
+export def unsafe_setType(write variable, newTypeNumber $Any)
+    llvm
+        %##nreg##variable type pointer## = getelementptr [2 x i64], [2 x i64]* %0, i64 0, i64 0
+        %##nreg##new type## = extractvalue [2 x i64] %1, 1
+        store i64 %##reg##new type##, i64* %##reg##variable type pointer##, align 8
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_getValue(type $Any) Int
+    llvm
+        %##nreg##result## = insertvalue [2 x i64] %0, i64 ##tnum##STD::Int##, 0
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline unsafewrite nothrow
+export def unsafe_setValue(write object, value $Any)
+    llvm
+        %##nreg##object value pointer## = getelementptr [2 x i64], [2 x i64]* %0, i64 0, i32 1
+        %##nreg##value## = extractvalue [2 x i64] %1, 1
+        store i64 %##reg##value##, i64* %##reg##object value pointer##, align 8
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memcpyI8(destination, source, count $Any)
+    llvm
+        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i8*
+        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to i8*
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        ##llvmdeclare##llvm.memcpy.i8.i8.i64##declare void @llvm.memcpy.i8.i8.i64(i8*, i8*, i64, i1)##
+        call void @llvm.memcpy.i8.i8.i64(i8* nonnull align 1 %##reg##destination##, i8* nonnull align 1 %##reg##source##, i64 %##reg##count##, i1 0)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memcpyI16(destination, source, count $Any)
+    llvm
+        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i16*
+        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to i16*
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count in bytes## = mul i64 %##reg##count##, 2
+        ##llvmdeclare##llvm.memcpy.i16.i16.i64##declare void @llvm.memcpy.i16.i16.i64(i16*, i16*, i64, i1)##
+        call void @llvm.memcpy.i16.i16.i64(i16* nonnull align 2 %##reg##destination##, i16* nonnull align 2 %##reg##source##, i64 %##reg##count in bytes##, i1 0)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memcpyI32(destination, source, count $Any)
+    llvm
+        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i32*
+        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to i32*
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count in bytes## = mul i64 %##reg##count##, 4
+        ##llvmdeclare##llvm.memcpy.i32.i32.i64##declare void @llvm.memcpy.i32.i32.i64(i32*, i32*, i64, i1)##
+        call void @llvm.memcpy.i32.i32.i64(i32* nonnull align 4 %##reg##destination##, i32* nonnull align 4 %##reg##source##, i64 %##reg##count in bytes##, i1 0)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memcpyI64(destination, source, count $Any)
+    llvm
+        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i64*
+        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to i64*
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count in bytes## = mul i64 %##reg##count##, 8
+        ##llvmdeclare##llvm.memcpy.i64.i64.i64##declare void @llvm.memcpy.i64.i64.i64(i64*, i64*, i64, i1)##
+        call void @llvm.memcpy.i64.i64.i64(i64* nonnull align 8 %##reg##destination##, i64* nonnull align 8 %##reg##source##, i64 %##reg##count in bytes##, i1 0)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memmoveI8(destination, source, count $Any)
+    llvm
+        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i8*
+        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to i8*
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        ##llvmdeclare##llvm.memmove.i8.i8.i64##declare void @llvm.memmove.i8.i8.i64(i8*, i8*, i64, i1)##
+        call void @llvm.memmove.i8.i8.i64(i8* nonnull align 1 %##reg##destination##, i8* nonnull align 1 %##reg##source##, i64 %##reg##count##, i1 0)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memmoveI16(destination, source, count $Any)
+    llvm
+        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i16*
+        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to i16*
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count in bytes## = mul i64 %##reg##count##, 2
+        ##llvmdeclare##llvm.memmove.i16.i16.i64##declare void @llvm.memmove.i16.i16.i64(i16*, i16*, i64, i1)##
+        call void @llvm.memmove.i16.i16.i64(i16* nonnull align 2 %##reg##destination##, i16* nonnull align 2 %##reg##source##, i64 %##reg##count in bytes##, i1 0)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memmoveI32(destination, source, count $Any)
+    llvm
+        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i32*
+        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to i32*
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count in bytes## = mul i64 %##reg##count##, 4
+        ##llvmdeclare##llvm.memmove.i32.i32.i64##declare void @llvm.memmove.i32.i32.i64(i32*, i32*, i64, i1)##
+        call void @llvm.memmove.i32.i32.i64(i32* nonnull align 4 %##reg##destination##, i32* nonnull align 4 %##reg##source##, i64 %##reg##count in bytes##, i1 0)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memmoveI64(destination, source, count $Any)
+    llvm
+        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i64*
+        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to i64*
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count in bytes## = mul i64 %##reg##count##, 8
+        ##llvmdeclare##llvm.memmove.i64.i64.i64##declare void @llvm.memmove.i64.i64.i64(i64*, i64*, i64, i1)##
+        call void @llvm.memmove.i64.i64.i64(i64* nonnull align 8 %##reg##destination##, i64* nonnull align 8 %##reg##source##, i64 %##reg##count in bytes##, i1 0)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memsetI8(address, value, count $Any)
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i8*
+        %##nreg##value i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##value## = trunc i64 %##reg##value i64## to i8
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        ##llvmdeclare##llvm.memset.i8.i64##declare void @llvm.memset.i8.i64(i8*, i8, i64, i1)##
+        call void @llvm.memset.i8.i64(i8* nonnull align 1 %##reg##address##, i8 %##reg##value##, i64 %##reg##count##, i1 0)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memsetI16(address, value, count $Any)
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i16*
+        %##nreg##value i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##value## = trunc i64 %##reg##value i64## to i16
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count >= 16## = icmp uge i64 %##reg##count##, 16
+        br i1 %##reg##count >= 16##, label %##reg##count >= 16 label##, label %##reg##loop##
+        ##nreg##count >= 16 label##:
+        %##nreg##1 x value## = insertelement <1 x i16> undef, i16 %##reg##value##, i32 0
+        %##nreg##16 x value## = shufflevector <1 x i16> %##reg##1 x value##, <1 x i16> undef, <16 x i32> zeroinitializer
+        br label %##reg##SIMD loop##
+        ##nreg##SIMD loop##:
+        %##nreg##SIMD remaining## = phi i64 [%##reg##count##, %##reg##count >= 16 label##], [%##reg##new SIMD remaining##, %##reg##SIMD loop##]
+        %##nreg##vector pointer i16*## = phi i16* [%##reg##address##, %##reg##count >= 16 label##], [%##reg##next vector pointer i16*##, %##reg##SIMD loop##]
+        %##nreg##vector pointer## = bitcast i16* %##reg##vector pointer i16*## to <16 x i16>*
+        store <16 x i16> %##reg##16 x value##, <16 x i16>* %##reg##vector pointer##, align 2
+        %##nreg##new SIMD remaining## = sub i64 %##reg##SIMD remaining##, 16
+        %##nreg##next vector pointer i16*## = getelementptr i16, i16* %##reg##vector pointer i16*##, i64 16
+        %##nreg##SIMD loop continue## = icmp uge i64 %##reg##new SIMD remaining##, 16
+        br i1 %##reg##SIMD loop continue##, label %##reg##SIMD loop##, label %##reg##loop##
+        ##nreg##loop##:
+        %##nreg##remaining## = phi i64 [%##reg##count##, %##reg##start##], [%##reg##new SIMD remaining##, %##reg##SIMD loop##], [%##reg##new remaining##, %##reg##continue label##]
+        %##nreg##item pointer## = phi i16* [%##reg##address##, %##reg##start##], [%##reg##next vector pointer i16*##, %##reg##SIMD loop##], [%##reg##next item pointer##, %##reg##continue label##]
+        %##nreg##remaining == 0## = icmp eq i64 %##reg##remaining##, 0
+        br i1 %##reg##remaining == 0##, label %##reg##end label##, label %##reg##continue label##
+        ##nreg##continue label##:
+        store i16 %##reg##value##, i16* %##reg##item pointer##, align 2
+        %##nreg##new remaining## = sub i64 %##reg##remaining##, 1
+        %##nreg##next item pointer## = getelementptr i16, i16* %##reg##item pointer##, i64 1
+        br label %##reg##loop##
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memsetI32(address, value, count $Any)
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i32*
+        %##nreg##value i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##value## = trunc i64 %##reg##value i64## to i32
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count >= 8## = icmp uge i64 %##reg##count##, 8
+        br i1 %##reg##count >= 8##, label %##reg##count >= 8 label##, label %##reg##loop##
+        ##nreg##count >= 8 label##:
+        %##nreg##1 x value## = insertelement <1 x i32> undef, i32 %##reg##value##, i32 0
+        %##nreg##8 x value## = shufflevector <1 x i32> %##reg##1 x value##, <1 x i32> undef, <8 x i32> zeroinitializer
+        br label %##reg##SIMD loop##
+        ##nreg##SIMD loop##:
+        %##nreg##SIMD remaining## = phi i64 [%##reg##count##, %##reg##count >= 8 label##], [%##reg##new SIMD remaining##, %##reg##SIMD loop##]
+        %##nreg##vector pointer i32*## = phi i32* [%##reg##address##, %##reg##count >= 8 label##], [%##reg##next vector pointer i32*##, %##reg##SIMD loop##]
+        %##nreg##vector pointer## = bitcast i32* %##reg##vector pointer i32*## to <8 x i32>*
+        store <8 x i32> %##reg##8 x value##, <8 x i32>* %##reg##vector pointer##, align 4
+        %##nreg##new SIMD remaining## = sub i64 %##reg##SIMD remaining##, 8
+        %##nreg##next vector pointer i32*## = getelementptr i32, i32* %##reg##vector pointer i32*##, i64 8
+        %##nreg##SIMD loop continue## = icmp uge i64 %##reg##new SIMD remaining##, 8
+        br i1 %##reg##SIMD loop continue##, label %##reg##SIMD loop##, label %##reg##loop##
+        ##nreg##loop##:
+        %##nreg##remaining## = phi i64 [%##reg##count##, %##reg##start##], [%##reg##new SIMD remaining##, %##reg##SIMD loop##], [%##reg##new remaining##, %##reg##continue label##]
+        %##nreg##item pointer## = phi i32* [%##reg##address##, %##reg##start##], [%##reg##next vector pointer i32*##, %##reg##SIMD loop##], [%##reg##next item pointer##, %##reg##continue label##]
+        %##nreg##remaining == 0## = icmp eq i64 %##reg##remaining##, 0
+        br i1 %##reg##remaining == 0##, label %##reg##end label##, label %##reg##continue label##
+        ##nreg##continue label##:
+        store i32 %##reg##value##, i32* %##reg##item pointer##, align 4
+        %##nreg##new remaining## = sub i64 %##reg##remaining##, 1
+        %##nreg##next item pointer## = getelementptr i32, i32* %##reg##item pointer##, i64 1
+        br label %##reg##loop##
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memsetI64(address, value, count $Any)
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i64*
+        %##nreg##value## = extractvalue [2 x i64] %1, 1
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count >= 4## = icmp uge i64 %##reg##count##, 4
+        br i1 %##reg##count >= 4##, label %##reg##count >= 4 label##, label %##reg##loop##
+        ##nreg##count >= 4 label##:
+        %##nreg##1 x value## = insertelement <1 x i64> undef, i64 %##reg##value##, i32 0
+        %##nreg##4 x value## = shufflevector <1 x i64> %##reg##1 x value##, <1 x i64> undef, <4 x i32> zeroinitializer
+        br label %##reg##SIMD loop##
+        ##nreg##SIMD loop##:
+        %##nreg##SIMD remaining## = phi i64 [%##reg##count##, %##reg##count >= 4 label##], [%##reg##new SIMD remaining##, %##reg##SIMD loop##]
+        %##nreg##vector pointer i64*## = phi i64* [%##reg##address##, %##reg##count >= 4 label##], [%##reg##next vector pointer i64*##, %##reg##SIMD loop##]
+        %##nreg##vector pointer## = bitcast i64* %##reg##vector pointer i64*## to <4 x i64>*
+        store <4 x i64> %##reg##4 x value##, <4 x i64>* %##reg##vector pointer##, align 8
+        %##nreg##new SIMD remaining## = sub i64 %##reg##SIMD remaining##, 4
+        %##nreg##next vector pointer i64*## = getelementptr i64, i64* %##reg##vector pointer i64*##, i64 4
+        %##nreg##SIMD loop continue## = icmp uge i64 %##reg##new SIMD remaining##, 4
+        br i1 %##reg##SIMD loop continue##, label %##reg##SIMD loop##, label %##reg##loop##
+        ##nreg##loop##:
+        %##nreg##remaining## = phi i64 [%##reg##count##, %##reg##start##], [%##reg##new SIMD remaining##, %##reg##SIMD loop##], [%##reg##new remaining##, %##reg##continue label##]
+        %##nreg##item pointer## = phi i64* [%##reg##address##, %##reg##start##], [%##reg##next vector pointer i64*##, %##reg##SIMD loop##], [%##reg##next item pointer##, %##reg##continue label##]
+        %##nreg##remaining == 0## = icmp eq i64 %##reg##remaining##, 0
+        br i1 %##reg##remaining == 0##, label %##reg##end label##, label %##reg##continue label##
+        ##nreg##continue label##:
+        store i64 %##reg##value##, i64* %##reg##item pointer##, align 8
+        %##nreg##new remaining## = sub i64 %##reg##remaining##, 1
+        %##nreg##next item pointer## = getelementptr i64, i64* %##reg##item pointer##, i64 1
+        br label %##reg##loop##
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_memset2xI64(address, value, count $Any)
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to [2 x i64]*
+        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count >= 2## = icmp uge i64 %##reg##count##, 2
+        br i1 %##reg##count >= 2##, label %##reg##count >= 2 label##, label %##reg##loop##
+        ##nreg##count >= 2 label##:
+        %##nreg##type of value## = extractvalue [2 x i64] %1, 0
+        %##nreg##value of value## = extractvalue [2 x i64] %1, 1
+        %##nreg##1 x type of value## = insertelement <1 x i64> undef, i64 %##reg##type of value##, i32 0
+        %##nreg##1 x value of value## = insertelement <1 x i64> undef, i64 %##reg##value of value##, i32 0
+        %##nreg##2 x value## = shufflevector <1 x i64> %##reg##1 x type of value##, <1 x i64> %##reg##1 x value of value##, <4 x i32> <i32 0, i32 1, i32 0, i32 1>
+        br label %##reg##SIMD loop##
+        ##nreg##SIMD loop##:
+        %##nreg##SIMD remaining## = phi i64 [%##reg##count##, %##reg##count >= 2 label##], [%##reg##new SIMD remaining##, %##reg##SIMD loop##]
+        %##nreg##vector pointer [2 x i64]*## = phi [2 x i64]* [%##reg##address##, %##reg##count >= 2 label##], [%##reg##next vector pointer [2 x i64]*##, %##reg##SIMD loop##]
+        %##nreg##vector pointer## = bitcast [2 x i64]* %##reg##vector pointer [2 x i64]*## to <4 x i64>*
+        store <4 x i64> %##reg##2 x value##, <4 x i64>* %##reg##vector pointer##, align 8
+        %##nreg##new SIMD remaining## = sub i64 %##reg##SIMD remaining##, 2
+        %##nreg##next vector pointer [2 x i64]*## = getelementptr [2 x i64], [2 x i64]* %##reg##vector pointer [2 x i64]*##, i64 2
+        %##nreg##SIMD loop continue## = icmp uge i64 %##reg##new SIMD remaining##, 2
+        br i1 %##reg##SIMD loop continue##, label %##reg##SIMD loop##, label %##reg##loop##
+        ##nreg##loop##:
+        %##nreg##remaining## = phi i64 [%##reg##count##, %##reg##start##], [%##reg##new SIMD remaining##, %##reg##SIMD loop##], [%##reg##new remaining##, %##reg##continue label##]
+        %##nreg##item pointer## = phi [2 x i64]* [%##reg##address##, %##reg##start##], [%##reg##next vector pointer [2 x i64]*##, %##reg##SIMD loop##], [%##reg##next item pointer##, %##reg##continue label##]
+        %##nreg##remaining == 0## = icmp eq i64 %##reg##remaining##, 0
+        br i1 %##reg##remaining == 0##, label %##reg##end label##, label %##reg##continue label##
+        ##nreg##continue label##:
+        store [2 x i64] %1, [2 x i64]* %##reg##item pointer##, align 8
+        %##nreg##new remaining## = sub i64 %##reg##remaining##, 1
+        %##nreg##next item pointer## = getelementptr [2 x i64], [2 x i64]* %##reg##item pointer##, i64 1
+        br label %##reg##loop##
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+export def unsafe_offsetI8(address, index $Any) Int
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i8*
+        %##nreg##index## = extractvalue [2 x i64] %1, 1
+        %##nreg##result value i8*## = getelementptr i8, i8* %##reg##address##, i64 %##reg##index##
+        %##nreg##result value## = ptrtoint i8* %##reg##result value i8*## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
+export def unsafe_offsetI16(address, index $Any) Int
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i16*
+        %##nreg##index## = extractvalue [2 x i64] %1, 1
+        %##nreg##result value i16*## = getelementptr i16, i16* %##reg##address##, i64 %##reg##index##
+        %##nreg##result value## = ptrtoint i16* %##reg##result value i16*## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
+export def unsafe_offsetI32(address, index $Any) Int
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i32*
+        %##nreg##index## = extractvalue [2 x i64] %1, 1
+        %##nreg##result value i32*## = getelementptr i32, i32* %##reg##address##, i64 %##reg##index##
+        %##nreg##result value## = ptrtoint i32* %##reg##result value i32*## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
+export def unsafe_offsetI64(address, index $Any) Int
+    llvm
+        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to i64*
+        %##nreg##index## = extractvalue [2 x i64] %1, 1
+        %##nreg##result value i64*## = getelementptr i64, i64* %##reg##address##, i64 %##reg##index##
+        %##nreg##result value## = ptrtoint i64* %##reg##result value i64*## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
+        ret [2 x i64] %##reg##result##

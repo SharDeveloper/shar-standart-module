@@ -1,0 +1,638 @@
+module Main
+
+primitive TestSet_BadInt
+
+attach TestSet_BadInt to Equal
+
+attach TestSet_BadInt to Shar__sugar__equal
+    #alwaysinline nothrow
+    def shar__sugar__equal(integer1, integer2 TestSet_BadInt) Bool
+        llvm
+            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
+            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i1## = icmp eq i64 %##reg##integer1##, %##reg##integer2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach TestSet_BadInt to Shar__sugar__notEqual
+    #alwaysinline nothrow
+    def shar__sugar__notEqual(integer1, integer2 TestSet_BadInt) Bool
+        llvm
+            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
+            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i1## = icmp ne i64 %##reg##integer1##, %##reg##integer2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach TestSet_BadInt to Hashable
+    #alwaysinline nothrow
+    def getHash(int TestSet_BadInt) Int
+        return int.set_toGood() & 15
+
+    #alwaysinline nothrow
+    def getRandomizedHash(int TestSet_BadInt) Int
+        return int.set_toGood() & 15
+
+attach TestSet_BadInt to StringWriter
+    #inline nothrow
+    def toString(int TestSet_BadInt) $String
+        return int.set_toGood().toString()
+
+#alwaysinline nothrow
+def set_toGood(int TestSet_BadInt) Int
+    return int.unsafe_getValue()
+
+#alwaysinline nothrow
+def set_toBad(int Int) TestSet_BadInt
+    var result $Any = int
+    result.unsafe_setType(TestSet_BadInt.typeNumber~())
+    return result
+
+def unsafe_set_getCounter(set $Any) Int
+    return set.unsafe_getI64(0) & 0xffffffffffff
+
+def setPrintln(set Set)
+    if set.empty?()
+        "Set: empty".println()
+        return
+    "Set: ".println()
+    ("  counter: " + (set.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
+    ("  count of nodes: " + set.unsafe_getI16(3).toString()).println()
+    ("  count of items: " + set.unsafe_getI64(1).toString()).println()
+    ("  item type: " + set.unsafe_getI64(2).getTypeName()).println()
+    "  Nodes:".println()
+    for :(index Int = 0) index < set.unsafe_getI16(3); index++
+        ("    Node with hash part " + set.unsafe_getI8(24 + set.unsafe_getI8(3) * 8 + index).toString() + ": ").println()
+        (set.unsafe_getI64(index + 3).setNodePrint(set.unsafe_getI64(2)))
+
+def setNodePrint(node, itemTypeNumber $Any)
+    ("      counter: " + (node.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
+    ("      count of hash parts: " + (node.unsafe_getI16(3) + 1).toString()).println()
+    for :(index Int = 0) index <= node.unsafe_getI16(3); index++
+        const items Int = node.unsafe_getI64(1 + index)
+        ("      Items and values with hash part " + node.unsafe_getI16(4 + node.unsafe_getI16(3) * 4 + index).toString() + ": ").println()
+        ("        Count of items and values: " + items.unsafe_getI64(0).toString()).println()
+        ("        Items and values:").println()
+        for :(itemIndex Int = 0) itemIndex < items.unsafe_getI64(0); itemIndex++
+            var item $Any = items.unsafe_getI64(itemIndex + 1)
+            item.unsafe_setType(itemTypeNumber)
+            ("          Item " + (itemIndex + 1).toString() + ": " + item.toString()).println()
+            item.unsafe_setType(Int.typeNumber~())
+
+def testSet(write ok Int, write errorsCoordinates List)
+    testSet_MemoryManagement(ok, errorsCoordinates)
+    testSet_Part1(ok, errorsCoordinates)
+    testSet_Part2(ok, errorsCoordinates)
+    testSet_Part3(ok, errorsCoordinates)
+    testSet_Part4(ok, errorsCoordinates)
+
+#noinline
+def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
+    var k String = "123".clone()
+    var v String = "12".clone()
+    var d1 Set = Set.createEmpty()
+    test: ok, errorsCoordinates
+        !d1.add(v)
+        !d1.add(k)
+        !d1.add("2")
+        v.unsafe_getI64(0) == 2
+        k.unsafe_getI64(0) == 2
+    test: ok, errorsCoordinates
+        d1.add(v)
+        d1.add(k)
+        v.unsafe_getI64(0) == 2
+        k.unsafe_getI64(0) == 2
+    var count Int = 0
+    try
+        parse :(parse) key, value = d1
+            count++
+            if key.type!(String) != value.type!(String)
+                count = 0
+                end parse
+    catch
+        count = 0
+    test: ok, errorsCoordinates
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 2
+        count == 3
+    var d2 Array = [d1, d1]
+    var d3 Set = Set.createEmpty()
+    d2.same()
+    test: ok, errorsCoordinates
+        !d3.add(v)
+        !d3.add(k)
+        !d3.add("2")
+        v.unsafe_getI64(0) == 3
+        k.unsafe_getI64(0) == 3
+    var d4 Array = [d3, d3]
+    d4.same()
+    test: ok, errorsCoordinates
+        unsafe_set_getCounter(d1) == 3
+        k.unsafe_getI64(0) == 3
+        v.unsafe_getI64(0) == 3
+    d1.shar__rc_free()
+    test: ok, errorsCoordinates
+        unsafe_set_getCounter(d1) == 2
+        k.unsafe_getI64(0) == 3
+        v.unsafe_getI64(0) == 3
+    d1.shar__rc_free()
+    test: ok, errorsCoordinates
+        unsafe_set_getCounter(d1) == 1
+        k.unsafe_getI64(0) == 3
+        v.unsafe_getI64(0) == 3
+    d1.shar__rc_use()
+    d1.shar__rc_use()
+    test: ok, errorsCoordinates
+        unsafe_set_getCounter(d1) == 3
+        k.unsafe_getI64(0) == 3
+        v.unsafe_getI64(0) == 3
+    d2 = []
+    test: ok, errorsCoordinates
+        unsafe_set_getCounter(d1) == 1
+        k.unsafe_getI64(0) == 3
+        v.unsafe_getI64(0) == 3
+    d1.shar__to_const()
+    test: ok, errorsCoordinates
+        unsafe_set_getCounter(d1) == 0
+        k.unsafe_getI64(0) == 0
+        v.unsafe_getI64(0) == 0
+        d1.use?()
+        !d1.clone().use?()
+        d3.use?()
+        d1.constant?()
+        !d3.constant?()
+    d1 = d1.clone()
+    var d5 Set = d3.clone()
+    test: ok, errorsCoordinates
+        unsafe_set_getCounter(d1) == 1
+        unsafe_set_getCounter(d3) == 3
+        unsafe_set_getCounter(d5) == 1
+        k.unsafe_getI64(0) == 0
+        v.unsafe_getI64(0) == 0
+        !d1.use?()
+        !d1.constant?()
+        d3.use?()
+        !d3.constant?()
+    k = k.clone()
+    v = v.clone()
+    d1 = Set.createEmpty()
+    test: ok, errorsCoordinates
+        !d1.add(v)
+        !d1.add(k)
+        !d1.add("2")
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 2
+    test: ok, errorsCoordinates
+        d1.remove("2")
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 2
+        d1.remove(k)
+        k.unsafe_getI64(0) == 1
+        v.unsafe_getI64(0) == 2
+        d1.remove(v)
+        k.unsafe_getI64(0) == 1
+        v.unsafe_getI64(0) == 1
+    d1 = Set.createEmpty()
+    test: ok, errorsCoordinates
+        !d1.add(k)
+        !d1.add(v)
+        !d1.add("0")
+        k.unsafe_getI64(0) == 2
+        v.unsafe_getI64(0) == 2
+    d3 = d1
+    test: ok, errorsCoordinates
+        d1.add("123")
+        d3.add("123")
+    d1 = Set.createEmpty()
+    d3 = Set.createEmpty()
+    test: ok, errorsCoordinates
+        k.unsafe_getI64(0) == 1
+        v.unsafe_getI64(0) == 1
+    var allOk Bool = false
+    try
+        for :(i Int = 0) i < 300; i++
+            d1.add(i)
+        d5 = d1
+        for :(i Int = 1) i < 150; i++
+            d1.add(i)
+        allOk = d1[0]
+        if allOk
+            for :(i Int = 1) i < 150; i++
+                allOk = d1[i]
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 150) i < 300; i++
+                allOk = d1[i]
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 0) i < 300; i++
+                allOk = d5[i]
+                if !allOk
+                    end i
+        d3 = d5
+        for :(i Int = 300) i < 400; i++
+            d5.add(i)
+        allOk = allOk && d1[0]
+        if allOk
+            for :(i Int = 1) i < 150; i++
+                allOk = d1[i]
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 150) i < 300; i++
+                allOk = d1[i]
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 0) i < 400; i++
+                allOk = d5[i]
+                if !allOk
+                    end i
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d1.length~() == 300
+        d3.length~() == 300
+        d5.length~() == 400
+
+#noinline
+def testSet_Part1(write ok Int, write errorsCoordinates List)
+    const ed Set = Set.createEmpty()
+    var d Set = Set.createEmpty()
+    var s String = "123".clone()
+    test: ok, errorsCoordinates
+        ed.length~() == 0
+        ed.itemTypeNumber~() == Nothing.typeNumber~()
+        !ed[12]
+        !ed[0]
+        !ed["asdf"]
+        !ed[""]
+        !ed['c']
+        !d.add(0)
+        d.length~() == 1
+        d.itemTypeNumber~() == Int.typeNumber~()
+        !d[12]
+        d[0]
+        d["asdf"] : error_invalidType
+        d[""]: error_invalidType
+        d['c'] : error_invalidType
+        d.add("") : error_invalidType
+        d.add(0)
+        d.length~() == 1
+        d.itemTypeNumber~() == Int.typeNumber~()
+        !d[12]
+        d[0]
+        !d.add(-1)
+        d.length~() == 2
+        d.itemTypeNumber~() == Int.typeNumber~()
+        !d[1]
+        d[0]
+        d[-1]
+        d["asdf"] : error_invalidType
+        d[""]: error_invalidType
+        d['c'] : error_invalidType
+        !d.add(3589)
+        d.length~() == 3
+        d.itemTypeNumber~() == Int.typeNumber~()
+        !d[-2]
+        d[0]
+        d[-1]
+        d[3589]
+        d.add(0)
+        d.add(-1)
+        d.add(3589)
+        d.length~() == 3
+        d.itemTypeNumber~() == Int.typeNumber~()
+        !d[1]
+        d[0]
+        d[-1]
+        d[3589]
+        d.remove('c') : error_invalidType
+        d.remove("1010") : error_invalidType
+        !d.remove(20)
+        !d.remove(-2)
+        d.remove(3589)
+        d.length~() == 2
+        d.itemTypeNumber~() == Int.typeNumber~()
+        d[0]
+        d[-1]
+        !d[3589]
+        d.remove(0)
+        d.length~() == 1
+        d.itemTypeNumber~() == Int.typeNumber~()
+        !d[0]
+        d[-1]
+        !d[3589]
+        d.remove(-1)
+        d.length~() == 0
+        d.itemTypeNumber~() == Nothing.typeNumber~()
+        !d[0]
+        !d[-1]
+        !d[3589]
+        !d.add(s)
+        d.length~() == 1
+        d.itemTypeNumber~() == String.typeNumber~()
+        s.unsafe_getI64(0) == 2
+        d[0] : error_invalidType
+        d[s]
+        !d[""]
+        !d["1230"]
+        !d.add("fg")
+        d.length~() == 2
+        d.itemTypeNumber~() == String.typeNumber~()
+        s.unsafe_getI64(0) == 2
+        d[-12] : error_invalidType
+        d[s]
+        d["fg"]
+        !d[""]
+        d.remove(s)
+        d.length~() == 1
+        d.itemTypeNumber~() == String.typeNumber~()
+        s.unsafe_getI64(0) == 1
+        d[0] : error_invalidType
+        d["fg"]
+        !d[s]
+        d.remove("fg")
+        d.length~() == 0
+        d.itemTypeNumber~() == Nothing.typeNumber~()
+        s.unsafe_getI64(0) == 1
+
+#noinline
+def testSet_Part2(write ok Int, write errorsCoordinates List)
+    var d Set = Set.createEmpty()
+    var allOk Bool = true
+    try
+        parse _, _ = d
+            allOk = false
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 0
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = !d.add(index)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    var count Int = 0
+    try
+        parse :(parse) key, value = d
+            count++
+            allOk = value == key && key.inRange?(0, 200)
+            if !allOk
+                end parse
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        count == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = d.add(index)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = d.remove(index)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 100
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = !d[index]
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d[index]
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = !d.remove(index)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 100
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d.remove(index)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 0
+
+#noinline
+def testSet_Part3(write ok Int, write errorsCoordinates List)
+    var d Set = Set.createEmpty()
+    var a Array = []
+    for :(index Int = 0) index < 200; index++
+        a += [Int.getRandom()]
+    var allOk Bool = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = !d.add(a[index])
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = d.add(a[index])
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = d.remove(a[index])
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 100
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = !d[a[index]]
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d[a[index]]
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = !d.remove(a[index])
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 100
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d.remove(a[index])
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 0
+
+#noinline
+def testSet_Part4(write ok Int, write errorsCoordinates List)
+    var d Set = Set.createEmpty()
+    var allOk Bool = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = !d.add(index.set_toBad())
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    var count Int = 0
+    try
+        parse :(parse) key, value = d
+            count++
+            allOk = value == key && key.set_toGood().inRange?(0, 200)
+            if !allOk
+                end parse
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        count == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            allOk = d.add(index.set_toBad())
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = d.remove(index.set_toBad())
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 100
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = !d[index.set_toBad()]
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d[index.set_toBad()]
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index += 2
+            allOk = !d.remove(index.set_toBad())
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 100
+    allOk = false
+    try
+        for :(index Int = 1) index < 200; index += 2
+            allOk = d.remove(index.set_toBad())
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 0

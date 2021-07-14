@@ -1,0 +1,7 @@
+module STD
+
+//@Members of the "STD::Empty" group are types whose objects store other objects, the number of which may be zero, and there is also one way of representing an object with zero objects.
+export group Empty: Long
+    //@The function returns an object, inside which there are zero objects, and which has a type equal to the type of the function argument.
+    //@The function cannot return any errors.
+    createEmpty(noread This) This

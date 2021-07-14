@@ -1,0 +1,105 @@
+module STD
+
+//@All types that were created using the "type" keyword are automatically placed in the "STD::Type" group.
+export group Type
+
+#alwaysinline nothrow
+def type_rc_free(type $Any)
+    llvm
+        %##nreg##type as list## = insertvalue [2 x i64] %0, i64 ##tnum##STD::List##, 0
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__rc_free.STD::List##([2 x i64] %##reg##type as list##)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+def type_rc_use(type $Any)
+    llvm
+        %##nreg##type as list## = insertvalue [2 x i64] %0, i64 ##tnum##STD::List##, 0
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__rc_use.STD::List##([2 x i64] %##reg##type as list##)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+def type_to_const(type $Any)
+    llvm
+        %##nreg##type as list## = insertvalue [2 x i64] %0, i64 ##tnum##STD::List##, 0
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__to_const.STD::List##([2 x i64] %##reg##type as list##)
+        ret [2 x i64] zeroinitializer
+
+#alwaysinline nothrow
+def type_use?(type $Any) Bool
+    llvm
+        %##nreg##type as list## = insertvalue [2 x i64] %0, i64 ##tnum##STD::List##, 0
+        %##nreg##result## = call [2 x i64] ##ancntfunc##STD::use?.STD::List##([2 x i64] %##reg##type as list##)
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
+def type_constant?(type $Any) Bool
+    llvm
+        %##nreg##type as list## = insertvalue [2 x i64] %0, i64 ##tnum##STD::List##, 0
+        %##nreg##result## = call [2 x i64] ##ancntfunc##STD::constant?.STD::List##([2 x i64] %##reg##type as list##)
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
+def type_clone(type $Any) $Any
+    llvm
+        %##nreg##type as list## = insertvalue [2 x i64] %0, i64 ##tnum##STD::List##, 0
+        %##nreg##result list## = call [2 x i64] ##ancntfunc##STD::clone.STD::List##([2 x i64] %##reg##type as list##)
+        %##nreg##result list value## = extractvalue [2 x i64] %##reg##result list##, 1
+        %##nreg##result## = insertvalue [2 x i64] %0, i64 %##reg##result list value##, 1
+        ret [2 x i64] %##reg##result##
+
+//@The function converts the list to type.
+#this(Type) alwaysinline
+export def fromList(noread type This, list List) This
+    llvm
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__rc_use.STD::List##([2 x i64] %1)
+        %##nreg##result value## = extractvalue [2 x i64] %1, 1
+        %##nreg##result## = insertvalue [2 x i64] %0, i64 %##reg##result value##, 1
+        ret [2 x i64] %##reg##result##
+
+//@The function converts the type to a list.
+#alwaysinline
+export def toList(type $Type) List
+    llvm
+        %##nreg##result value## = extractvalue [2 x i64] %0, 1
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::List##, i64 0], i64 %##reg##result value##, 1
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__rc_use.STD::List##([2 x i64] %##reg##result##)
+        ret [2 x i64] %##reg##result##
+
+//@The function is the same as the "STD::getItem" function for list.
+#alwaysinline
+export def typeGetItem(type $Type, index Int) $Any
+    llvm
+        %##nreg##type value## = extractvalue [2 x i64] %0, 1
+        %##nreg##type as list## = insertvalue [2 x i64] [i64 ##tnum##STD::List##, i64 0], i64 %##reg##type value##, 1
+        %##nreg##result## = call [2 x i64] ##ancfunc##STD::shar__sugar__getItem.STD::List##([2 x i64] %##reg##type as list##, [2 x i64] %1)
+        ret [2 x i64] %##reg##result##
+
+//@The function is the same as the "STD::setItem" function for list.
+#alwaysinline unsafewrite
+export def typeSetItem(write type $Type, index Int, newItem $Any)
+    llvm
+        %##nreg##ro type## = load [2 x i64], [2 x i64]* %0, align 8
+        %##nreg##type of type## = extractvalue [2 x i64] %##reg##ro type##, 0
+        %##nreg##type value## = extractvalue [2 x i64] %##reg##ro type##, 1
+        %##nreg##type as list## = insertvalue [2 x i64] [i64 ##tnum##STD::List##, i64 0], i64 %##reg##type value##, 1
+        store [2 x i64] %##reg##type as list##, [2 x i64]* %0, align 8
+        %##nreg##result## = call [2 x i64] ##ancfunc##STD::setItem.STD::List##([2 x i64]* %0, [2 x i64] %1, [2 x i64] %2)
+        %##nreg##new ro type## = load [2 x i64], [2 x i64]* %0, align 8
+        %##nreg##new type## = insertvalue [2 x i64] %##reg##new ro type##, i64 %##reg##type of type##, 0
+        store [2 x i64] %##reg##new type##, [2 x i64]* %0, align 8
+        ret [2 x i64] %##reg##result##
+
+//@The function is the same as the "STD::put" function for list.
+#alwaysinline unsafewrite
+export def typePut(write type $Type, index Int, newItem $Any) $Any
+    llvm
+        %##nreg##ro type## = load [2 x i64], [2 x i64]* %0, align 8
+        %##nreg##type of type## = extractvalue [2 x i64] %##reg##ro type##, 0
+        %##nreg##type value## = extractvalue [2 x i64] %##reg##ro type##, 1
+        %##nreg##type as list## = insertvalue [2 x i64] [i64 ##tnum##STD::List##, i64 0], i64 %##reg##type value##, 1
+        store [2 x i64] %##reg##type as list##, [2 x i64]* %0, align 8
+        %##nreg##result## = call [2 x i64] ##ancfunc##STD::put.STD::List##([2 x i64]* %0, [2 x i64] %1, [2 x i64] %2)
+        %##nreg##new ro type## = load [2 x i64], [2 x i64]* %0, align 8
+        %##nreg##new type## = insertvalue [2 x i64] %##reg##new ro type##, i64 %##reg##type of type##, 0
+        store [2 x i64] %##reg##new type##, [2 x i64]* %0, align 8
+        ret [2 x i64] %##reg##result##

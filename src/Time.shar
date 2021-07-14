@@ -1,0 +1,757 @@
+module STD
+
+//@The type is used to store time data.
+export primitive Time
+
+//@The function creates an object of the "STD::Time" type, which stores the time specified using the arguments.
+//@If the time specified in the arguments is not correct, or if a time is specified that the "STD::Time" type cannot store, then the function returns an error with the "enum::STD::error_outOfRange" code.
+export def time(year, month, day, hour, minute, second Int) Time
+    if {
+        year.inRange?(1970, 292277026597) &&
+        month.inRange?(1, 13) &&
+        hour.inRange?(0, 24) &&
+        minute.inRange?(0, 60) &&
+        second.inRange?(0, 60)
+    }
+        var resultAsInt Int = 0
+        var analyzedYear Int = 1970
+        if year >= 2000
+            analyzedYear = 2000
+            resultAsInt += 946684800
+            const countOf400Years Int = (year - analyzedYear) / 400
+            if countOf400Years > 0
+                analyzedYear += countOf400Years * 400
+                resultAsInt += countOf400Years * 12622780800
+            const countOf100Years Int = (year - analyzedYear) / 100
+            if countOf100Years > 0
+                analyzedYear += countOf100Years * 100
+                resultAsInt += (countOf100Years - 1) * 3155673600 + 3155760000
+            var countOf4Years Int = (year - analyzedYear) >> 2
+            if countOf4Years > 0
+                const newAnalyzedYear Int = analyzedYear + countOf4Years * 4
+                if analyzedYear % 400 != 0
+                    resultAsInt += 126144000
+                    countOf4Years--
+                analyzedYear = newAnalyzedYear
+                resultAsInt += countOf4Years * 126230400
+        var yearIsLeap Bool = false
+        for :(loop)
+            yearIsLeap = analyzedYear % 400 == 0 || (analyzedYear % 4 == 0 && analyzedYear % 100 != 0)
+            if analyzedYear == year
+                end loop
+            resultAsInt += yearIsLeap.select(31622400, 31536000)
+            analyzedYear++
+        const secondsInMonths Array = [0, 2678400,5097600,7776000,10368000,13046400,15638400,18316800,20995200,23587200,26265600,28857600]
+        const dayEdges Array = [32, 29, 32, 31, 32, 31, 32, 32, 31, 32, 31, 32]
+        resultAsInt += secondsInMonths[month - 1] + (yearIsLeap && month > 2).select(86400, 0)
+        if day.inRange?(1, dayEdges[month - 1] + (yearIsLeap && month == 2).select(1, 0))
+            return intToTime(resultAsInt + (day - 1) * 86400 + hour * 3600 + minute * 60 + second)
+    throw(enum::error_outOfRange, "Out of range.")
+
+//@The function disassembles the specified time into components.
+//@The function returns an array with 6 numbers of "Int" type, in the following order: year, month, day, hours, minutes, seconds.
+#nothrow
+export def disassembleTime(time Time) Array
+    const allSeconds Int = timeToInt(time)
+    const second Int = allSeconds % 60
+    const minute Int = allSeconds % 3600 / 60
+    const hour Int = allSeconds % 86400 / 3600
+    var daysLeft Int = allSeconds / 86400
+    const daysBetween1970And2000 Int = 10957
+    var year Int = 1970
+    if daysLeft >= daysBetween1970And2000
+        year = 2000
+        daysLeft -= daysBetween1970And2000
+        const daysIn400Years Int = 146097
+        if daysLeft >= daysIn400Years
+            year += daysLeft / daysIn400Years * 400
+            daysLeft = daysLeft % daysIn400Years
+        if daysLeft >= 36525
+            year += 100
+            daysLeft -= 36525
+            const daysIn100Years Int = 36524
+            if daysLeft >= daysIn100Years
+                year += daysLeft / daysIn100Years * 100
+                daysLeft = daysLeft % daysIn100Years
+        if year % 400 != 0 && daysLeft >= 1460
+            year += 4
+            daysLeft -= 1460
+        const daysIn4Years Int = 1461
+        if daysLeft >= daysIn4Years
+            year += daysLeft / daysIn4Years * 4
+            daysLeft = daysLeft % daysIn4Years
+    var yearIsLeap Bool = false
+    for :(loop)
+        yearIsLeap = year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)
+        const daysInYear Int = yearIsLeap.select(366, 365)
+        if daysLeft < daysInYear
+            end loop
+        daysLeft -= daysInYear
+        year++
+    var month Int = 0
+    var day Int = 0
+    const daysInFirst2Months Int = yearIsLeap.select(60, 59)
+    switch daysLeft / 30
+    case 0
+        month = 1
+        day = daysLeft
+    case 1
+        if daysLeft == 30
+            month = 1
+            day = 30
+        elif daysLeft < daysInFirst2Months
+            month = 2
+            day = daysLeft - 31
+        else
+            month = 3
+    case 2
+        month = 3
+        day = daysLeft - daysInFirst2Months
+    case 3
+        const daysInFirst3Months Int = daysInFirst2Months + 31
+        if daysLeft < daysInFirst3Months
+            month = 3
+            day = 30
+        else
+            month = 4
+            day = daysLeft - daysInFirst3Months
+    case 4
+        const daysInFirst4Months Int = daysInFirst2Months + 61
+        if daysLeft < daysInFirst4Months
+            month = 4
+            day = 29
+        else
+            month = 5
+            day = daysLeft - daysInFirst4Months
+    case 5
+        const daysInFirst5Months Int = daysInFirst2Months + 92
+        day = daysLeft - daysInFirst5Months
+        if daysLeft < daysInFirst5Months
+            month = 5
+            day += 31
+        else
+            month = 6
+    case 6
+        const daysInFirst6Months Int = daysInFirst2Months + 122
+        day = daysLeft - daysInFirst6Months
+        if daysLeft < daysInFirst6Months
+            month = 6
+            day += 30
+        else
+            month = 7
+    case 7
+        const daysInFirst7Months Int = daysInFirst2Months + 153
+        day = daysLeft - daysInFirst7Months
+        if daysLeft < daysInFirst7Months
+            month = 7
+            day += 31
+        else
+            month = 8
+    case 8
+        const daysInFirst8Months Int = daysInFirst2Months + 184
+        day = daysLeft - daysInFirst8Months
+        if daysLeft < daysInFirst8Months
+            month = 8
+            day += 31
+        else
+            month = 9
+    case 9
+        const daysInFirst9Months Int = daysInFirst2Months + 214
+        day = daysLeft - daysInFirst9Months
+        if daysLeft < daysInFirst9Months
+            month = 9
+            day += 30
+        else
+            month = 10
+    case 10
+        const daysInFirst10Months Int = daysInFirst2Months + 245
+        day = daysLeft - daysInFirst10Months
+        if daysLeft < daysInFirst10Months
+            month = 10
+            day += 31
+        else
+            month = 11
+    case 11, 12
+        const daysInFirst11Months Int = daysInFirst2Months + 275
+        day = daysLeft - daysInFirst11Months
+        if daysLeft < daysInFirst11Months
+            month = 11
+            day += 30
+        else
+            month = 12
+    day++
+    return [year, month, day, hour, minute, second]
+
+//@The function finds out how many seconds will be if the specified time is disassemble into components.
+#alwaysinline nothrow
+export def second~(time Time) Int
+    return timeToInt(time) % 60
+
+//@The function finds out how many minutes will be if the specified time is disassemble into components.
+#alwaysinline nothrow
+export def minute~(time Time) Int
+    return timeToInt(time) % 3600 / 60
+
+//@The function finds out how many hours will be if the specified time is disassemble into components.
+#alwaysinline nothrow
+export def hour~(time Time) Int
+    return timeToInt(time) % 86400 / 3600
+
+//@The function finds out what the day of the month will be, if the specified time is disassemble into components.
+#nothrow
+export def day~(time Time) Int
+    var daysLeft Int = timeToInt(time) / 86400
+    const daysBetween1970And2000 Int = 10957
+    var year Int = 1970
+    if daysLeft >= daysBetween1970And2000
+        year = 2000
+        daysLeft -= daysBetween1970And2000
+        const daysIn400Years Int = 146097
+        if daysLeft >= daysIn400Years
+            year += daysLeft / daysIn400Years * 400
+            daysLeft = daysLeft % daysIn400Years
+        if daysLeft >= 36525
+            year += 100
+            daysLeft -= 36525
+            const daysIn100Years Int = 36524
+            if daysLeft >= daysIn100Years
+                year += daysLeft / daysIn100Years * 100
+                daysLeft = daysLeft % daysIn100Years
+        if year % 400 != 0 && daysLeft >= 1460
+            year += 4
+            daysLeft -= 1460
+        const daysIn4Years Int = 1461
+        if daysLeft >= daysIn4Years
+            year += daysLeft / daysIn4Years * 4
+            daysLeft = daysLeft % daysIn4Years
+    var yearIsLeap Bool = false
+    for :(loop)
+        yearIsLeap = year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)
+        const daysInYear Int = yearIsLeap.select(366, 365)
+        if daysLeft < daysInYear
+            end loop
+        daysLeft -= daysInYear
+        year++
+    var day Int = 0
+    const daysInFirst2Months Int = yearIsLeap.select(60, 59)
+    switch daysLeft / 30
+    case 0
+        day = daysLeft
+    case 1
+        if daysLeft == 30
+            day = 30
+        elif daysLeft < daysInFirst2Months
+            day = daysLeft - 31
+    case 2
+        day = daysLeft - daysInFirst2Months
+    case 3
+        const daysInFirst3Months Int = daysInFirst2Months + 31
+        if daysLeft < daysInFirst3Months
+            day = 30
+        else
+            day = daysLeft - daysInFirst3Months
+    case 4
+        const daysInFirst4Months Int = daysInFirst2Months + 61
+        if daysLeft < daysInFirst4Months
+            day = 29
+        else
+            day = daysLeft - daysInFirst4Months
+    case 5
+        const daysInFirst5Months Int = daysInFirst2Months + 92
+        day = daysLeft - daysInFirst5Months
+        if daysLeft < daysInFirst5Months
+            day += 31
+    case 6
+        const daysInFirst6Months Int = daysInFirst2Months + 122
+        day = daysLeft - daysInFirst6Months
+        if daysLeft < daysInFirst6Months
+            day += 30
+    case 7
+        const daysInFirst7Months Int = daysInFirst2Months + 153
+        day = daysLeft - daysInFirst7Months
+        if daysLeft < daysInFirst7Months
+            day += 31
+    case 8
+        const daysInFirst8Months Int = daysInFirst2Months + 184
+        day = daysLeft - daysInFirst8Months
+        if daysLeft < daysInFirst8Months
+            day += 31
+    case 9
+        const daysInFirst9Months Int = daysInFirst2Months + 214
+        day = daysLeft - daysInFirst9Months
+        if daysLeft < daysInFirst9Months
+            day += 30
+    case 10
+        const daysInFirst10Months Int = daysInFirst2Months + 245
+        day = daysLeft - daysInFirst10Months
+        if daysLeft < daysInFirst10Months
+            day += 31
+    case 11, 12
+        const daysInFirst11Months Int = daysInFirst2Months + 275
+        day = daysLeft - daysInFirst11Months
+        if daysLeft < daysInFirst11Months
+            day += 30
+    day++
+    return day
+
+//@The function finds out what the month of the year will be, if the specified time is disassemble into components.
+#nothrow
+export def month~(time Time) Int
+    var daysLeft Int = timeToInt(time) / 86400
+    const daysBetween1970And2000 Int = 10957
+    var year Int = 1970
+    if daysLeft >= daysBetween1970And2000
+        year = 2000
+        daysLeft -= daysBetween1970And2000
+        const daysIn400Years Int = 146097
+        if daysLeft >= daysIn400Years
+            year += daysLeft / daysIn400Years * 400
+            daysLeft = daysLeft % daysIn400Years
+        if daysLeft >= 36525
+            year += 100
+            daysLeft -= 36525
+            const daysIn100Years Int = 36524
+            if daysLeft >= daysIn100Years
+                year += daysLeft / daysIn100Years * 100
+                daysLeft = daysLeft % daysIn100Years
+        if year % 400 != 0 && daysLeft >= 1460
+            year += 4
+            daysLeft -= 1460
+        const daysIn4Years Int = 1461
+        if daysLeft >= daysIn4Years
+            year += daysLeft / daysIn4Years * 4
+            daysLeft = daysLeft % daysIn4Years
+    var yearIsLeap Bool = false
+    for :(loop)
+        yearIsLeap = year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)
+        const daysInYear Int = yearIsLeap.select(366, 365)
+        if daysLeft < daysInYear
+            end loop
+        daysLeft -= daysInYear
+        year++
+    var month Int = 0
+    const daysInFirst2Months Int = yearIsLeap.select(60, 59)
+    switch daysLeft / 30
+    case 0
+        month = 1
+    case 1
+        if daysLeft == 30
+            month = 1
+        elif daysLeft < daysInFirst2Months
+            month = 2
+        else
+            month = 3
+    case 2
+        month = 3
+    case 3
+        const daysInFirst3Months Int = daysInFirst2Months + 31
+        if daysLeft < daysInFirst3Months
+            month = 3
+        else
+            month = 4
+    case 4
+        const daysInFirst4Months Int = daysInFirst2Months + 61
+        if daysLeft < daysInFirst4Months
+            month = 4
+        else
+            month = 5
+    case 5
+        const daysInFirst5Months Int = daysInFirst2Months + 92
+        if daysLeft < daysInFirst5Months
+            month = 5
+        else
+            month = 6
+    case 6
+        const daysInFirst6Months Int = daysInFirst2Months + 122
+        if daysLeft < daysInFirst6Months
+            month = 6
+        else
+            month = 7
+    case 7
+        const daysInFirst7Months Int = daysInFirst2Months + 153
+        if daysLeft < daysInFirst7Months
+            month = 7
+        else
+            month = 8
+    case 8
+        const daysInFirst8Months Int = daysInFirst2Months + 184
+        if daysLeft < daysInFirst8Months
+            month = 8
+        else
+            month = 9
+    case 9
+        const daysInFirst9Months Int = daysInFirst2Months + 214
+        if daysLeft < daysInFirst9Months
+            month = 9
+        else
+            month = 10
+    case 10
+        const daysInFirst10Months Int = daysInFirst2Months + 245
+        if daysLeft < daysInFirst10Months
+            month = 10
+        else
+            month = 11
+    case 11, 12
+        const daysInFirst11Months Int = daysInFirst2Months + 275
+        if daysLeft < daysInFirst11Months
+            month = 11
+        else
+            month = 12
+    return month
+
+//@The function finds out what the year will be if the specified time is disassemble into components.
+#nothrow
+export def year~(time Time) Int
+    var daysLeft Int = timeToInt(time) / 86400
+    const daysBetween1970And2000 Int = 10957
+    var year Int = 1970
+    if daysLeft >= daysBetween1970And2000
+        year = 2000
+        daysLeft -= daysBetween1970And2000
+        const daysIn400Years Int = 146097
+        if daysLeft >= daysIn400Years
+            year += daysLeft / daysIn400Years * 400
+            daysLeft = daysLeft % daysIn400Years
+        if daysLeft >= 36525
+            year += 100
+            daysLeft -= 36525
+            const daysIn100Years Int = 36524
+            if daysLeft >= daysIn100Years
+                year += daysLeft / daysIn100Years * 100
+                daysLeft = daysLeft % daysIn100Years
+        if year % 400 != 0 && daysLeft >= 1460
+            year += 4
+            daysLeft -= 1460
+        const daysIn4Years Int = 1461
+        if daysLeft >= daysIn4Years
+            year += daysLeft / daysIn4Years * 4
+            daysLeft = daysLeft % daysIn4Years
+    var yearIsLeap Bool = false
+    for :(loop)
+        yearIsLeap = year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)
+        const daysInYear Int = yearIsLeap.select(366, 365)
+        if daysLeft < daysInYear
+            end loop
+        daysLeft -= daysInYear
+        year++
+    return year
+
+//@The function returns the current time.
+#alwaysinline nothrow
+export def currentTime() Time
+    llvm
+        %##nreg##time## = call i64 @shar__get__current__time()
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Time##, i64 0], i64 %##reg##time##, 1
+        ret [2 x i64] %##reg##result##
+
+//@The function returns the number of seconds elapsed from 0 hours, 0 minutes, 0 seconds, January 1, 1970 to the specified time.
+#alwaysinline nothrow
+export def timeToInt(time Time) Int
+    return time.unsafe_getValue()
+
+attach Time to Independent
+
+#override(STD) alwaysinline
+def shar__rc_free(time Time)
+    llvm
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline
+def shar__rc_use(time Time)
+    llvm
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline
+def shar__to_const(time Time)
+    llvm
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline nothrow
+def use?(time Time) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def constant?(time Time) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def clone(time Time) Time
+    return time
+
+attach Time to Equal
+
+attach Time to Shar__sugar__equal
+    #alwaysinline nothrow
+    def shar__sugar__equal(time1, time2 Time) Bool
+        return timeToInt(time1) == timeToInt(time2)
+
+attach Time to Shar__sugar__notEqual
+    #alwaysinline nothrow
+    def shar__sugar__notEqual(time1, time2 Time) Bool
+        return timeToInt(time1) != timeToInt(time2)
+
+attach Time to Ordered
+
+attach Time to Shar__sugar__great
+    #alwaysinline nothrow
+    def shar__sugar__great(time1, time2 Time) Bool
+        llvm
+            %##nreg##time1## = extractvalue [2 x i64] %0, 1
+            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i1## = icmp ugt i64 %##reg##time1##, %##reg##time2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Time to Shar__sugar__greatOrEqual
+    #alwaysinline nothrow
+    def shar__sugar__greatOrEqual(time1, time2 Time) Bool
+        llvm
+            %##nreg##time1## = extractvalue [2 x i64] %0, 1
+            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i1## = icmp uge i64 %##reg##time1##, %##reg##time2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Time to Shar__sugar__less
+    #alwaysinline nothrow
+    def shar__sugar__less(time1, time2 Time) Bool
+        llvm
+            %##nreg##time1## = extractvalue [2 x i64] %0, 1
+            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i1## = icmp ult i64 %##reg##time1##, %##reg##time2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Time to Shar__sugar__lessOrEqual
+    #alwaysinline nothrow
+    def shar__sugar__lessOrEqual(time1, time2 Time) Bool
+        llvm
+            %##nreg##time1## = extractvalue [2 x i64] %0, 1
+            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##result i1## = icmp ule i64 %##reg##time1##, %##reg##time2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
+
+attach Time to StringWriter
+    #nothrow
+    def toString(time Time) String
+        const allSeconds Int = timeToInt(time)
+        const second Int = allSeconds % 60
+        const minute Int = allSeconds % 3600 / 60
+        const hour Int = allSeconds % 86400 / 3600
+        var daysLeft Int = allSeconds / 86400
+        const daysBetween1970And2000 Int = 10957
+        var year Int = 1970
+        if daysLeft >= daysBetween1970And2000
+            year = 2000
+            daysLeft -= daysBetween1970And2000
+            const daysIn400Years Int = 146097
+            if daysLeft >= daysIn400Years
+                year += daysLeft / daysIn400Years * 400
+                daysLeft = daysLeft % daysIn400Years
+            if daysLeft >= 36525
+                year += 100
+                daysLeft -= 36525
+                const daysIn100Years Int = 36524
+                if daysLeft >= daysIn100Years
+                    year += daysLeft / daysIn100Years * 100
+                    daysLeft = daysLeft % daysIn100Years
+            if year % 400 != 0 && daysLeft >= 1460
+                year += 4
+                daysLeft -= 1460
+            const daysIn4Years Int = 1461
+            if daysLeft >= daysIn4Years
+                year += daysLeft / daysIn4Years * 4
+                daysLeft = daysLeft % daysIn4Years
+        var yearIsLeap Bool = false
+        for :(loop)
+            yearIsLeap = year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)
+            const daysInYear Int = yearIsLeap.select(366, 365)
+            if daysLeft < daysInYear
+                end loop
+            daysLeft -= daysInYear
+            year++
+        var month Int = 0
+        var day Int = 0
+        const daysInFirst2Months Int = yearIsLeap.select(60, 59)
+        switch daysLeft / 30
+        case 0
+            month = 1
+            day = daysLeft
+        case 1
+            if daysLeft == 30
+                month = 1
+                day = 30
+            elif daysLeft < daysInFirst2Months
+                month = 2
+                day = daysLeft - 31
+            else
+                month = 3
+        case 2
+            month = 3
+            day = daysLeft - daysInFirst2Months
+        case 3
+            const daysInFirst3Months Int = daysInFirst2Months + 31
+            if daysLeft < daysInFirst3Months
+                month = 3
+                day = 30
+            else
+                month = 4
+                day = daysLeft - daysInFirst3Months
+        case 4
+            const daysInFirst4Months Int = daysInFirst2Months + 61
+            if daysLeft < daysInFirst4Months
+                month = 4
+                day = 29
+            else
+                month = 5
+                day = daysLeft - daysInFirst4Months
+        case 5
+            const daysInFirst5Months Int = daysInFirst2Months + 92
+            day = daysLeft - daysInFirst5Months
+            if daysLeft < daysInFirst5Months
+                month = 5
+                day += 31
+            else
+                month = 6
+        case 6
+            const daysInFirst6Months Int = daysInFirst2Months + 122
+            day = daysLeft - daysInFirst6Months
+            if daysLeft < daysInFirst6Months
+                month = 6
+                day += 30
+            else
+                month = 7
+        case 7
+            const daysInFirst7Months Int = daysInFirst2Months + 153
+            day = daysLeft - daysInFirst7Months
+            if daysLeft < daysInFirst7Months
+                month = 7
+                day += 31
+            else
+                month = 8
+        case 8
+            const daysInFirst8Months Int = daysInFirst2Months + 184
+            day = daysLeft - daysInFirst8Months
+            if daysLeft < daysInFirst8Months
+                month = 8
+                day += 31
+            else
+                month = 9
+        case 9
+            const daysInFirst9Months Int = daysInFirst2Months + 214
+            day = daysLeft - daysInFirst9Months
+            if daysLeft < daysInFirst9Months
+                month = 9
+                day += 30
+            else
+                month = 10
+        case 10
+            const daysInFirst10Months Int = daysInFirst2Months + 245
+            day = daysLeft - daysInFirst10Months
+            if daysLeft < daysInFirst10Months
+                month = 10
+                day += 31
+            else
+                month = 11
+        case 11, 12
+            const daysInFirst11Months Int = daysInFirst2Months + 275
+            day = daysLeft - daysInFirst11Months
+            if daysLeft < daysInFirst11Months
+                month = 11
+                day += 30
+            else
+                month = 12
+        day++
+        return {
+            (day < 10).select("0", "") + day.toString() + "." +
+            (month < 10).select("0", "") + month.toString() + "." +
+            year.toString() + " " +
+            (hour < 10).select("0", "") + hour.toString() + ":" +
+            (minute < 10).select("0", "") + minute.toString() + ":" +
+            (second < 10).select("0", "") + second.toString()
+        }
+
+attach Time to StringReader
+    def fromString(noread type Time, string $String) Time
+        const str String = string.repackTo(String)
+        if {
+            str.length~() > 7 &&
+            str[0] >= '0' && str[0] <= '3' &&
+            str[1] >= '0' && str[1] <= '9' &&
+            str[2] >= '.' &&
+            (str[3] == '0' || str[3] == '1') &&
+            str[4] >= '0' && str[4] <= '9' &&
+            str[5] >= '.'
+        }
+            const day Int = (charToInt(str[0]) - charToInt('0')) * 10 + charToInt(str[1]) - charToInt('0')
+            const month Int = (charToInt(str[3]) - charToInt('0')) * 10 + charToInt(str[4]) - charToInt('0')
+            var year Int = 0
+            var index Int = 6
+            for :(loop)
+                const currentChar Char = str[index]
+                if currentChar == ' '
+                    index++
+                    end loop
+                var allOk Bool = currentChar >= '0' && currentChar <= '9'
+                if allOk
+                    year = year * 10 + charToInt(currentChar) - charToInt('0')
+                    index++
+                    allOk = year <= 292277026596 && index < str.length~()
+                if !allOk
+                    year = 0
+                    end loop
+            if {
+                year >= 1970 && index + 8 == str.length~() &&
+                str[index] >= '0' && str[index] <= '2' &&
+                str[index + 1] >= '0' && str[index + 1] <= '9' &&
+                str[index + 2] >= ':' &&
+                str[index + 3] >= '0' && str[index + 3] <= '6' &&
+                str[index + 4] >= '0' && str[index + 4] <= '9' &&
+                str[index + 5] >= ':' &&
+                str[index + 6] >= '0' && str[index + 6] <= '6' &&
+                str[index + 7] >= '0' && str[index + 7] <= '9'
+            }
+                const hour Int = (charToInt(str[index]) - charToInt('0')) * 10 + charToInt(str[index + 1]) - charToInt('0')
+                const minute Int = (charToInt(str[index + 3]) - charToInt('0')) * 10 + charToInt(str[index + 4]) - charToInt('0')
+                const second Int = (charToInt(str[index + 6]) - charToInt('0')) * 10 + charToInt(str[index + 7]) - charToInt('0')
+                try
+                    return time(year, month, day, hour, minute, second)
+                catch
+                    nothing
+        throw(enum::error_readFromString, "Reading from the string caused an error.")
+
+attach Time to Hashable
+    #alwaysinline nothrow
+    def getHash(time Time) Int
+        return timeToInt(time)
+
+    #alwaysinline nothrow
+    def getRandomizedHash(time Time) Int
+        return timeToInt(time) ^ const::staticRandomNumber
+
+attach Time to BinarySerializable
+    #alwaysinline nothrow
+    def serialize(time Time, write bytes Bytes)
+        const newLength Int = bytes.length~() + 8
+        if bytes.use?()
+            const newBytes Bytes = unsafe_bytes_createDummy(newLength)
+            unsafe_memcpyI8(newBytes.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length~())
+            bytes = newBytes
+        else
+            bytes.unsafe_realloc(newLength + 16)
+            bytes.unsafe_setI64(1, newLength)
+        bytes.unsafe_offsetI8(newLength + 8).unsafe_setI64(0, time)
+
+    #alwaysinline
+    def deserialize(noread type Time, bytes Bytes, write position Int) Time
+        inthrow
+            if bytes.length~() - position < 8 || position < 0
+                throw(enum::error_outOfRange, "Out of range.")
+        const resultAsInt Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI64(0)
+        position += 8
+        return resultAsInt.intToTime()

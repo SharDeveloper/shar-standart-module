@@ -1,0 +1,411 @@
+module STD
+
+//@A type that is a member of the "STD::List" group.
+export primitive List
+
+//@Members of the "STD::List" group are types whose objects contain zero or more objects (called "items") of the same or different types, grouped into one object.
+export group List: Container
+
+#override(STD)
+def shar__rc_free(list List)
+    const counter Int = list.unsafe_getI64(0)
+    if counter > 1
+        list.unsafe_setI64(0, counter - 1)
+    elif counter == 1
+        for :(index Int = 0) index < list.length~(); index++
+            list.unsafe_list_getItem(index).shar__rc_free()
+        list.unsafe_free()
+
+#override(STD) alwaysinline
+def shar__rc_use(list List)
+    const counter Int = list.unsafe_getI64(0)
+    if counter != 0
+        list.unsafe_setI64(0, counter + 1)
+
+#override(STD) alwaysinline
+def shar__to_const(list List)
+    if list.unsafe_getI64(0) !=0
+        for :(index Int = 0) index < list.length~(); index++
+            list.unsafe_list_getItem(index).shar__to_const()
+        list.unsafe_setI64(0, 0)
+
+#override(STD) alwaysinline nothrow
+def use?(list List) Bool
+    return list.unsafe_getI64(0) != 1
+
+#override(STD) alwaysinline nothrow
+def constant?(list List) Bool
+    return list.unsafe_getI64(0) == 0
+
+#override(STD) nothrow
+def clone(list List) List
+    var result List = unsafe_list_createDummy(list.length~())
+    parse index, item = list
+        result.unsafe_list_setItemInDummy(index, item)
+    return result
+
+attach List to Equal
+
+attach List to Shar__sugar__equal
+    #alwaysinline
+    def shar__sugar__equal(list1, list2 List) Bool
+        return list1.length~() == list2.length~() && list1.partsEqual?(0, list2, 0, list1.length~())
+
+attach List to Shar__sugar__notEqual
+    #alwaysinline
+    def shar__sugar__notEqual(list1, list2 List) Bool
+        return !(list1 == list2)
+
+attach List to Shar__sugar__getRange
+    #alwaysinline
+    def shar__sugar__getRange(list List, from, to Int) List
+        inthrow
+            if !(from >= 0 && from <= to && to <= list.length~())
+                throw(enum::error_outOfRange, "Out of range.")
+        var result List = unsafe_list_createDummy(to - from)
+        for :(index Int = from) index < to; index++
+            result.unsafe_list_setItemInDummy(index - from, list[index])
+        return result
+
+attach List to Shar__sugar__getItem
+    #alwaysinline
+    def shar__sugar__getItem(list List, index Int) $Any
+        inthrow
+            if !index.inRange?(0, list.length~())
+                throw(enum::error_outOfRange, "Out of range.")
+        return list.unsafe_list_getItem(index)
+
+#alwaysinline nothrow
+def unsafe_list_getItem(list, index $Any) $Any
+    var result $Any = 0
+    list.unsafe_get2xI64(index + 1, result)
+    result.shar__rc_use()
+    return result
+
+attach List to Shar__sugar__add
+    #inline nothrow
+    def shar__sugar__add(list, addedList List) List
+        var result List = unsafe_list_createDummy(list.length~() + addedList.length~())
+        parse index, item = list
+            result.unsafe_list_setItemInDummy(index, item)
+        parse index, item = addedList
+            result.unsafe_list_setItemInDummy(index + list.length~(), item)
+        return result
+
+attach List to Shar__sugar__addSet
+    #inline nothrow
+    def shar__sugar__addSet(write list, addedList List)
+        if addedList.empty?()
+            return
+        if list.use?()
+            list = list + addedList
+            return
+        const startListLength Int = list.length~()
+        const newLength Int = startListLength + addedList.length~()
+        list.unsafe_setI64(1, newLength)
+        list.unsafe_realloc((newLength + 1) * 16)
+        parse offset, item = addedList
+            list.unsafe_list_setItemInDummy(startListLength + offset, item)
+
+attach List to StringWriter
+    //@The function returns an object of type "STD::String".
+    def toString(list List) String
+        var result String = ""
+        if list.empty?()
+            result = "{}"
+        else
+            result = "{"
+            parse _, item = list
+                result += item.toString().repackTo(String)
+                result += ", "
+            result.delete(result.length~() - 1, 1)
+            result.unsafe_setI16(result.length~() + 7, '}')
+        return result
+
+attach List to Hashable
+    #alwaysinline
+    def getHash(list List) Int
+        var result Int = list.length~()
+        result += result << 10
+        result ^= result >> 6
+        parse _, item = list
+            result += item.getHash()
+            result += result << 10
+            result ^= result >> 6
+        result += result << 3
+        result ^= result >> 11
+        result += result << 15
+        return result
+
+    #alwaysinline
+    def getRandomizedHash(list List) Int
+        const randomNumber Int = const::staticRandomNumber
+        var result Int = randomNumber + list.length~()
+        const rightShifts Int = (randomNumber & 0xf) + 32
+        const leftShifts Int = ((randomNumber & 0xf0) >> 4) + 32
+        result += result << 10
+        result ^= result >> 6
+        parse _, item = list
+            result = (result >> rightShifts) + (result << leftShifts) + (result & 0xffffffff)
+            result += item.getHash()
+            result += result << 10
+            result ^= result >> 6
+        result += result << 3
+        result ^= result >> 11
+        result += result << 15
+        return result
+
+attach List to Long
+    #alwaysinline nothrow
+    def length~(list List) Int
+        return list.unsafe_getI64(1)
+
+attach List to Empty
+    #alwaysinline nothrow
+    def createEmpty(noread type List) List
+        return {}
+
+attach List to Put
+    #alwaysinline
+    def put(write list List, index Int, newItem $Any) $Any
+        const oldItem $Any = list[index]
+        if list.use?()
+            list = list.clone()
+        list.unsafe_list_setItem(index, newItem)
+        return oldItem
+
+attach List to Iterable
+    #alwaysinline nothrow
+    def parse__init(list List) Int
+        return 0
+
+    #alwaysinline nothrow
+    def parse__predicate(list List, index Int) Bool
+        return index != list.length~()
+
+    #alwaysinline unsafewrite nothrow
+    def parse__next(list List, write index Int)
+        index++
+
+    #alwaysinline nothrow
+    def parse__get__key(list List, index Int) Int
+        return index
+
+    #alwaysinline nothrow
+    def parse__get__item(list List, index Int) $Any
+        return list[index]
+
+attach List to Container
+    #inline nothrow
+    def addItem(write list List, newItem $Any)
+        const oldLength Int = list.length~()
+        const newLength Int = oldLength + 1
+        if list.use?()
+            var newList List = unsafe_list_createDummy(newLength)
+            parse index, item = list
+                newList.unsafe_list_setItemInDummy(index, item)
+            list = newList
+        else
+            list.unsafe_setI64(1, newLength)
+            list.unsafe_realloc((newLength + 1) * 16)
+        list.unsafe_list_setItemInDummy(oldLength, newItem)
+
+    #inline nothrow
+    def addItem$(list List, newItem $Any) List
+        var newList List = unsafe_list_createDummy(list.length~() + 1)
+        parse index, item = list
+            newList.unsafe_list_setItemInDummy(index, item)
+        newList.unsafe_list_setItemInDummy(list.length~(), newItem)
+        return newList
+
+#alwaysinline nothrow
+def unsafe_list_setItem(list, index, newItem $Any)
+    var oldItem $Any = 0
+    const offset $Any = index + 1
+    list.unsafe_get2xI64(offset, oldItem)
+    newItem.shar__rc_use()
+    list.unsafe_set2xI64(offset, newItem)
+
+#alwaysinline nothrow
+def unsafe_list_createDummy(length $Any) List
+    var result $Any = unsafe_malloc(length * 16 + 16)
+    result.unsafe_setI64(0, 1)
+    result.unsafe_setI64(1, length)
+    result.unsafe_setType(List.typeNumber~())
+    return result
+
+#alwaysinline nothrow
+def unsafe_list_setItemInDummy(list, index, item $Any)
+    item.shar__rc_use()
+    list.unsafe_set2xI64(index + 1, item)
+
+attach List to List
+
+#override(STD) alwaysinline
+def swap(write list List, position1, position2 Int)
+    inthrow
+        if !(position1.inRange?(0, list.length~()) && position2.inRange?(0, list.length~()))
+            throw(enum::error_outOfRange, "Out of range.")
+    if list.use?()
+        list = list.clone()
+    const item1Address Int = list.unsafe_offsetI64(2 * (position1 + 1))
+    const item2Address Int = list.unsafe_offsetI64(2 * (position2 + 1))
+    const tmpItem1Type Int = item1Address.unsafe_getI64(0)
+    const tmpItem1Value Int = item1Address.unsafe_getI64(1)
+    item1Address.unsafe_setI64(0, item2Address.unsafe_getI64(0))
+    item1Address.unsafe_setI64(1, item2Address.unsafe_getI64(1))
+    item2Address.unsafe_setI64(0, tmpItem1Type)
+    item2Address.unsafe_setI64(1, tmpItem1Value)
+
+#override(STD)
+def delete$(list List, from, count Int) List
+    const oldLength Int = list.length~()
+    const newLength Int = oldLength - count
+    inthrow
+        if {
+            !(from >= 0 && from <= oldLength &&
+            count >= 0 && count <= oldLength - from)
+        }
+            throw(enum::error_outOfRange, "Out of range.")
+    var result List = unsafe_list_createDummy(newLength)
+    for :(index Int = 0) index < from; index++
+        result.unsafe_list_setItemInDummy(index, list.unsafe_list_getItem(index))
+    for :(index Int = from + count) index < oldLength; index++
+        result.unsafe_list_setItemInDummy(index - count, list.unsafe_list_getItem(index))
+    return result
+
+#override(STD)
+def delete(write list List, from, count Int)
+    const oldLength Int = list.length~()
+    inthrow
+        if {
+            !(from >= 0 && from <= oldLength &&
+            count >= 0 && count <= oldLength - from)
+        }
+            throw(enum::error_outOfRange, "Out of range.")
+    if count == 0
+        return
+    const newLength Int = oldLength - count
+    if list.use?()
+        var newList List = unsafe_list_createDummy(newLength)
+        for :(index Int = 0) index < from; index++
+            newList.unsafe_list_setItemInDummy(index, list.unsafe_list_getItem(index))
+        for :(index Int = from + count) index < oldLength; index++
+            newList.unsafe_list_setItemInDummy(index - count, list.unsafe_list_getItem(index))
+        list = newList
+    else
+        const edge Int = from + count
+        for :(index Int = from) index < edge; index++
+            list.unsafe_list_getItem(index).shar__rc_free()
+        const lastPartIndex Int = edge * 2
+        const lastPartLength Int = oldLength * 2 - lastPartIndex
+        const listItems Int = list.unsafe_offsetI64(2)
+        unsafe_memmoveI64(listItems.unsafe_offsetI64(from * 2), listItems.unsafe_offsetI64(lastPartIndex), lastPartLength)
+        list.unsafe_setI64(1, newLength)
+        list.unsafe_realloc((newLength + 1) * 16)
+
+#override(STD) inline
+def insert$(list List, index Int, newItem $Any) List
+    const oldLength Int = list.length~()
+    const newLength Int = oldLength + 1
+    inthrow
+        if !index.inRange?(0, newLength)
+            throw(enum::error_outOfRange, "Out of range.")
+    var result List = unsafe_list_createDummy(newLength)
+    for :(listIndex Int = 0) listIndex < index; listIndex++
+        result.unsafe_list_setItemInDummy(listIndex, list.unsafe_list_getItem(listIndex))
+    result.unsafe_list_setItemInDummy(index, newItem)
+    for :(listIndex Int = index) listIndex < oldLength; listIndex++
+        result.unsafe_list_setItemInDummy(listIndex + 1, list.unsafe_list_getItem(listIndex))
+    return result
+
+#override(STD) inline
+def insert(write list List, index Int, newItem $Any)
+    const oldLength Int = list.length~()
+    const newLength Int = oldLength + 1
+    inthrow
+        if !index.inRange?(0, newLength)
+            throw(enum::error_outOfRange, "Out of range.")
+    if list.use?()
+        var newList List = unsafe_list_createDummy(newLength)
+        for :(listIndex Int = 0) listIndex < index; listIndex++
+            newList.unsafe_list_setItemInDummy(listIndex, list.unsafe_list_getItem(listIndex))
+        newList.unsafe_list_setItemInDummy(index, newItem)
+        for :(listIndex Int = index) listIndex < oldLength; listIndex++
+            newList.unsafe_list_setItemInDummy(listIndex + 1, list.unsafe_list_getItem(listIndex))
+        list = newList
+    else
+        list.unsafe_setI64(1, newLength)
+        list.unsafe_realloc((newLength + 1) * 16)
+        const listItems Int = list.unsafe_offsetI64(2)
+        unsafe_memmoveI64(listItems.unsafe_offsetI64(index * 2 + 2), listItems.unsafe_offsetI64(index * 2), (oldLength - index) * 2)
+        list.unsafe_list_setItemInDummy(index, newItem)
+
+#override(STD) inline
+def insertPart$(list List, index Int, addedList List) List
+    const oldLength Int = list.length~()
+    const addedLength Int = addedList.length~()
+    const newLength Int = oldLength + addedLength
+    inthrow
+        if !index.inRange?(0, oldLength + 1)
+            throw(enum::error_outOfRange, "Out of range.")
+    if addedLength == 0
+        return list
+    var result List = unsafe_list_createDummy(newLength)
+    for :(listIndex Int = 0) listIndex < index; listIndex++
+        result.unsafe_list_setItemInDummy(listIndex, list.unsafe_list_getItem(listIndex))
+    parse offset, item = addedList
+        result.unsafe_list_setItemInDummy(index + offset, item)
+    for :(listIndex Int = index) listIndex < oldLength; listIndex++
+        result.unsafe_list_setItemInDummy(listIndex + addedLength, list.unsafe_list_getItem(listIndex))
+    return result
+
+#override(STD) inline
+def insertPart(write list List, index Int, addedList List)
+    const oldLength Int = list.length~()
+    const addedLength Int = addedList.length~()
+    const newLength Int = oldLength + addedLength
+    inthrow
+        if !index.inRange?(0, oldLength + 1)
+            throw(enum::error_outOfRange, "Out of range.")
+    if addedLength == 0
+        return
+    if list.use?()
+        var newList List = unsafe_list_createDummy(newLength)
+        for :(listIndex Int = 0) listIndex < index; listIndex++
+            newList.unsafe_list_setItemInDummy(listIndex, list.unsafe_list_getItem(listIndex))
+        parse offset, item = addedList
+            newList.unsafe_list_setItemInDummy(index + offset, item)
+        for :(listIndex Int = index) listIndex < oldLength; listIndex++
+            newList.unsafe_list_setItemInDummy(listIndex + addedLength, list.unsafe_list_getItem(listIndex))
+        list = newList
+    else
+        list.unsafe_setI64(1, newLength)
+        list.unsafe_realloc((newLength + 1) * 16)
+        const listItems Int = list.unsafe_offsetI64(2)
+        unsafe_memmoveI64(listItems.unsafe_offsetI64((index + addedLength) * 2), listItems.unsafe_offsetI64(index * 2), (oldLength - index) * 2)
+        parse offset, item = addedList
+            list.unsafe_list_setItemInDummy(index + offset, item)
+
+#override(STD) alwaysinline
+def repeat(noread type List, item $Any, count Int) List
+    inthrow
+        if count < 0
+            throw(enum::error_outOfRange, "Out of range.")
+    var result List = unsafe_list_createDummy(count)
+    for :(index Int = 0) index < count; index++
+        result.unsafe_list_setItemInDummy(index, item)
+    return result
+
+#override(STD) alwaysinline
+def repeatPart(part List, count Int) List
+    inthrow
+        if count < 0
+            throw(enum::error_outOfRange, "Out of range.")
+    const partLength Int = part.length~()
+    const resultLength Int = count * partLength
+    var result List = unsafe_list_createDummy(resultLength)
+    for :(index Int = 0) index < resultLength; index += partLength
+        parse offset, item = part
+            result.unsafe_list_setItemInDummy(index + offset, item)
+    return result

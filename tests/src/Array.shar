@@ -1,0 +1,1613 @@
+module Main
+
+type NotEqType
+
+type ArrayGroupMember
+
+def arrayToAGM(array Array) ArrayGroupMember
+    return ArrayGroupMember.fromList({array})
+
+def agmToArray(agm ArrayGroupMember) Array
+    return agm.typeGetItem(0)
+
+attach ArrayGroupMember to Equal
+
+attach ArrayGroupMember to Shar__sugar__equal
+    def shar__sugar__equal(agm1, agm2 ArrayGroupMember) Bool
+        return agm1.agmToArray() == agm2.agmToArray()
+
+attach ArrayGroupMember to Shar__sugar__notEqual
+    def shar__sugar__notEqual(agm1, agm2 ArrayGroupMember) Bool
+        return agm1.agmToArray() != agm2.agmToArray()
+
+attach ArrayGroupMember to Ordered
+
+attach ArrayGroupMember to Shar__sugar__less
+    def shar__sugar__less(agm1, agm2 ArrayGroupMember) Bool
+        return agm1.agmToArray() < agm2.agmToArray()
+
+attach ArrayGroupMember to Shar__sugar__great
+    def shar__sugar__great(agm1, agm2 ArrayGroupMember) Bool
+        return agm1.agmToArray() > agm2.agmToArray()
+
+attach ArrayGroupMember to Shar__sugar__lessOrEqual
+    def shar__sugar__lessOrEqual(agm1, agm2 ArrayGroupMember) Bool
+        return agm1.agmToArray() <= agm2.agmToArray()
+
+attach ArrayGroupMember to Shar__sugar__greatOrEqual
+    def shar__sugar__greatOrEqual(agm1, agm2 ArrayGroupMember) Bool
+        return agm1.agmToArray() >= agm2.agmToArray()
+
+attach ArrayGroupMember to Shar__sugar__getRange
+    def shar__sugar__getRange(agm ArrayGroupMember, from, to $Any) ArrayGroupMember
+        return agm.agmToArray()[from:to].arrayToAGM()
+
+attach ArrayGroupMember to Shar__sugar__getItem
+    def shar__sugar__getItem(agm ArrayGroupMember, index $Any) $Any
+        return agm.agmToArray()[index]
+
+attach ArrayGroupMember to Shar__sugar__add
+    def shar__sugar__add(agm, addedAGM ArrayGroupMember) ArrayGroupMember
+        return (agm.agmToArray() + addedAGM.agmToArray()).arrayToAGM()
+
+attach ArrayGroupMember to Shar__sugar__addSet
+    def shar__sugar__addSet(write agm, addedAGM ArrayGroupMember)
+        agm = agm + addedAGM
+
+attach ArrayGroupMember to StringWriter
+    def toString(agm ArrayGroupMember) $String
+        return agm.agmToArray().toString()
+
+attach ArrayGroupMember to Hashable
+    def getHash(agm ArrayGroupMember) Int
+        return agm.agmToArray().getHash()
+
+    def getRandomizedHash(agm ArrayGroupMember) Int
+        return agm.agmToArray().getRandomizedHash()
+
+attach ArrayGroupMember to Long
+    def length~(agm ArrayGroupMember) Int
+        return agm.agmToArray().length~()
+
+attach ArrayGroupMember to Empty
+    def createEmpty(noread type ArrayGroupMember) ArrayGroupMember
+        return [].arrayToAGM()
+
+attach ArrayGroupMember to Put
+    def put(write agm ArrayGroupMember, index, newItem $Any) $Any
+        var agmAsArray Array = agm.agmToArray()
+        const result $Any = agmAsArray.put(index, newItem)
+        agm = agmAsArray.arrayToAGM()
+        return result
+
+attach ArrayGroupMember to Iterable
+    #alwaysinline nothrow
+    def parse__init(array ArrayGroupMember) $Any
+        return 0
+
+    #alwaysinline nothrow
+    def parse__predicate(array ArrayGroupMember, index $Any) Bool
+        return index != array.length~()
+
+    #alwaysinline unsafewrite nothrow
+    def parse__next(array ArrayGroupMember, write index $Any)
+        index++
+
+    #alwaysinline nothrow
+    def parse__get__key(array ArrayGroupMember, index $Any) $Any
+        return index
+
+    #alwaysinline nothrow
+    def parse__get__item(array ArrayGroupMember, index $Any) $Any
+        return array[index]
+
+attach ArrayGroupMember to Container
+    def addItem(write agm ArrayGroupMember, newItem $Any)
+        agm = agm.addItem$(newItem)
+
+    def addItem$(agm ArrayGroupMember, newItem $Any) ArrayGroupMember
+        return agm.agmToArray().addItem$(newItem).arrayToAGM()
+
+attach ArrayGroupMember to ItemTypeNumber
+    def itemTypeNumber~(agm ArrayGroupMember) Int
+        return agm.agmToArray().itemTypeNumber~()
+
+attach ArrayGroupMember to Array
+
+#inline
+def unsafe_array_getCounter(array $Any) Int
+    return array.unsafe_getI64(0)
+
+def testArray(write ok Int, write errorsCoordinates List)
+    testArray_MemoryManagement(ok, errorsCoordinates)
+    testArray_Equal(ok, errorsCoordinates)
+    testArray_Ordered(ok, errorsCoordinates)
+    testArray_GetRange(ok, errorsCoordinates)
+    testArray_GetItem(ok, errorsCoordinates)
+    testArray_Add(ok, errorsCoordinates)
+    testArray_StringWriter(ok, errorsCoordinates)
+    testArray_Hashed(ok, errorsCoordinates)
+    testArray_Long(ok, errorsCoordinates)
+    testArray_Empty(ok, errorsCoordinates)
+    testArray_Container(ok, errorsCoordinates)
+    testArray_Array(ok, errorsCoordinates)
+    testArray_Sort(ok, errorsCoordinates)
+    testArray_Put(ok, errorsCoordinates)
+    testArray_Iterator(ok, errorsCoordinates)
+    testArray_Swap(ok, errorsCoordinates)
+    testArray_Delete$(ok, errorsCoordinates)
+    testArray_Delete(ok, errorsCoordinates)
+    testArray_Insert$(ok, errorsCoordinates)
+    testArray_Insert(ok, errorsCoordinates)
+    testArray_InsertPart$(ok, errorsCoordinates)
+    testArray_InsertPart(ok, errorsCoordinates)
+    testArray_Repeat(ok, errorsCoordinates)
+    testArray_RepeatPart(ok, errorsCoordinates)
+
+#noinline
+def testArray_MemoryManagement(write ok Int, write errorsCoordinates List)
+    var int Int = 1
+    var array1 Array = [int, 2, 3]
+    var array2 Array = [array1, [12.0, 3.4]]
+    var array3 Array = [int, 2, 3]
+    var array4 Array = [array3, [12, 3]]
+    test: ok, errorsCoordinates
+        unsafe_array_getCounter(array1) == 2
+        unsafe_array_getCounter(array2) == 1
+    var allOk Bool = false
+    var count Int = 0
+    try
+        parse :(parse) index, item = array2
+            count++
+            allOk = index.inRange?(0, 2) && item.type?(Array)
+            if !allOk
+                end parse
+    catch
+        count = 0
+    test: ok, errorsCoordinates
+        allOk
+        count == 2
+        unsafe_array_getCounter(array1) == 2
+        unsafe_array_getCounter(array2) == 1
+    array1.shar__rc_free()
+    test: ok, errorsCoordinates
+        unsafe_array_getCounter(array1) == 1
+        unsafe_array_getCounter(array2) == 1
+    array1.shar__rc_use()
+    test: ok, errorsCoordinates
+        unsafe_array_getCounter(array1) == 2
+        unsafe_array_getCounter(array2) == 1
+    array2 = [1, 2, 3]
+    test: ok, errorsCoordinates
+        unsafe_array_getCounter(array1) == 1
+        unsafe_array_getCounter(array2) == 0
+    array1.shar__to_const()
+    test: ok, errorsCoordinates
+        unsafe_array_getCounter(array1) == 0
+        unsafe_array_getCounter(array2) == 0
+        array1.use?()
+        array3.use?()
+        !array4.use?()
+        array1.constant?()
+        !array3.constant?()
+        !array4.constant?()
+    array1 = array1.clone()
+    array2 = array3.clone()
+    var array5 Array = array4.clone()
+    test: ok, errorsCoordinates
+        unsafe_array_getCounter(array1) == 1
+        unsafe_array_getCounter(array2) == 1
+        unsafe_array_getCounter(array3) == 3
+        unsafe_array_getCounter(array4) == 1
+        unsafe_array_getCounter(array5) == 1
+        !array1.use?()
+        !array1.constant?()
+        !array2.use?()
+        !array2.constant?()
+    array1 = [int, 2, 3]
+    array2 = [array1, [2, 3]]
+    array2.shar__to_const()
+    test: ok, errorsCoordinates
+        unsafe_array_getCounter(array1) == 0
+        unsafe_array_getCounter(array2) == 0
+        unsafe_array_getCounter(array3) == 3
+        unsafe_array_getCounter(array4) == 1
+        unsafe_array_getCounter(array5) == 1
+        array1.use?()
+        array1.constant?()
+        array2.use?()
+        array2.constant?()
+    allOk = false
+    array1 = []
+    try
+        for :(i Int = 0) i < 300; i++
+            array1.addItem(i)
+        array2 = array1
+        for :(i Int = 1) i < 150; i++
+            array1.setItem(i, i + 1)
+        allOk = array1[0] == 0
+        if allOk
+            for :(i Int = 1) i < 150; i++
+                allOk = array1[i] == i + 1
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 150) i < 300; i++
+                allOk = array1[i] == i
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 0) i < 300; i++
+                allOk = array2[i] == i
+                if !allOk
+                    end i
+        array3 = array2
+        for :(i Int = 300) i < 400; i++
+            array2.addItem(i)
+        allOk = allOk && array1[0] == 0
+        if allOk
+            for :(i Int = 1) i < 150; i++
+                allOk = array1[i] == i + 1
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 150) i < 300; i++
+                allOk = array1[i] == i
+                if !allOk
+                    end i
+        if allOk
+            for :(i Int = 0) i < 400; i++
+                allOk = array2[i] == i
+                if !allOk
+                    end i
+    catch
+        nothing
+    test: ok, errorsCoordinates
+        allOk
+        array1.length~() == 300
+        array2.length~() == 400
+        array3.length~() == 300
+
+#noinline
+def testArray_Equal(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [] == []
+        [1] != []
+        [] != [1]
+        [1, 2] == [1, 2]
+        !([1.0, 2.3, (0.0/0.0)] == [1.0, 2.1, (0.0/0.0)])
+        [1.0, 2.3, (0.0/0.0)] == [1.0, 2.3, (0.0/0.0)] : error_compareWithNaN
+        [1, 2] != [1, 2, 3]
+        [1, 2, 3, 4] == [1, 2, 3, 4]
+        [1, 2, 3, 4, 5] != [1, 2, 3, 4]
+        [1.0, 2.0, 3.0, 4.0] != [1, 2, 3, 4]
+        [1, 2, 3, 4] != [1.0, 2.0, 3.0, 4.0]
+        [1.0, 2.3, (0.0/0.0)] != [1.0, 2.1, (0.0/0.0)]
+        [1.0, 2.3, (0.0/0.0)] != [1.0, 2.3, (0.0/0.0)] : error_compareWithNaN
+        [1.0, 2.3, (0.0/0.0)] != [NotEqType.fromList({})]
+        [NotEqType.fromList({})] != [NotEqType.fromList({})]
+
+#noinline
+def testArray_Ordered(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [] < [1]
+        [0, 2] < [1]
+        [0, 2] < [1, 2]
+        [0, 1] < [0, 2]
+        [0, 1, 2, 3] < [0, 1, 2, 4]
+        [0, 1, 2, 3, 5] < [0, 1, 2, 4]
+        [[], [1]] < [[1.0], [2]]
+        [0.0, 1.0, 2.0, 4.0] < [0.0, 1.0, 2.0, 4.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, 2.0, (0.0/0.0)] < [0.0, 1.0, 2.0, 4.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, 2.0] < [0.0, 1.0, 2.0, 4.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, 2.0, (0.0/0.0)] < [0.0, 1.0, 2.0, 4.0]
+        [0.0, 1.0, 2.0, 4.0] < [0.0, 1.0, 2.0, (0.0/0.0)] : error_compareWithNaN
+        [0.0, 1.0, 2.0, 4.0] < [(0.0/0.0), 1.0, 2.0] : error_compareWithNaN
+        [(0.0/0.0), 1.0, 2.0, 4.0] < [0.0, 1.0, 2.0] : error_compareWithNaN
+        !([] < [])
+        !([1, 2, 3] < [1, 2, 3])
+        !([1] < [])
+        !([1] < [0, 2])
+        !([1, 2] < [0, 2])
+        !([0, 2] < [0, 1])
+        !([0, 1, 2, 4] < [0, 1, 2, 3])
+        !([0, 1, 2, 4] < [0, 1, 2, 3, 5])
+        [1] < [1.0] : error_invalidType
+        [] <= [1]
+        [] <= []
+        [1, 2, 3] <= [1, 2, 3]
+        [0, 2] <= [1]
+        [0, 2] <= [1, 2]
+        [0, 1] <= [0, 2]
+        [0, 1, 2, 3] <= [0, 1, 2, 4]
+        [0, 1, 2, 3, 5] <= [0, 1, 2, 4]
+        [[], [1]] <= [[1.0], [2]]
+        [0.0, 1.0, 2.0, 4.0] <= [0.0, 1.0, 2.0, 4.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, 2.0, (0.0/0.0)] <= [0.0, 1.0, 2.0, 4.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, 2.0] <= [0.0, 1.0, 2.0, 4.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, 2.0, (0.0/0.0)] <= [0.0, 1.0, 2.0, 4.0]
+        [0.0, 1.0, 2.0, 4.0] <= [0.0, 1.0, 2.0, (0.0/0.0)] : error_compareWithNaN
+        [0.0, 1.0, 2.0, 4.0] <= [(0.0/0.0), 1.0, 2.0] : error_compareWithNaN
+        [(0.0/0.0), 1.0, 2.0, 4.0] <= [0.0, 1.0, 2.0] : error_compareWithNaN
+        !([1] <= [])
+        !([1] <= [0, 2])
+        !([1, 2] <= [0, 2])
+        !([0, 2] <= [0, 1])
+        !([0, 1, 2, 4] <= [0, 1, 2, 3])
+        !([0, 1, 2, 4] <= [0, 1, 2, 3, 5])
+        [1] <= [1.0] : error_invalidType
+        [1] > []
+        [1] > [0, 2]
+        [1, 2] > [0, 2]
+        [0, 2] > [0, 1]
+        [0, 1, 2, 4] > [0, 1, 2, 3]
+        [0, 1, 2, 4] > [0, 1, 2, 3, 5]
+        [[1.0], [2]] > [[], [1]]
+        [0.0, 1.0, 2.0, 4.0, (0.0/0.0)] > [0.0, 1.0, 2.0, 4.0]
+        [0.0, 1.0, 2.0, 4.0, (0.0/0.0)] > [0.0, 1.0, 2.0, 2.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, 4.0, (0.0/0.0)] > [0.0, 1.0, 2.0, 2.0]
+        [0.0, 1.0, 2.0, 4.0] > [0.0, 1.0, 2.0, 2.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, (0.0/0.0)] > [0.0, 1.0, 2.0, 4.0] : error_compareWithNaN
+        [(0.0/0.0), 1.0, 2.0] > [0.0, 1.0, 2.0, 4.0] : error_compareWithNaN
+        [0.0, 1.0, 2.0] > [(0.0/0.0), 1.0, 2.0, 4.0] : error_compareWithNaN
+        !([] > [])
+        !([1, 2, 3] > [1, 2, 3])
+        !([] > [1])
+        !([0, 2] > [1])
+        !([0, 2] > [1, 2])
+        !([0, 1] > [0, 2])
+        !([0, 1, 2, 3] > [0, 1, 2, 4])
+        !([0, 1, 2, 3, 5] > [0, 1, 2, 4])
+        [] >= []
+        [1, 2, 3] >= [1, 2, 3]
+        [1] >= [1.0] : error_invalidType
+        [1] >= []
+        [1] >= [0, 2]
+        [1, 2] >= [0, 2]
+        [0, 2] >= [0, 1]
+        [0, 1, 2, 4] >= [0, 1, 2, 3]
+        [0, 1, 2, 4] >= [0, 1, 2, 3, 5]
+        [[1.0], [2]] >= [[], [1]]
+        [0.0, 1.0, 2.0, 4.0, (0.0/0.0)] >= [0.0, 1.0, 2.0, 4.0]
+        [0.0, 1.0, 2.0, 4.0, (0.0/0.0)] >= [0.0, 1.0, 2.0, 2.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, 4.0, (0.0/0.0)] >= [0.0, 1.0, 2.0, 2.0]
+        [0.0, 1.0, 2.0, 4.0] >= [0.0, 1.0, 2.0, 2.0, (0.0/0.0)]
+        [0.0, 1.0, 2.0, (0.0/0.0)] >= [0.0, 1.0, 2.0, 4.0] : error_compareWithNaN
+        [(0.0/0.0), 1.0, 2.0] >= [0.0, 1.0, 2.0, 4.0] : error_compareWithNaN
+        [0.0, 1.0, 2.0] >= [(0.0/0.0), 1.0, 2.0, 4.0] : error_compareWithNaN
+        !([] >= [1])
+        !([0, 2] >= [1])
+        !([0, 2] >= [1, 2])
+        !([0, 1] >= [0, 2])
+        !([0, 1, 2, 3] >= [0, 1, 2, 4])
+        !([0, 1, 2, 3, 5] >= [0, 1, 2, 4])
+        [1] > [1.0] : error_invalidType
+
+#noinline
+def testArray_GetRange(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [][0:0] == []
+        [][0:0].itemTypeNumber~() == Nothing.typeNumber~()
+        [1][0:0] == []
+        [1][0:0].itemTypeNumber~() == Nothing.typeNumber~()
+        [1][0:1] == [1]
+        [1, 2][0:0] == []
+        [1, 2][0:0].itemTypeNumber~() == Nothing.typeNumber~()
+        [1, 2][0:1] == [1]
+        [1, 2][1:2] == [2]
+        [1, 2][0:2] == [1, 2]
+        [1, 2][2:2] == []
+        [1, 2][2:2].itemTypeNumber~() == Nothing.typeNumber~()
+        [][-9223372036854775808:-9223372036854775808] : error_outOfRange
+        [][-9223372036854775808:-1] : error_outOfRange
+        [][-9223372036854775808:9223372036854775807] : error_outOfRange
+        [][9223372036854775807:9223372036854775807] : error_outOfRange
+        [][-1:-1] : error_outOfRange
+        [][-1:0] : error_outOfRange
+        [][0:-1] : error_outOfRange
+        [][0:1] : error_outOfRange
+        [][1:0] : error_outOfRange
+        [][1:1] : error_outOfRange
+        [][2:1] : error_outOfRange
+        [][2:0] : error_outOfRange
+        [][2:-1] : error_outOfRange
+        [][2:-9223372036854775808] : error_outOfRange
+        [][2:9223372036854775807] : error_outOfRange
+        [1, 2, 3][0:3] == [1, 2, 3]
+        [1, 2, 3][0:2] == [1, 2]
+        [1, 2, 3][1:3] == [2, 3]
+        [1, 2, 3][-9223372036854775808:-9223372036854775808] : error_outOfRange
+        [1, 2, 3][-9223372036854775808:-1] : error_outOfRange
+        [1, 2, 3][-9223372036854775808:9223372036854775807] : error_outOfRange
+        [1, 2, 3][9223372036854775807:9223372036854775807] : error_outOfRange
+        [1, 2, 3][-1:-1] : error_outOfRange
+        [1, 2, 3][-1:0] : error_outOfRange
+        [1, 2, 3][0:-1] : error_outOfRange
+        [1, 2, 3][1:0] : error_outOfRange
+        [1, 2, 3][2:1] : error_outOfRange
+        [1, 2, 3][2:0] : error_outOfRange
+        [1, 2, 3][2:-1] : error_outOfRange
+        [1, 2, 3][2:-9223372036854775808] : error_outOfRange
+        [1, 2, 3][2:9223372036854775807] : error_outOfRange
+
+#noinline
+def testArray_GetItem(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [][0] : error_outOfRange
+        [][1] : error_outOfRange
+        [][-1] : error_outOfRange
+        [][-9223372036854775808] : error_outOfRange
+        [][9223372036854775807] : error_outOfRange
+        [1][0] == 1
+        [1][1] : error_outOfRange
+        [1][-1] : error_outOfRange
+        [1][-9223372036854775808] : error_outOfRange
+        [1][9223372036854775807] : error_outOfRange
+        [1, 2, 3][0] == 1
+        [1, 2, 3][1] == 2
+        [1, 2, 3][2] == 3
+        [1, 2, 3][3] : error_outOfRange
+        [1, 2, 3][-1] : error_outOfRange
+        [1, 2, 3][-9223372036854775808] : error_outOfRange
+        [1, 2, 3][9223372036854775807] : error_outOfRange
+
+#noinline
+def testArray_Add(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [] + [] == []
+        ([] + []).itemTypeNumber~() == Nothing.typeNumber~()
+        [] + [1] == [1]
+        [1] + [] == [1]
+        [] + [1, 2] == [1, 2]
+        [1, 2] + [] == [1, 2]
+        [1, 2] + [3] == [1, 2, 3]
+        [0] + [1, 2] == [0, 1, 2]
+        [1, 2] + [3, 4] == [1, 2, 3, 4]
+        [-1, 0] + [1, 2] == [-1, 0, 1, 2]
+        [1] + [2.0] : error_invalidType
+    var array1 Array  = []
+    var array2 Array  = []
+    var array3 Array  = []
+    var array4 Array  = [1, 2]
+    var array5 Array  = [1, 2]
+    var array6 Array = [0]
+    var array7 Array = []
+    var array8 Array = [1, 2]
+    var array9 Array = [-1, 0]
+    var array10 Array = [1]
+    test: ok, errorsCoordinates
+        (array1 += []).nothing?()
+        array1 == []
+        array1.itemTypeNumber~() == Nothing.typeNumber~()
+        (array2 += [1]).nothing?()
+        array2 == [1]
+        (array3 += [1]).nothing?()
+        array3 == [1]
+        (array4 += []).nothing?()
+        array4 == [1, 2]
+        (array5 += [3]).nothing?()
+        array5 == [1, 2, 3]
+        (array6 += [1, 2]).nothing?()
+        array6 == [0, 1, 2]
+        (array7 += [1, 2]).nothing?()
+        array7 == [1, 2]
+        (array8 += [3, 4]).nothing?()
+        array8 == [1, 2, 3, 4]
+        (array9 += [1, 2]).nothing?()
+        array9 == [-1, 0, 1, 2]
+        array10 += [2.0] : error_invalidType
+        array10 == [1]
+    array1 = [].clone()
+    array2 = [].clone()
+    array3 = [1].clone()
+    array4 = [1, 2].clone()
+    array5 = [1, 2].clone()
+    array6 = [0].clone()
+    array7 = [].clone()
+    array8 = [1, 2].clone()
+    array9 = [-1, 0].clone()
+    array10 = [1].clone()
+    test: ok, errorsCoordinates
+        (array1 += []).nothing?()
+        array1 == []
+        array1.itemTypeNumber~() == Nothing.typeNumber~()
+        (array2 += [1]).nothing?()
+        array2 == [1]
+        (array3 += []).nothing?()
+        array3 == [1]
+        (array4 += []).nothing?()
+        array4 == [1, 2]
+        (array5 += [3]).nothing?()
+        array5 == [1, 2, 3]
+        (array6 += [1, 2]).nothing?()
+        array6 == [0, 1, 2]
+        (array7 += [1, 2]).nothing?()
+        array7 == [1, 2]
+        (array8 += [3, 4]).nothing?()
+        array8 == [1, 2, 3, 4]
+        (array9 += [1, 2]).nothing?()
+        array9 == [-1, 0, 1, 2]
+        array10 += [2.0] : error_invalidType
+        array10 == [1]
+
+#noinline
+def testArray_StringWriter(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].toString() == "[]"
+        [0].toString() == "[0]"
+        [1, 2, 3].toString() == "[1, 2, 3]"
+        [1.1, 1.2].toString() == "[1.1, 1.2]"
+        [[], [1, 2, 3], [[[]]]].toString() == "[[], [1, 2, 3], [[[]]]]"
+
+#noinline
+def testArray_Hashed(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].getHash().type?(Int)
+        [1].getHash().type?(Int)
+        [].getRandomizedHash().type?(Int)
+        [1].getRandomizedHash().type?(Int)
+        [].getHash() == [].getHash()
+        [1].getHash() == [1].getHash()
+
+#noinline
+def testArray_Long(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].length~() == 0
+        [123].length~() == 1
+        [10, 23].length~() == 2
+        [10, 23, 0].length~() == 3
+
+#noinline
+def testArray_Empty(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        Array.createEmpty() == []
+
+#noinline
+def testArray_Container(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].addItem$([]) == [[]]
+        [].addItem$(1) == [1]
+        [[1, 2]].addItem$([]) == [[1, 2], []]
+        [1].addItem$(2) == [1, 2]
+        [1, 2].addItem$(3) == [1, 2, 3]
+        [1, 2].addItem$(1.0) : error_invalidType
+        [1, 2].addItem$(nothing) : error_invalidType
+        [].addItem$(nothing) : error_invalidType
+    var array1 Array = []
+    var array2 Array = []
+    var array3 Array = [[1, 2]]
+    var array4 Array = [1]
+    var array5 Array = [1, 2]
+    var array6 Array = [1, 2]
+    var array7 Array = []
+    test: ok, errorsCoordinates
+        array1.addItem([]).nothing?()
+        array1 == [[]]
+        array2.addItem(1).nothing?()
+        array2 == [1]
+        array3.addItem([]).nothing?()
+        array3 == [[1, 2], []]
+        array4.addItem(2).nothing?()
+        array4 == [1, 2]
+        array5.addItem(3).nothing?()
+        array5 == [1, 2, 3]
+        array6.addItem(1.0) : error_invalidType
+        array6 == [1, 2]
+        array6.addItem(nothing) : error_invalidType
+        array6 == [1, 2]
+        array7.addItem(nothing) : error_invalidType
+        array7 == []
+    array1 = [].clone()
+    array2 = [].clone()
+    array3 = [[1, 2]].clone()
+    array4 = [1].clone()
+    array5 = [1, 2].clone()
+    array6 = [1, 2].clone()
+    array7 = [].clone()
+    test: ok, errorsCoordinates
+        array1.addItem([]).nothing?()
+        array1 == [[]]
+        array2.addItem(1).nothing?()
+        array2 == [1]
+        array3.addItem([]).nothing?()
+        array3 == [[1, 2], []]
+        array4.addItem(2).nothing?()
+        array4 == [1, 2]
+        array5.addItem(3).nothing?()
+        array5 == [1, 2, 3]
+        array6.addItem(1.0) : error_invalidType
+        array6 == [1, 2]
+        array6.addItem(nothing) : error_invalidType
+        array6 == [1, 2]
+        array7.addItem(nothing) : error_invalidType
+        array7 == []
+    array1 = [1]
+    array2 = [1, 2]
+    array3 = [1, 2]
+    array4 = [1, 2]
+    array5 = [1, 2, 3]
+    array6 = []
+    test: ok, errorsCoordinates
+        array1.setItem(0, -1).nothing?()
+        array1 == [-1]
+        array2.setItem(0, -1).nothing?()
+        array2 == [-1, 2]
+        array3.setItem(1, -2).nothing?()
+        array3 == [1, -2]
+        array4.setItem(0, -1).nothing?()
+        array4.setItem(1, -2).nothing?()
+        array4 == [-1, -2]
+        array5.setItem(2, -3).nothing?()
+        array5 == [1, 2, -3]
+        array6.setItem(0, 1) : error_outOfRange
+        array6 == []
+        array6.setItem(-1, 1) : error_outOfRange
+        array6 == []
+        array6.setItem(1, 1) : error_outOfRange
+        array6 == []
+        array6.setItem(-9223372036854775808, 1) : error_outOfRange
+        array6 == []
+        array6.setItem(9223372036854775807, 1) : error_outOfRange
+        array6 == []
+        array1.setItem(-1, 1) : error_outOfRange
+        array1 == [-1]
+        array1.setItem(1, 1) : error_outOfRange
+        array1 == [-1]
+        array1.setItem(-9223372036854775808, 1) : error_outOfRange
+        array1 == [-1]
+        array1.setItem(9223372036854775807, 1) : error_outOfRange
+        array1 == [-1]
+        array2.setItem(-1, 1) : error_outOfRange
+        array2 == [-1, 2]
+        array2.setItem(2, 1) : error_outOfRange
+        array2 == [-1, 2]
+        array2.setItem(-9223372036854775808, 1) : error_outOfRange
+        array2 == [-1, 2]
+        array2.setItem(9223372036854775807, 1) : error_outOfRange
+        array2 == [-1, 2]
+        array1.setItem(0, 1.0) : error_invalidType
+        array1 == [-1]
+        array1.setItem(0, nothing) : error_invalidType
+        array1 == [-1]
+    array1 = [1].clone()
+    array2 = [1, 2].clone()
+    array3 = [1, 2].clone()
+    array4 = [1, 2].clone()
+    array5 = [1, 2, 3].clone()
+    array6 = [].clone()
+    test: ok, errorsCoordinates
+        array1.setItem(0, -1).nothing?()
+        array1 == [-1]
+        array2.setItem(0, -1).nothing?()
+        array2 == [-1, 2]
+        array3.setItem(1, -2).nothing?()
+        array3 == [1, -2]
+        array4.setItem(0, -1).nothing?()
+        array4.setItem(1, -2).nothing?()
+        array4 == [-1, -2]
+        array5.setItem(2, -3).nothing?()
+        array5 == [1, 2, -3]
+        array6.setItem(0, 1) : error_outOfRange
+        array6 == []
+        array6.setItem(-1, 1) : error_outOfRange
+        array6 == []
+        array6.setItem(1, 1) : error_outOfRange
+        array6 == []
+        array6.setItem(-9223372036854775808, 1) : error_outOfRange
+        array6 == []
+        array6.setItem(9223372036854775807, 1) : error_outOfRange
+        array6 == []
+        array1.setItem(-1, 1) : error_outOfRange
+        array1 == [-1]
+        array1.setItem(1, 1) : error_outOfRange
+        array1 == [-1]
+        array1.setItem(-9223372036854775808, 1) : error_outOfRange
+        array1 == [-1]
+        array1.setItem(9223372036854775807, 1) : error_outOfRange
+        array1 == [-1]
+        array2.setItem(-1, 1) : error_outOfRange
+        array2 == [-1, 2]
+        array2.setItem(2, 1) : error_outOfRange
+        array2 == [-1, 2]
+        array2.setItem(-9223372036854775808, 1) : error_outOfRange
+        array2 == [-1, 2]
+        array2.setItem(9223372036854775807, 1) : error_outOfRange
+        array2 == [-1, 2]
+        array1.setItem(0, 1.0) : error_invalidType
+        array1 == [-1]
+        array1.setItem(0, nothing) : error_invalidType
+        array1 == [-1]
+
+#noinline
+def testArray_Array(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [0].itemTypeIndependent?()
+        [1.0].itemTypeIndependent?()
+        ![].itemTypeIndependent?()
+        ![[]].itemTypeIndependent?()
+        ![""].itemTypeIndependent?()
+        [0].itemTypeInEqual?()
+        [1.0].itemTypeInEqual?()
+        ![].itemTypeInEqual?()
+        ![NotEqType.fromList({})].itemTypeInEqual?()
+        [].itemTypeNumber~() == Nothing.typeNumber~()
+        [1].itemTypeNumber~() == Int.typeNumber~()
+        [1.0].itemTypeNumber~() == Real.typeNumber~()
+        ![].itemTypeInOrdered?()
+        ![NotEqType.fromList({})].itemTypeInOrdered?()
+        [1].itemTypeInOrdered?()
+        ["sas"].itemTypeInOrdered?()
+        [0].arrayToAGM().itemTypeIndependent?()
+        [1.0].arrayToAGM().itemTypeIndependent?()
+        ![].arrayToAGM().itemTypeIndependent?()
+        ![[]].arrayToAGM().itemTypeIndependent?()
+        ![""].arrayToAGM().itemTypeIndependent?()
+        [0].arrayToAGM().itemTypeInEqual?()
+        [1.0].arrayToAGM().itemTypeInEqual?()
+        ![].arrayToAGM().itemTypeInEqual?()
+        ![NotEqType.fromList({})].arrayToAGM().itemTypeInEqual?()
+        ![].arrayToAGM().itemTypeInOrdered?()
+        ![NotEqType.fromList({})].arrayToAGM().itemTypeInOrdered?()
+        [1].arrayToAGM().itemTypeInOrdered?()
+        ["sas"].arrayToAGM().itemTypeInOrdered?()
+
+#noinline
+def testArray_Sort(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [NotEqType.fromList({})].arrayToAGM().sort$(true) : error_invalidType
+        [NotEqType.fromList({})].arrayToAGM().sort$(false) : error_invalidType
+        [NotEqType.fromList({}), NotEqType.fromList({})].arrayToAGM().sort$(true) : error_invalidType
+        [NotEqType.fromList({}), NotEqType.fromList({})].arrayToAGM().sort$(false) : error_invalidType
+        [].arrayToAGM().sort$(true) == [].arrayToAGM()
+        [].arrayToAGM().sort$(false) == [].arrayToAGM()
+        [].arrayToAGM().sort$(true).itemTypeNumber~() == Nothing.typeNumber~()
+        [].arrayToAGM().sort$(false).itemTypeNumber~() == Nothing.typeNumber~()
+        [1].arrayToAGM().sort$(true) == [1].arrayToAGM()
+        [1].arrayToAGM().sort$(false) == [1].arrayToAGM()
+        [1, 2].arrayToAGM().sort$(true) == [1, 2].arrayToAGM()
+        [1, 2].arrayToAGM().sort$(false) == [2, 1].arrayToAGM()
+        [2, 1].arrayToAGM().sort$(true) == [1, 2].arrayToAGM()
+        [2, 1].arrayToAGM().sort$(false) == [2, 1].arrayToAGM()
+        [1, 2, 3].arrayToAGM().sort$(true) == [1, 2, 3].arrayToAGM()
+        [1, 2, 3].arrayToAGM().sort$(false) == [3, 2, 1].arrayToAGM()
+        [1, 3, 2].arrayToAGM().sort$(true) == [1, 2, 3].arrayToAGM()
+        [1, 3, 2].arrayToAGM().sort$(false) == [3, 2, 1].arrayToAGM()
+        [2, 1, 3].arrayToAGM().sort$(true) == [1, 2, 3].arrayToAGM()
+        [2, 1, 3].arrayToAGM().sort$(false) == [3, 2, 1].arrayToAGM()
+        [2, 3, 1].arrayToAGM().sort$(true) == [1, 2, 3].arrayToAGM()
+        [2, 3, 1].arrayToAGM().sort$(false) == [3, 2, 1].arrayToAGM()
+        [3, 1, 2].arrayToAGM().sort$(true) == [1, 2, 3].arrayToAGM()
+        [3, 1, 2].arrayToAGM().sort$(false) == [3, 2, 1].arrayToAGM()
+        [3, 2, 1].arrayToAGM().sort$(true) == [1, 2, 3].arrayToAGM()
+        [3, 2, 1].arrayToAGM().sort$(false) == [3, 2, 1].arrayToAGM()
+        [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToAGM().sort$(true) == [-301, -92, -3, 0, 9, 15, 26, 45, 172, 7134].arrayToAGM()
+        [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToAGM().sort$(false) == [7134, 172, 45, 26, 15, 9, 0, -3, -92, -301].arrayToAGM()
+        [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] {
+            .arrayToAGM().sort$(true) ==
+            [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            .arrayToAGM()
+        }
+        [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] {
+            .arrayToAGM().sort$(false) ==
+            [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100]
+            .arrayToAGM()
+        }
+        [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100] {
+            .arrayToAGM().sort$(true) ==
+            [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            .arrayToAGM()
+        }
+        [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100] {
+            .arrayToAGM().sort$(false) ==
+            [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100]
+            .arrayToAGM()
+        }
+    var a1 ArrayGroupMember = [].arrayToAGM()
+    var a2 ArrayGroupMember = [1].arrayToAGM()
+    var a3 ArrayGroupMember = [1, 2].arrayToAGM()
+    var a4 ArrayGroupMember = [1, 2, 3].arrayToAGM()
+    var a5 ArrayGroupMember = [2, 1, 3].arrayToAGM()
+    var a6 ArrayGroupMember = [2, 1, 3].arrayToAGM()
+    var a7 ArrayGroupMember = [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToAGM()
+    var a8 ArrayGroupMember = [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToAGM()
+    var a9 ArrayGroupMember = [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].arrayToAGM()
+    var a10 ArrayGroupMember = [NotEqType.fromList({})].arrayToAGM()
+    var a11 ArrayGroupMember = [NotEqType.fromList({}), NotEqType.fromList({})].arrayToAGM()
+    test: ok, errorsCoordinates
+        a1.sort(true).nothing?()
+        a1 == [].arrayToAGM()
+        a1.sort(false).nothing?()
+        a1 == [].arrayToAGM()
+        a1.sort(true).nothing?()
+        a1.itemTypeNumber~() == Nothing.typeNumber~()
+        a1 == [].arrayToAGM()
+        a1.sort(false).nothing?()
+        a1.itemTypeNumber~() == Nothing.typeNumber~()
+        a1 == [].arrayToAGM()
+        a2.sort(true).nothing?()
+        a2 == [1].arrayToAGM()
+        a2.sort(false).nothing?()
+        a2 == [1].arrayToAGM()
+        a3.sort(true).nothing?()
+        a3 == [1, 2].arrayToAGM()
+        a3.sort(false).nothing?()
+        a3 == [2, 1].arrayToAGM()
+        a3.sort(false).nothing?()
+        a3 == [2, 1].arrayToAGM()
+        a4.sort(true).nothing?()
+        a4 == [1, 2, 3].arrayToAGM()
+        a4.sort(false).nothing?()
+        a4 == [3, 2, 1].arrayToAGM()
+        a4.sort(false).nothing?()
+        a4 == [3, 2, 1].arrayToAGM()
+        a5.sort(true).nothing?()
+        a5 == [1, 2, 3].arrayToAGM()
+        a6.sort(false).nothing?()
+        a6 == [3, 2, 1].arrayToAGM()
+        a7.sort(true).nothing?()
+        a7 == [-301, -92, -3, 0, 9, 15, 26, 45, 172, 7134].arrayToAGM()
+        a8.sort(false).nothing?()
+        a8 == [7134, 172, 45, 26, 15, 9, 0, -3, -92, -301].arrayToAGM()
+        a9.sort(true).nothing?()
+        a9 == [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].arrayToAGM()
+        a9.sort(false).nothing?()
+        a9 == [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100].arrayToAGM()
+        a9.sort(true).nothing?()
+        a9 == [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].arrayToAGM()
+        a10.sort(true) : error_invalidType
+        a10.sort(false) : error_invalidType
+        a11.sort(true) : error_invalidType
+        a11.sort(false) : error_invalidType
+
+#noinline
+def testArray_Put(write ok Int, write errorsCoordinates List)
+    var a1 Array = []
+    var a2 Array = [1]
+    var a3 Array = [1, 2, 3, 4]
+    test: ok, errorsCoordinates
+        a1.put(0, 2) : error_outOfRange
+        a1 == []
+        a1.put(1, 2) : error_outOfRange
+        a1 == []
+        a1.put(9223372036854775807, 2) : error_outOfRange
+        a1 == []
+        a1.put(-1, 2) : error_outOfRange
+        a1 == []
+        a1.put(-9223372036854775808, 2) : error_outOfRange
+        a1 == []
+        a2.put(0, 2.0) : error_invalidType
+        a2 == [1]
+        a2.put(0, 2) == 1
+        a2 == [2]
+        a2.put(0, 3) == 2
+        a2 == [3]
+        a2.put(1, 0) : error_outOfRange
+        a2 == [3]
+        a2.put(9223372036854775807, 0) : error_outOfRange
+        a2 == [3]
+        a2.put(-1, 0) : error_outOfRange
+        a2 == [3]
+        a2.put(-9223372036854775808, 0) : error_outOfRange
+        a2 == [3]
+        a3.put(0, -2) == 1
+        a3 == [-2, 2, 3, 4]
+        a3.put(1, 3) == 2
+        a3 == [-2, 3, 3, 4]
+        a3.put(3, 0) == 4
+        a3 == [-2, 3, 3, 0]
+        a3.put(4, 1) : error_outOfRange
+        a3 == [-2, 3, 3, 0]
+        a3.put(9223372036854775807, 1) : error_outOfRange
+        a3 == [-2, 3, 3, 0]
+        a3.put(-1, 1) : error_outOfRange
+        a3 == [-2, 3, 3, 0]
+        a3.put(-9223372036854775808, 1) : error_outOfRange
+        a3 == [-2, 3, 3, 0]
+        a3.put(0, 1.0) : error_invalidType
+        a3 == [-2, 3, 3, 0]
+        a3.put(1, 1.0) : error_invalidType
+        a3 == [-2, 3, 3, 0]
+        a3.put(3, 1.0) : error_invalidType
+        a3 == [-2, 3, 3, 0]
+
+#noinline
+def testArray_Iterator(write ok Int, write errorsCoordinates List)
+    var allOk Bool = true
+    try
+        parse _, _ = []
+            allOk = false
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+    allOk = false
+    var count Int = 0
+    try
+        parse :(parse) index, item = [1, 2, 3, 4, 5]
+            count++
+            allOk = index.inRange?(0, 5) && item.inRange?(1, 6)
+            if !allOk
+                end parse
+    catch
+        count = 0
+    test: ok, errorsCoordinates
+        allOk
+        count == 5
+
+#noinline
+def testArray_Swap(write ok Int, write errorsCoordinates List)
+    var a1 Array = []
+    var a2 Array = [1]
+    var a3 Array = [1, 2]
+    var a4 Array = [1, 2, 3]
+    var a5 Array = [1, 2, 3, 4, 5]
+    test: ok, errorsCoordinates
+        a1.swap(0, 0) : error_outOfRange
+        a1 == []
+        a1.swap(-1, 0) : error_outOfRange
+        a1 == []
+        a1.swap(-1, -1) : error_outOfRange
+        a1 == []
+        a1.swap(0, -1) : error_outOfRange
+        a1 == []
+        a1.swap(9223372036854775807, 0) : error_outOfRange
+        a1 == []
+        a1.swap(0, 9223372036854775807) : error_outOfRange
+        a1 == []
+        a1.swap(0, 1) : error_outOfRange
+        a1 == []
+        a1.swap(1, 1) : error_outOfRange
+        a1 == []
+        a1.swap(1, 0) : error_outOfRange
+        a1 == []
+        a1.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a1 == []
+        a2.swap(0, 0).nothing?()
+        a2 == [1]
+        a2.swap(1, 1) : error_outOfRange
+        a2 == [1]
+        a2.swap(-1, 0) : error_outOfRange
+        a2 == [1]
+        a2.swap(-1, -1) : error_outOfRange
+        a2 == [1]
+        a2.swap(0, -1) : error_outOfRange
+        a2 == [1]
+        a2.swap(9223372036854775807, 0) : error_outOfRange
+        a2 == [1]
+        a2.swap(0, 9223372036854775807) : error_outOfRange
+        a2 == [1]
+        a2.swap(0, 1) : error_outOfRange
+        a2 == [1]
+        a2.swap(1, 0) : error_outOfRange
+        a2 == [1]
+        a2.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a2 == [1]
+        a3.swap(0, 0).nothing?()
+        a3 == [1, 2]
+        a3.swap(1, 1).nothing?()
+        a3 == [1, 2]
+        a3.swap(0, 1).nothing?()
+        a3 == [2, 1]
+        a3.swap(1, 0).nothing?()
+        a3 == [1, 2]
+        a3.swap(2, 2) : error_outOfRange
+        a3 == [1, 2]
+        a3.swap(-1, 0) : error_outOfRange
+        a3 == [1, 2]
+        a3.swap(-1, -1) : error_outOfRange
+        a3 == [1, 2]
+        a3.swap(0, -1) : error_outOfRange
+        a3 == [1, 2]
+        a3.swap(9223372036854775807, 0) : error_outOfRange
+        a3 == [1, 2]
+        a3.swap(0, 9223372036854775807) : error_outOfRange
+        a3 == [1, 2]
+        a3.swap(0, 2) : error_outOfRange
+        a3 == [1, 2]
+        a3.swap(2, 0) : error_outOfRange
+        a3 == [1, 2]
+        a3.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a3 == [1, 2]
+        a4.swap(0, 0).nothing?()
+        a4 == [1, 2, 3]
+        a4.swap(1, 1).nothing?()
+        a4 == [1, 2, 3]
+        a4.swap(2, 2).nothing?()
+        a4 == [1, 2, 3]
+        a4.swap(0, 1).nothing?()
+        a4 == [2, 1, 3]
+        a4.swap(1, 0).nothing?()
+        a4 == [1, 2, 3]
+        a4.swap(1, 2).nothing?()
+        a4 == [1, 3, 2]
+        a4.swap(0, 2).nothing?()
+        a4 == [2, 3, 1]
+        a4.swap(2, 0).nothing?()
+        a4 == [1, 3, 2]
+        a4.swap(3, 3) : error_outOfRange
+        a4 == [1, 3, 2]
+        a4.swap(-1, 0) : error_outOfRange
+        a4 == [1, 3, 2]
+        a4.swap(-1, -1) : error_outOfRange
+        a4 == [1, 3, 2]
+        a4.swap(0, -1) : error_outOfRange
+        a4 == [1, 3, 2]
+        a4.swap(9223372036854775807, 0) : error_outOfRange
+        a4 == [1, 3, 2]
+        a4.swap(0, 9223372036854775807) : error_outOfRange
+        a4 == [1, 3, 2]
+        a4.swap(0, 3) : error_outOfRange
+        a4 == [1, 3, 2]
+        a4.swap(3, 0) : error_outOfRange
+        a4 == [1, 3, 2]
+        a4.swap(3, 1) : error_outOfRange
+        a4 == [1, 3, 2]
+        a4.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a4 == [1, 3, 2]
+        a5.swap(0, 0).nothing?()
+        a5 == [1, 2, 3, 4, 5]
+        a5.swap(1, 1).nothing?()
+        a5 == [1, 2, 3, 4, 5]
+        a5.swap(2, 2).nothing?()
+        a5 == [1, 2, 3, 4, 5]
+        a5.swap(3, 3).nothing?()
+        a5 == [1, 2, 3, 4, 5]
+        a5.swap(4, 4).nothing?()
+        a5 == [1, 2, 3, 4, 5]
+        a5.swap(0, 1).nothing?()
+        a5 == [2, 1, 3, 4, 5]
+        a5.swap(1, 0).nothing?()
+        a5 == [1, 2, 3, 4, 5]
+        a5.swap(1, 2).nothing?()
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(0, 2).nothing?()
+        a5 == [2, 3, 1, 4, 5]
+        a5.swap(2, 0).nothing?()
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(0, 4).nothing?()
+        a5 == [5, 3, 2, 4, 1]
+        a5.swap(4, 0).nothing?()
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(5, 5) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(-1, 0) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(-1, -1) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(0, -1) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(9223372036854775807, 0) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(0, 9223372036854775807) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(0, 5) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(5, 0) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(5, 1) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+        a5.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a5 == [1, 3, 2, 4, 5]
+    a1 = ["1".clone(), "2".clone(), "3".clone()]
+    test: ok, errorsCoordinates
+        a1.swap(0, 2).nothing?()
+        a1[0].unsafe_getI64(0) == 2
+        a1[1].unsafe_getI64(0) == 2
+        a1[2].unsafe_getI64(0) == 2
+        a1.swap(1, 0).nothing?()
+        a1[0].unsafe_getI64(0) == 2
+        a1[1].unsafe_getI64(0) == 2
+        a1[2].unsafe_getI64(0) == 2
+        a1.swap(0, 3) : error_outOfRange
+        a1[0].unsafe_getI64(0) == 2
+        a1[1].unsafe_getI64(0) == 2
+        a1[2].unsafe_getI64(0) == 2
+        a1.swap(-1, 0) : error_outOfRange
+        a1[0].unsafe_getI64(0) == 2
+        a1[1].unsafe_getI64(0) == 2
+        a1[2].unsafe_getI64(0) == 2
+        a1.swap(0, -1) : error_outOfRange
+        a1[0].unsafe_getI64(0) == 2
+        a1[1].unsafe_getI64(0) == 2
+        a1[2].unsafe_getI64(0) == 2
+    a1 = [1, 2, 3].clone()
+    a2 = a1
+    test: ok, errorsCoordinates
+        a1.swap(0, 2).nothing?()
+        a1 == [3, 2, 1]
+        a2 == [1, 2, 3]
+        a1.swap(0, -1) : error_outOfRange
+        a1 == [3, 2, 1]
+        a2 == [1, 2, 3]
+        a1.swap(0, 3) : error_outOfRange
+        a1 == [3, 2, 1]
+        a2 == [1, 2, 3]
+        a1.swap(3, 0) : error_outOfRange
+        a1 == [3, 2, 1]
+        a2 == [1, 2, 3]
+
+
+#noinline
+def testArray_Delete$(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].delete$(0, 0) == []
+        [].delete$(1, 0) : error_outOfRange
+        [].delete$(9223372036854775807, 0) : error_outOfRange
+        [].delete$(-1, 0) : error_outOfRange
+        [].delete$(-9223372036854775808, 0) : error_outOfRange
+        [].delete$(0, 1) : error_outOfRange
+        [].delete$(0, 9223372036854775807) : error_outOfRange
+        [].delete$(0, -1) : error_outOfRange
+        [].delete$(0, -9223372036854775808) : error_outOfRange
+        [1].delete$(0, 0) == [1]
+        [1].delete$(1, 0) == [1]
+        [1].delete$(0, 1) == []
+        [1].delete$(1, 1) : error_outOfRange
+        [1].delete$(9223372036854775807, 0) : error_outOfRange
+        [1].delete$(-1, 0) : error_outOfRange
+        [1].delete$(-9223372036854775808, 0) : error_outOfRange
+        [1].delete$(0, 2) : error_outOfRange
+        [1].delete$(0, 9223372036854775807) : error_outOfRange
+        [1].delete$(0, -1) : error_outOfRange
+        [1].delete$(0, -9223372036854775808) : error_outOfRange
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(0, 0) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(0, 1) == [2, 3, 4, 5, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(0, 2) == [3, 4, 5, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(0, 9) == []
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(0, 10) : error_outOfRange
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(1, 0) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(1, 1) == [1, 3, 4, 5, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(1, 2) == [1, 4, 5, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(1, 8) == [1]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(1, 9) : error_outOfRange
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(4, 0) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(4, 1) == [1, 2, 3, 4, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(4, 2) == [1, 2, 3, 4, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(4, 5) == [1, 2, 3, 4]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(4, 6) : error_outOfRange
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(8, 0) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(8, 1) == [1, 2, 3, 4, 5, 6, 7, 8]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(8, 2) : error_outOfRange
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(9, 0) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].delete$(9, 1) : error_outOfRange
+    var l1 Array = [1].clone()
+    var l2 Array = [2].clone()
+    var l3 Array = [3].clone()
+    var l4 Array = [l1, l2, l3]
+    var l5 Array = [l1, l2, l3].clone()
+    var l6 Array = l4.delete$(1, 1)
+    var l7 Array = l5.delete$(1, 1)
+    test: ok, errorsCoordinates
+        l6 == [[1], [3]]
+        l7 == [[1], [3]]
+        l1.unsafe_getI64(0) == 5
+        l2.unsafe_getI64(0) == 3
+        l3.unsafe_getI64(0) == 5
+
+#noinline
+def testArray_Delete(write ok Int, write errorsCoordinates List)
+    var c1 Array = []
+    var c2 Array = [1]
+    var c3 Array = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    var c4 Array = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    var c5 Array = [1, 2, 3, 4, 5, 6, 7, 8, 9].clone()
+    var c6 Array = [1, 2, 3, 4, 5, 6, 7, 8, 9].clone()
+    var c7 Array = c6
+    test: ok, errorsCoordinates
+        c1.delete(0, 0).nothing?()
+        c1 == []
+        c1.delete(1, 0) : error_outOfRange
+        c1 == []
+        c1.delete(9223372036854775807, 0) : error_outOfRange
+        c1 == []
+        c1.delete(-1, 0) : error_outOfRange
+        c1 == []
+        c1.delete(-9223372036854775808, 0) : error_outOfRange
+        c1 == []
+        c1.delete(0, 1) : error_outOfRange
+        c1 == []
+        c1.delete(0, 9223372036854775807) : error_outOfRange
+        c1 == []
+        c1.delete(0, -1) : error_outOfRange
+        c1 == []
+        c1.delete(0, -9223372036854775808) : error_outOfRange
+        c1 == []
+        c2.delete(0, 0).nothing?()
+        c2 == [1]
+        c2.delete(1, 0).nothing?()
+        c2 == [1]
+        c2.delete(0, 2) : error_outOfRange
+        c2 == [1]
+        c2.delete(0, 9223372036854775807) : error_outOfRange
+        c2 == [1]
+        c2.delete(0, -1) : error_outOfRange
+        c2 == [1]
+        c2.delete(0, -9223372036854775807) : error_outOfRange
+        c2 == [1]
+        c2.delete(2, 0) : error_outOfRange
+        c2 == [1]
+        c2.delete(9223372036854775807, 0) : error_outOfRange
+        c2 == [1]
+        c2.delete(-1, 0) : error_outOfRange
+        c2 == [1]
+        c2.delete(-9223372036854775808, 0) : error_outOfRange
+        c2 == [1]
+        c3.delete(0, 10) : error_outOfRange
+        c3 == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        c3.delete(1, 9) : error_outOfRange
+        c3 == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        c3.delete(4, 6) : error_outOfRange
+        c3 == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        c3.delete(9, 1) : error_outOfRange
+        c3 == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        c3.delete(0, 0).nothing?()
+        c3 == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        c3.delete(0, 1).nothing?()
+        c3 == [2, 3, 4, 5, 6, 7, 8, 9]
+        c3.delete(0, 2).nothing?()
+        c3 == [4, 5, 6, 7, 8, 9]
+        c3.delete(0, 6).nothing?()
+        c3 == []
+        c4.delete(1, 0).nothing?()
+        c4 == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        c4.delete(1, 1).nothing?()
+        c4 == [1, 3, 4, 5, 6, 7, 8, 9]
+        c4.delete(1, 2).nothing?()
+        c4 == [1, 5, 6, 7, 8, 9]
+        c4.delete(1, 5).nothing?()
+        c4 == [1]
+        c5.delete(4, 0).nothing?()
+        c5 == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        c5.delete(4, 1).nothing?()
+        c5 == [1, 2, 3, 4, 6, 7, 8, 9]
+        c5.delete(4, 2).nothing?()
+        c5 == [1, 2, 3, 4, 8, 9]
+        c5.delete(4, 2).nothing?()
+        c5 == [1, 2, 3, 4]
+        c6.delete(8, 0).nothing?()
+        c6 == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        c6.delete(8, 1).nothing?()
+        c6 == [1, 2, 3, 4, 5, 6, 7, 8]
+        c6.delete(8, 0).nothing?()
+        c6 == [1, 2, 3, 4, 5, 6, 7, 8]
+        c7 == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    var l1 Array = [1].clone()
+    var l2 Array = [2].clone()
+    var l3 Array = [3].clone()
+    var l4 Array = [l1, l2, l3]
+    var l5 Array = [l1, l2, l3].clone()
+    var l6 Array = [l1, l2, l3].clone()
+    var l7 Array = l6
+    var l8 Array = l2
+    test: ok, errorsCoordinates
+        l4.delete(1, 1).nothing?()
+        l5.delete(1, 1).nothing?()
+        l6.delete(1, 1).nothing?()
+        l7.delete(1, 1).nothing?()
+        l4 == [[1], [3]]
+        l5 == [[1], [3]]
+        l6 == [[1], [3]]
+        l7 == [[1], [3]]
+        l1.unsafe_getI64(0) == 5
+        l2.unsafe_getI64(0) == 2
+        l3.unsafe_getI64(0) == 5
+        l8 == l2
+
+#noinline
+def testArray_Insert$(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].insert$(1, 1) : error_outOfRange
+        [].insert$(9223372036854775807, 1) : error_outOfRange
+        [].insert$(-1, 1) : error_outOfRange
+        [].insert$(-9223372036854775808, 1) : error_outOfRange
+        [].insert$(0, 1) == [1]
+        [1].insert$(2, 1) : error_outOfRange
+        [1].insert$(9223372036854775807, 1) : error_outOfRange
+        [1].insert$(-1, 1) : error_outOfRange
+        [1].insert$(-9223372036854775808, 1) : error_outOfRange
+        [1].insert$(0, 2) == [2, 1]
+        [1].insert$(1, 2) == [1, 2]
+        [1, 2, 3, 4, 5].insert$(0, 10) == [10, 1, 2, 3, 4, 5]
+        [1, 2, 3, 4, 5].insert$(2, 10) == [1, 2, 10, 3, 4, 5]
+        [1, 2, 3, 4, 5].insert$(3, 10) == [1, 2, 3, 10, 4, 5]
+        [1, 2, 3, 4, 5].insert$(5, 10) == [1, 2, 3, 4, 5, 10]
+        [1, 2, 3, 4, 5].insert$(5, 1.0) : error_invalidType
+        [1, 2, 3, 4, 5].insert$(0, nothing) : error_invalidType
+        [].insert$(0, nothing) : error_invalidType
+    var l1 Array = [1].clone()
+    var l2 Array = [2].clone()
+    var l3 Array = [3].clone()
+    var l4 Array = [l1, l2, l3]
+    var l5 Array = [l1, l2, l3].clone()
+    var l6 Array = l4.insert$(3, l1)
+    var l7 Array = l4.insert$(0, l1)
+    var l8 Array = l5.insert$(3, l1)
+    var l9 Array = l5.insert$(0, l1)
+    test: ok, errorsCoordinates
+        l6 == [[1], [2], [3], [1]]
+        l7 == [[1], [1], [2], [3]]
+        l8 == [[1], [2], [3], [1]]
+        l9 == [[1], [1], [2], [3]]
+        l1.unsafe_getI64(0) == 11
+        l2.unsafe_getI64(0) == 7
+        l3.unsafe_getI64(0) == 7
+        l4.unsafe_getI64(0) == 1
+        l5.unsafe_getI64(0) == 1
+        l6.unsafe_getI64(0) == 1
+        l7.unsafe_getI64(0) == 1
+        l8.unsafe_getI64(0) == 1
+        l9.unsafe_getI64(0) == 1
+
+#noinline
+def testArray_Insert(write ok Int, write errorsCoordinates List)
+    var c1 Array = []
+    var c2 Array = [1]
+    test: ok, errorsCoordinates
+        c1.insert(1, 1) : error_outOfRange
+        c1 == []
+        c1.insert(9223372036854775807, 1) : error_outOfRange
+        c1 == []
+        c1.insert(-1, 1) : error_outOfRange
+        c1 == []
+        c1.insert(-9223372036854775808, 1) : error_outOfRange
+        c1 == []
+        c1.insert(0, nothing) : error_invalidType
+        c1 == []
+        c1.insert(0, 1).nothing?()
+        c1 == [1]
+        c1.insert(2, 1) : error_outOfRange
+        c1 == [1]
+        c1.insert(9223372036854775807, 1) : error_outOfRange
+        c1 == [1]
+        c1.insert(-1, 1) : error_outOfRange
+        c1 == [1]
+        c1.insert(-9223372036854775808, 1) : error_outOfRange
+        c1 == [1]
+        c1.insert(0, 2).nothing?()
+        c1 == [2, 1]
+        c2.insert(1, 2).nothing?()
+        c2 == [1, 2]
+        c2.insert(0, 10).nothing?()
+        c2 == [10, 1, 2]
+        c2.insert(2, 15).nothing?()
+        c2 == [10, 1, 15, 2]
+        c2.insert(1, 3).nothing?()
+        c2 == [10, 3,  1, 15, 2]
+        c2.insert(3, 100).nothing?()
+        c2 == [10, 3,  1, 100, 15, 2]
+        c2.insert(7, 1) : error_outOfRange
+        c2 == [10, 3,  1, 100, 15, 2]
+        c2.insert(9223372036854775807, 1) : error_outOfRange
+        c2 == [10, 3,  1, 100, 15, 2]
+        c2.insert(-1, 1) : error_outOfRange
+        c2 == [10, 3,  1, 100, 15, 2]
+        c2.insert(-9223372036854775808, 1) : error_outOfRange
+        c2 == [10, 3,  1, 100, 15, 2]
+        c2.insert(0, 1.0) : error_invalidType
+        c2 == [10, 3,  1, 100, 15, 2]
+        c2.insert(0, nothing) : error_invalidType
+        c2 == [10, 3,  1, 100, 15, 2]
+    var l1 Array = [1].clone()
+    var l2 Array = [2].clone()
+    var l3 Array = [3].clone()
+    var l4 Array = [l1, l2, l3]
+    var l5 Array = [l1, l2, l3].clone()
+    var l6 Array = [l1, l2, l3].clone()
+    var l7 Array = l6
+    var l8 Array = l2
+    test: ok, errorsCoordinates
+        l4.insert(0, l1).nothing?()
+        l4.insert(4, l1).nothing?()
+        l5.insert(0, l1).nothing?()
+        l5.insert(4, l1).nothing?()
+        l6.insert(0, l1).nothing?()
+        l6.insert(4, l1).nothing?()
+        l7.insert(0, l1).nothing?()
+        l7.insert(4, l1).nothing?()
+        l4 == [[1], [1], [2], [3], [1]]
+        l5 == [[1], [1], [2], [3], [1]]
+        l6 == [[1], [1], [2], [3], [1]]
+        l7 == [[1], [1], [2], [3], [1]]
+        l1.unsafe_getI64(0) == 13
+        l2.unsafe_getI64(0) == 6
+        l3.unsafe_getI64(0) == 5
+        l4.unsafe_getI64(0) == 1
+        l5.unsafe_getI64(0) == 1
+        l6.unsafe_getI64(0) == 1
+        l7.unsafe_getI64(0) == 1
+        l8.unsafe_getI64(0) == 6
+        l8 == l2
+
+#noinline
+def testArray_InsertPart$(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].insertPart$(1, [1]) : error_outOfRange
+        [].insertPart$(9223372036854775807, [1]) : error_outOfRange
+        [].insertPart$(-1, [1]) : error_outOfRange
+        [].insertPart$(-9223372036854775808, [1]) : error_outOfRange
+        [].insertPart$(0, []) == []
+        [].insertPart$(0, [1]) == [1]
+        [].insertPart$(0, [1, 2, 3]) == [1, 2, 3]
+        [1].insertPart$(2, [1]) : error_outOfRange
+        [1].insertPart$(9223372036854775807, [1]) : error_outOfRange
+        [1].insertPart$(-1, [1]) : error_outOfRange
+        [1].insertPart$(-9223372036854775808, [1]) : error_outOfRange
+        [1].insertPart$(0, []) == [1]
+        [1].insertPart$(1, []) == [1]
+        [1].insertPart$(0, [2]) == [2, 1]
+        [1].insertPart$(0, [2, 3]) == [2, 3, 1]
+        [1].insertPart$(1, [1, 3]) == [1, 1, 3]
+        [1, 2, 3, 4, 5].insertPart$(0, [-1, -2]) == [-1, -2, 1, 2, 3, 4, 5]
+        [1, 2, 3, 4, 5].insertPart$(2, [-1, -2]) == [1, 2, -1, -2, 3, 4, 5]
+        [1, 2, 3, 4, 5].insertPart$(3, [-1, -2]) == [1, 2, 3, -1, -2, 4, 5]
+        [1, 2, 3, 4, 5].insertPart$(5, [-1, -2]) == [1, 2, 3, 4, 5, -1, -2]
+        [1, 2, 3, 4, 5].insertPart$(5, [1.0]) : error_invalidType
+    var l1 Array = [1].clone()
+    var l2 Array = [2].clone()
+    var l3 Array = [3].clone()
+    var l4 Array = [l1, l2, l3]
+    var l5 Array = [l1, l2, l3].clone()
+    var l6 Array = l4.insertPart$(2, l5)
+    var l7 Array = l4.insertPart$(1, l5)
+    var l8 Array = l5.insertPart$(2, l4)
+    var l9 Array = l5.insertPart$(1, l4)
+    test: ok, errorsCoordinates
+        l6 == [[1], [2], [1], [2], [3], [3]]
+        l7 == [[1], [1], [2], [3], [2], [3]]
+        l8 == [[1], [2], [1], [2], [3], [3]]
+        l9 == [[1], [1], [2], [3], [2], [3]]
+        l1.unsafe_getI64(0) == 11
+        l2.unsafe_getI64(0) == 11
+        l3.unsafe_getI64(0) == 11
+        l4.unsafe_getI64(0) == 1
+        l5.unsafe_getI64(0) == 1
+        l6.unsafe_getI64(0) == 1
+        l7.unsafe_getI64(0) == 1
+        l8.unsafe_getI64(0) == 1
+        l9.unsafe_getI64(0) == 1
+
+#noinline
+def testArray_InsertPart(write ok Int, write errorsCoordinates List)
+    var c1 Array = []
+    var c2 Array = [1]
+    test: ok, errorsCoordinates
+        c1.insertPart(1, [1]) : error_outOfRange
+        c1 == []
+        c1.insertPart(9223372036854775807, [1]) : error_outOfRange
+        c1 == []
+        c1.insertPart(-1, [1]) : error_outOfRange
+        c1 == []
+        c1.insertPart(-9223372036854775808, [1]) : error_outOfRange
+        c1 == []
+        c1.insertPart(0, []).nothing?()
+        c1 == []
+        c1.insertPart(0, [1]).nothing?()
+        c1 == [1]
+        c1.insertPart(2, [1]) : error_outOfRange
+        c1 == [1]
+        c1.insertPart(9223372036854775807, [1]) : error_outOfRange
+        c1 == [1]
+        c1.insertPart(-1, [1]) : error_outOfRange
+        c1 == [1]
+        c1.insertPart(-9223372036854775808, [1]) : error_outOfRange
+        c1 == [1]
+        c1.insertPart(0, []).nothing?()
+        c1 == [1]
+        c1.insertPart(1, []).nothing?()
+        c1 == [1]
+        c1.insertPart(0, [2]).nothing?()
+        c1 == [2, 1]
+        c2.insertPart(1, [2]).nothing?()
+        c2 == [1, 2]
+        c2.insertPart(0, [2, 3]).nothing?()
+        c2 == [2, 3, 1, 2]
+        c2.insertPart(1, [1, 3]).nothing?()
+        c2 == [2, 1, 3, 3, 1, 2]
+        c2.insertPart(2, []).nothing?()
+        c2 == [2, 1, 3, 3, 1, 2]
+        c2.insertPart(3, []).nothing?()
+        c2 == [2, 1, 3, 3, 1, 2]
+        c2.insertPart(0, []).nothing?()
+        c2 == [2, 1, 3, 3, 1, 2]
+        c2.insertPart(6, []).nothing?()
+        c2 == [2, 1, 3, 3, 1, 2]
+        c2.insertPart(6, [-1, -2]).nothing?()
+        c2 == [2, 1, 3, 3, 1, 2, -1, -2]
+        c2.insertPart(0, [1.0]) : error_invalidType
+        c2 == [2, 1, 3, 3, 1, 2, -1, -2]
+    var l1 Array = [1].clone()
+    var l2 Array = [2].clone()
+    var l3 Array = [3].clone()
+    var l4 Array = [l1, l2, l3]
+    var l5 Array = [l1, l2, l3].clone()
+    var l6 Array = [l1, l2, l3].clone()
+    var l7 Array = l6
+    var l8 Array = l2
+    test: ok, errorsCoordinates
+        l4.insertPart(2, l5).nothing?()
+        l5.insertPart(2, l6).nothing?()
+        l6.insertPart(2, l4).nothing?()
+        l7.insertPart(2, l4).nothing?()
+        l4 == [[1], [2], [1], [2], [3], [3]]
+        l5 == [[1], [2], [1], [2], [3], [3]]
+        l6 == [[1], [2], [1], [2], [1], [2], [3], [3], [3]]
+        l7 == [[1], [2], [1], [2], [1], [2], [3], [3], [3]]
+        l1.unsafe_getI64(0) == 11
+        l2.unsafe_getI64(0) == 12
+        l3.unsafe_getI64(0) == 11
+        l4.unsafe_getI64(0) == 1
+        l5.unsafe_getI64(0) == 1
+        l6.unsafe_getI64(0) == 1
+        l7.unsafe_getI64(0) == 1
+        l8.unsafe_getI64(0) == 12
+        l8 == l2
+
+#noinline
+def testArray_Repeat(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        Array.repeat(12, 0) == []
+        Array.repeat(12, 1) == [12]
+        Array.repeat(12, 2) == [12, 12]
+        Array.repeat(12, 10) == [12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
+        Array.repeat(12, 11) == [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
+        Array.repeat(12, 16) == [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
+        Array.repeat(12, -1) : error_outOfRange
+        Array.repeat(12, -2) : error_outOfRange
+        Array.repeat(12, -9223372036854775808) : error_outOfRange
+        Array.repeat(nothing, 12) : error_invalidType
+    var l1 Array = [1].clone()
+    test: ok, errorsCoordinates
+        l1.unsafe_getI64(0) == 1
+    var l2 Array = Array.repeat(l1, 0)
+    test: ok, errorsCoordinates
+        l1.unsafe_getI64(0) == 1
+    var l3 Array = Array.repeat(l1, 3)
+    test: ok, errorsCoordinates
+        l1.unsafe_getI64(0) == 4
+        l2 == []
+        l3 == [[1], [1], [1]]
+
+#noinline
+def testArray_RepeatPart(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].repeatPart(0) == []
+        [].repeatPart(120) == []
+        [].repeatPart(-1) : error_outOfRange
+        [].repeatPart(-9223372036854775808) : error_outOfRange
+        [13].repeatPart(0) == []
+        [13].repeatPart(1) == [13]
+        [13].repeatPart(2) == [13, 13]
+        [13].repeatPart(10) == [13, 13, 13, 13, 13, 13, 13, 13, 13, 13]
+        [13].repeatPart(11) == [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13]
+        [13].repeatPart(16) == [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13]
+        [13].repeatPart(-1) : error_outOfRange
+        [13].repeatPart(-9223372036854775808) : error_outOfRange
+        [13, 110, 100].repeatPart(0) == []
+        [13, 110, 100].repeatPart(1) == [13, 110, 100]
+        [13, 110, 100].repeatPart(2) == [13, 110, 100, 13, 110, 100]
+        [13, 110, 100].repeatPart(10) == [13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100]
+        [13, 110, 100].repeatPart(11) == [13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100]
+        [13, 110, 100].repeatPart(16) == [13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100, 13, 110, 100]
+        [13, 110, 100].repeatPart(-1) : error_outOfRange
+        [13, 110, 100].repeatPart(-9223372036854775808) : error_outOfRange
+    var l1 Array = [1].clone()
+    var l2 Array = [l1].clone()
+    test: ok, errorsCoordinates
+        l1.unsafe_getI64(0) == 2
+        l2.unsafe_getI64(0) == 1
+        l1 == [1]
+        l2 == [[1]]
+    var l3 Array = l2.repeatPart(0)
+    test: ok, errorsCoordinates
+        l1.unsafe_getI64(0) == 2
+        l2.unsafe_getI64(0) == 1
+        l1 == [1]
+        l2 == [[1]]
+        l3 == []
+    var l4 Array = l2.repeatPart(3)
+    test: ok, errorsCoordinates
+        l1.unsafe_getI64(0) == 5
+        l2.unsafe_getI64(0) == 1
+        l1 == [1]
+        l2 == [[1]]
+        l4 == [[1], [1], [1]]

@@ -1,0 +1,57 @@
+module STD
+
+primitive Error
+
+attach Error to Independent
+
+export enum
+    error_invalidType
+    error_noReturnValue
+    error_noError
+    error_fail
+    error_nothingToLook
+    error_outOfRange
+    error_divisionByZero
+    error_invalidShiftsNumber
+    error_readFromString
+    error_compareWithNaN
+    error_unreachable
+    error_notASingleCopy
+    error_clone
+    error_invalidFileMode
+    error_invalidCharacter
+
+//@The function returns an error with the code specified by the first function argument and contains the message from the second function argument.
+#cold
+export def throw(id Int, message String)
+    llvm
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__rc_use.STD::String##([2 x i64] %1)
+        %##nreg##id## = extractvalue [2 x i64] %0, 1
+        %##nreg##message## = extractvalue [2 x i64] %1, 1
+        %##nreg##error memory## = call i64* @shar.malloc(i64 24)
+        store i64 %##reg##id##, i64* %##reg##error memory##, align 8
+        %##nreg##message data pointer## = getelementptr i64, i64* %##reg##error memory##, i64 1
+        store i64 %##reg##message##, i64* %##reg##message data pointer##, align 8
+        %##nreg##error not constant## = getelementptr i64, i64* %##reg##error memory##, i64 2
+        store i64 1, i64* %##reg##error not constant##, align 8
+        %##nreg##error memory i64## = ptrtoint i64* %##reg##error memory## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Error##, i64 0], i64 %##reg##error memory i64##, 1
+        ret [2 x i64] %##reg##result##
+
+//@The function is used to find errors.
+//@A correctly running program should not call this function.
+#cold
+export def unreachable()
+    throw(enum::error_unreachable, "The program has reached a piece of code that should never have been executed.")
+
+#override(STD) alwaysinline
+def shar__rc_free(error Error)
+    return nothing
+
+#override(STD) alwaysinline
+def shar__rc_use(error Error)
+    return nothing
+
+#override(STD) alwaysinline
+def shar__to_const(error Error)
+    return nothing
