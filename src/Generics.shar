@@ -7,10 +7,6 @@ export group Put
     //@If the function returns an error, the first argument to the function remains unchanged.
     put(write This, $Any, $Any) $Any
 
-//@The function does nothing, but it is considered unlikely to be called in the program.
-#cold nothrow
-export def cold()
-    return nothing
 
 //@The group exists so that members of the "STD::Dict" group and the "STD::Map" group can use the "STD::getKeyTypeNumber" function.
 export group KeyTypeNumber
@@ -23,3 +19,9 @@ export group ItemTypeNumber
     //@The function returns the type number of the items.
     //@The function cannot return any errors.
     itemTypeNumber~(This) Int
+
+export group Push
+    push(This, $Any)
+
+export group Pop
+    pop(This) $Any

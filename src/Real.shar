@@ -726,3 +726,8 @@ attach Real to BinarySerializable
         const resultAsInt Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI64(0)
         position += 8
         return resultAsInt.intAsReal()
+
+attach Real to Multithreaded
+    #alwaysinline nothrow
+    def prepareForThreads(real Real) Real
+        return real

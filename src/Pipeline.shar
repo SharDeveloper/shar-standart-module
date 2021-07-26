@@ -1,0 +1,233 @@
+module STD
+
+//@A type for exchanging data between workers.
+export primitive Pipeline
+
+//@The type for the worker to receive the data.
+export primitive PipelineOut
+
+//@The type for sending data to workers.
+export primitive PipelineIn
+
+#alwaysinline
+export def createPipeline() Pipeline
+    llvm
+        %##nreg##pipeline i64## = call i64 @shar__create__pipeline()
+        %##nreg##pipeline## = insertvalue [2 x i64] [i64 ##tnum##STD::Pipeline##, i64 0], i64 %##reg##pipeline i64##, 1
+        ret [2 x i64] %##reg##pipeline##
+
+#alwaysinline
+export def getPipelineOut(pipeline Pipeline) PipelineOut
+    llvm
+        %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+        call void @shar__pipeline__use__counter__inc(i64 %##reg##pipeline##)
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::PipelineOut##, i64 0], i64 %##reg##pipeline##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline
+export def getPipelineIn(pipeline Pipeline) PipelineIn
+    llvm
+        %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+        call void @shar__pipeline__use__counter__inc(i64 %##reg##pipeline##)
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::PipelineIn##, i64 0], i64 %##reg##pipeline##, 1
+        ret [2 x i64] %##reg##result##
+
+#override(STD) alwaysinline
+def shar__rc_free(pipeline Pipeline)
+    llvm
+        %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+        %##nreg##need to destroy## = call i1 @shar__pipeline__use__counter__dec(i64 %##reg##pipeline##)
+        br i1 %##reg##need to destroy##, label %##reg##destroy label##, label %##reg##end label##
+        ##nreg##destroy label##:
+        %##nreg##data i64## = call i64 @shar__pipeline__get__data__for__free(i64 %##reg##pipeline##)
+        %##nreg##data## = inttoptr i64 %##reg##data i64## to [2 x i64]*
+        %##nreg##count## = call i64 @shar__pipeline__get__count__for__free(i64 %##reg##pipeline##)
+        br label %##reg##loop##
+        ##nreg##loop##:
+        %##nreg##index## = phi i64 [0, %##reg##destroy label##], [%##reg##index + 1##, %##reg##continue label##]
+        %##nreg##continue?## = icmp ult i64 %##reg##index##, %##reg##count##
+        br i1 %##reg##continue?##, label %##reg##continue label##, label %##reg##end loop##
+        ##nreg##continue label##:
+        %##nreg##item pointer## = getelementptr [2 x i64], [2 x i64]* %##reg##data##, i64 %##reg##index##
+        %##nreg##item## = load [2 x i64], [2 x i64]* %##reg##item pointer##, align 8
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__rc_free##([2 x i64] %##reg##item##)
+        %##nreg##index + 1## = add i64 %##reg##index##, 1
+        br label %##reg##loop##
+        ##nreg##end loop##:
+        call void @shar__destroy__pipeline(i64 %##reg##pipeline##)
+        ret [2 x i64] zeroinitializer
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline
+def shar__rc_free(pipeline PipelineOut)
+    llvm
+        %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+        %##nreg##need to destroy## = call i1 @shar__pipeline__use__counter__dec(i64 %##reg##pipeline##)
+        br i1 %##reg##need to destroy##, label %##reg##destroy label##, label %##reg##end label##
+        ##nreg##destroy label##:
+        %##nreg##data i64## = call i64 @shar__pipeline__get__data__for__free(i64 %##reg##pipeline##)
+        %##nreg##data## = inttoptr i64 %##reg##data i64## to [2 x i64]*
+        %##nreg##count## = call i64 @shar__pipeline__get__count__for__free(i64 %##reg##pipeline##)
+        br label %##reg##loop##
+        ##nreg##loop##:
+        %##nreg##index## = phi i64 [0, %##reg##destroy label##], [%##reg##index + 1##, %##reg##continue label##]
+        %##nreg##continue?## = icmp ult i64 %##reg##index##, %##reg##count##
+        br i1 %##reg##continue?##, label %##reg##continue label##, label %##reg##end loop##
+        ##nreg##continue label##:
+        %##nreg##item pointer## = getelementptr [2 x i64], [2 x i64]* %##reg##data##, i64 %##reg##index##
+        %##nreg##item## = load [2 x i64], [2 x i64]* %##reg##item pointer##, align 8
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__rc_free##([2 x i64] %##reg##item##)
+        %##nreg##index + 1## = add i64 %##reg##index##, 1
+        br label %##reg##loop##
+        ##nreg##end loop##:
+        call void @shar__destroy__pipeline(i64 %##reg##pipeline##)
+        ret [2 x i64] zeroinitializer
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline
+def shar__rc_free(pipeline PipelineIn)
+    llvm
+        %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+        %##nreg##need to destroy## = call i1 @shar__pipeline__use__counter__dec(i64 %##reg##pipeline##)
+        br i1 %##reg##need to destroy##, label %##reg##destroy label##, label %##reg##end label##
+        ##nreg##destroy label##:
+        %##nreg##data i64## = call i64 @shar__pipeline__get__data__for__free(i64 %##reg##pipeline##)
+        %##nreg##data## = inttoptr i64 %##reg##data i64## to [2 x i64]*
+        %##nreg##count## = call i64 @shar__pipeline__get__count__for__free(i64 %##reg##pipeline##)
+        br label %##reg##loop##
+        ##nreg##loop##:
+        %##nreg##index## = phi i64 [0, %##reg##destroy label##], [%##reg##index + 1##, %##reg##continue label##]
+        %##nreg##continue?## = icmp ult i64 %##reg##index##, %##reg##count##
+        br i1 %##reg##continue?##, label %##reg##continue label##, label %##reg##end loop##
+        ##nreg##continue label##:
+        %##nreg##item pointer## = getelementptr [2 x i64], [2 x i64]* %##reg##data##, i64 %##reg##index##
+        %##nreg##item## = load [2 x i64], [2 x i64]* %##reg##item pointer##, align 8
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__rc_free##([2 x i64] %##reg##item##)
+        %##nreg##index + 1## = add i64 %##reg##index##, 1
+        br label %##reg##loop##
+        ##nreg##end loop##:
+        call void @shar__destroy__pipeline(i64 %##reg##pipeline##)
+        ret [2 x i64] zeroinitializer
+        ##nreg##end label##:
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline
+def shar__rc_use(pipeline Pipeline)
+    llvm
+        %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+        call void @shar__pipeline__use__counter__inc(i64 %##reg##pipeline##)
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline
+def shar__rc_use(pipeline PipelineOut)
+    llvm
+        %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+        call void @shar__pipeline__use__counter__inc(i64 %##reg##pipeline##)
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline
+def shar__rc_use(pipeline PipelineIn)
+    llvm
+        %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+        call void @shar__pipeline__use__counter__inc(i64 %##reg##pipeline##)
+        ret [2 x i64] zeroinitializer
+
+#override(STD) alwaysinline
+def shar__to_const(pipeline Pipeline)
+    pipeline.shar__rc_use()
+
+#override(STD) alwaysinline
+def shar__to_const(pipeline PipelineOut)
+    pipeline.shar__rc_use()
+
+#override(STD) alwaysinline
+def shar__to_const(pipeline PipelineIn)
+    pipeline.shar__rc_use()
+
+#override(STD) alwaysinline nothrow
+def use?(pipeline Pipeline) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def use?(pipeline PipelineOut) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def use?(pipeline PipelineIn) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def constant?(pipeline Pipeline) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def constant?(pipeline PipelineOut) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def constant?(pipeline PipelineIn) Bool
+    return false
+
+#override(STD) alwaysinline nothrow
+def clone(pipeline Pipeline) Pipeline
+    return pipeline
+
+#override(STD) alwaysinline nothrow
+def clone(pipeline PipelineOut) PipelineOut
+    return pipeline
+
+#override(STD) alwaysinline nothrow
+def clone(pipeline PipelineIn) PipelineIn
+    return pipeline
+
+attach Pipeline to Push
+    #alwaysinline
+    def push(pipeline Pipeline, object $Multithreaded)
+        llvm
+            %##nreg##object for worker## = call [2 x i64] ##ancfunc##STD::prepareForThreads##([2 x i64] %1)
+            %##nreg##object type## = extractvalue [2 x i64] %##reg##object for worker##, 0
+            %##nreg##error?## = icmp eq i64 %##reg##object type##, 1
+            %##nreg##unlikely error?## = call i1 @llvm.expect.i1(i1 %##reg##error?##, i1 0)
+            br i1 %##reg##unlikely error?##, label %##reg##error label##, label %##reg##no error label##
+            ##nreg##error label##:
+            %##nreg##error## = call [2 x i64] @shar.error.add.to.message([2 x i64] %##reg##object for worker##, i64 ptrtoint (##this##<- STD::push (STD::Pipeline)## to i64))
+            ret [2 x i64] %##reg##error##
+            ##nreg##no error label##:
+            %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+            call void @shar__pipeline__push(i64 %##reg##pipeline##, [2 x i64] %##reg##object for worker##)
+            ret [2 x i64] zeroinitializer
+
+attach PipelineIn to Push
+    #alwaysinline
+    def push(pipeline PipelineIn, object $Multithreaded)
+        llvm
+            %##nreg##object for worker## = call [2 x i64] ##ancfunc##STD::prepareForThreads##([2 x i64] %1)
+            %##nreg##object type## = extractvalue [2 x i64] %##reg##object for worker##, 0
+            %##nreg##error?## = icmp eq i64 %##reg##object type##, 1
+            %##nreg##unlikely error?## = call i1 @llvm.expect.i1(i1 %##reg##error?##, i1 0)
+            br i1 %##reg##unlikely error?##, label %##reg##error label##, label %##reg##no error label##
+            ##nreg##error label##:
+            %##nreg##error## = call [2 x i64] @shar.error.add.to.message([2 x i64] %##reg##object for worker##, i64 ptrtoint (##this##<- STD::push (STD::PipelineIn)## to i64))
+            ret [2 x i64] %##reg##error##
+            ##nreg##no error label##:
+            %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+            call void @shar__pipeline__push(i64 %##reg##pipeline##, [2 x i64] %##reg##object for worker##)
+            ret [2 x i64] zeroinitializer
+
+attach Pipeline to Pop
+    #alwaysinline
+    def pop(pipeline Pipeline) <>$Multithreaded
+        llvm
+            %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+            %##nreg##result## = call [2 x i64] @shar__pipeline__pop(i64 %##reg##pipeline##)
+            ret [2 x i64] %##reg##result##
+
+attach PipelineOut to Pop
+    #alwaysinline
+    def pop(pipeline PipelineOut) <>$Multithreaded
+        llvm
+            %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+            %##nreg##result## = call [2 x i64] @shar__pipeline__pop(i64 %##reg##pipeline##)
+            ret [2 x i64] %##reg##result##

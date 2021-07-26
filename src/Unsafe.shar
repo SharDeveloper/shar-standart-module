@@ -1,6 +1,11 @@
 //@The file contains functions for low-level work with data, all of them are unsafe.
 module STD
 
+//@The function does nothing, but it is considered unlikely to be called in the program.
+#cold nothrow
+export def cold()
+    return nothing
+
 #alwaysinline nothrow
 export def unsafe_getI8(address, offset $Any) Int
     llvm

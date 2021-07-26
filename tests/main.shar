@@ -20,6 +20,7 @@ def main()
     testTime(ok, errorsCoordinates)
     testType(ok, errorsCoordinates)
     testUnsafe(ok, errorsCoordinates)
+    testThreads(ok, errorsCoordinates)
 
     for :(index Int = 0) index < errorsCoordinates.length~(); index += 2
         println("\001B[31mFail: (file: "+errorsCoordinates[index]+", line: "+errorsCoordinates[index + 1].toString()+")\001B[0m")

@@ -1,0 +1,132 @@
+module Main
+
+def testThreads(write ok Int, write errorsCoordinates List)
+    testThreads_Multithreaded(ok, errorsCoordinates)
+    testThreads_Pipeline(ok, errorsCoordinates)
+    testThreads_Worker(ok, errorsCoordinates)
+
+#noinline
+def testThreads_Multithreaded(write ok Int, write errorsCoordinates List)
+    var s1 String = "123".clone()
+    const s2 String = s1
+    var s3 String = "".clone()
+    const s4 String = s3
+    test: ok, errorsCoordinates
+        true.prepareForThreads()
+        false.prepareForThreads() == false
+        [1, 2, 3].repackTo(Bytes).prepareForThreads() == [1, 2, 3].repackTo(Bytes)
+        [1, 2, 3].repackTo(Bytes).prepareForThreads().unsafe_getI64(0).inRange?(0, 2)
+        [].repackTo(Bytes).prepareForThreads() == [].repackTo(Bytes)
+        [].repackTo(Bytes).prepareForThreads().unsafe_getI64(0).inRange?(0, 2)
+        '1'.prepareForThreads() == '1'
+        'f'.prepareForThreads() == 'f'
+        12.prepareForThreads() == 12
+        -123.prepareForThreads() == -123
+        1.0.prepareForThreads() == 1.0
+        -12.0.prepareForThreads() == -12.0
+        "123".prepareForThreads() == "123"
+        "123".prepareForThreads().unsafe_getI64(0) == 0
+        "123".clone().prepareForThreads().unsafe_getI64(0) == 1
+        s1.prepareForThreads().unsafe_getI64(0) == 1
+        "".prepareForThreads() == ""
+        "".prepareForThreads().unsafe_getI64(0) == 0
+        "".clone().prepareForThreads().unsafe_getI64(0) == 1
+        s3.prepareForThreads().unsafe_getI64(0) == 1
+        s1.unsafe_getI64(0) == 2
+        s2.unsafe_getI64(0) == 2
+        s3.unsafe_getI64(0) == 2
+        s4.unsafe_getI64(0) == 2
+        intToTime(12).prepareForThreads() == intToTime(12)
+        intToTime(0).prepareForThreads() == intToTime(0)
+        yield().nothing?()
+        sleep(1).nothing?()
+        sleep(0).nothing?()
+
+#noinline
+def testThreads_Pipeline(write ok Int, write errorsCoordinates List)
+    const p Pipeline = createPipeline()
+    const pOut PipelineOut = p.getPipelineOut()
+    const pIn PipelineIn = p.getPipelineIn()
+    var s1 String = "123".clone()
+    const s2 String = s1
+    var s3 String = "".clone()
+    const s4 String = s3
+    var s5 String = "34".clone()
+    test: ok, errorsCoordinates
+        p.pop().nothing?()
+        pOut.pop().nothing?()
+        p.push(12).nothing?()
+        pIn.push("123").nothing?()
+        pIn.push("123").nothing?()
+        pIn.push("123").nothing?()
+        pIn.push(s1).nothing?()
+        pIn.push(s1).nothing?()
+        pIn.push(s4).nothing?()
+        pIn.push(s4).nothing?()
+        pIn.push(s5).nothing?()
+        pIn.push(s5).nothing?()
+        s1.unsafe_getI64(0) == 2
+        s2.unsafe_getI64(0) == 2
+        s3.unsafe_getI64(0) == 2
+        s4.unsafe_getI64(0) == 2
+        s5.unsafe_getI64(0) == 1
+        p.pop() == 12
+        p.pop() == "123"
+        pOut.pop() == "123"
+        pOut.pop().unsafe_getI64(0) == 0
+        pOut.pop() == "123"
+        pOut.pop().unsafe_getI64(0) == 1
+        pOut.pop() == ""
+        pOut.pop().unsafe_getI64(0) == 1
+        pOut.pop() == "34"
+        pOut.pop().unsafe_getI64(0) == 1
+        p.pop().nothing?()
+        pOut.pop().nothing?()
+        pIn.push("123").nothing?()
+        pOut.pop() == "123"
+    for :(counter Int = 0) counter < 65; counter++
+        pIn.push(counter)
+    var allOk Bool = true
+    for :(counter Int = 0) counter < 65; counter++
+        allOk = allOk && pOut.pop() == counter
+
+#noinline
+def testThreads_Worker(write ok Int, write errorsCoordinates List)
+    const in Pipeline = createPipeline()
+    const out Pipeline = createPipeline()
+    test: ok, errorsCoordinates
+        worker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+        worker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+        worker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+    for :(counter Int = 1) counter < 1000; counter++
+        in.push(counter).nothing?()
+    var counter Int = 0
+    var allOk Bool = true
+    for :(loopCounter Int = 0) loopCounter < 1000000; loopCounter++
+        const value <>Int = out.pop()
+        if value.nothing?()
+            yield()
+        else
+            allOk = allOk && value.inRange?(-999, 0)
+            if counter == 998
+                end loopCounter
+            counter++
+        if loopCounter == 999999
+            allOk = false
+            end loopCounter
+    test: ok, errorsCoordinates
+        allOk
+    in.push(-1)
+    in.push(-1)
+    in.push(-1)
+
+#worker
+def worker(in PipelineOut, out PipelineIn)
+    for :(loop)
+        const value <>Int = in.pop()
+        if value.nothing?()
+            yield()
+        else
+            if value == -1
+                end loop
+            out.push(!value)

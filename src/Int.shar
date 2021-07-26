@@ -628,3 +628,8 @@ attach Int to BinarySerializable
         const result Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI64(0)
         position += 8
         return result
+
+attach Int to Multithreaded
+    #alwaysinline nothrow
+    def prepareForThreads(int Int) Int
+        return int

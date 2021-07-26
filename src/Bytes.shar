@@ -1441,3 +1441,8 @@ def repeatPart(part Bytes, count Int) Bytes
     for :(index Int = 0) index < resultLength; index += partLength
         unsafe_memcpyI8(resultItems.unsafe_offsetI8(index), partItems, partLength)
     return result
+
+attach Bytes to Multithreaded
+    #alwaysinline nothrow
+    def prepareForThreads(bytes Bytes) Bytes
+        return bytes.constant?().select(bytes, bytes.clone())

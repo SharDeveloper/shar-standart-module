@@ -335,3 +335,8 @@ attach Char to BinarySerializable
         const resultAsInt Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI16(0)
         position += 2
         return resultAsInt.unsafe_int_intToChar()
+
+attach Char to Multithreaded
+    #alwaysinline nothrow
+    def prepareForThreads(char Char) Char
+        return char

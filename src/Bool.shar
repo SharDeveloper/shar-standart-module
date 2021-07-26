@@ -150,3 +150,8 @@ attach Bool to BinarySerializable
         const result Bool = bytes[position] != 0
         position++
         return result
+
+attach Bool to Multithreaded
+    #alwaysinline nothrow
+    def prepareForThreads(bool Bool) Bool
+        return bool

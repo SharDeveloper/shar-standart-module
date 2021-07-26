@@ -1552,3 +1552,8 @@ def repeatPart(part String, count Int) String
     for :(index Int = 0) index < resultLength; index += partLength
         unsafe_memcpyI16(resultChars.unsafe_offsetI16(index), partChars, partLength)
     return result
+
+attach String to Multithreaded
+    #alwaysinline nothrow
+    def prepareForThreads(string String) String
+        return string.constant?().select(string, string.clone())
