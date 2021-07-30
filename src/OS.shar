@@ -82,7 +82,7 @@ export def getEnvironmentVariable(variableName String) <>String
 //@The function gets a string from the command line.
 //@If it was not possible to get the string, the function returns "Nothing".
 #alwaysinline nothrow
-export def getStringFormCMDLine() <>String
+export def getStringFromCMDLine() <>String
     llvm
         %##nreg##length pointer## = alloca i64, align 8
         %##nreg##string pointer## = alloca i16*, align 8

@@ -858,6 +858,95 @@ def testArray_Sort(write ok Int, write errorsCoordinates List)
         a10.sort(false) : error_invalidType
         a11.sort(true) : error_invalidType
         a11.sort(false) : error_invalidType
+    a1 = [].arrayToAGM()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a1.sort(true)
+    var allOk Bool = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToAGM()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a1.sort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToAGM()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a2 = a1.sort$(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i - 1] <= a2[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToAGM()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a2 = a1.sort$(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i] <= a2[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToAGM()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a1.sort(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToAGM()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a1.sort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToAGM()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a2 = a1.sort$(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i - 1] <= a2[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToAGM()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a2 = a1.sort$(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i] <= a2[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = ArrayGroupMember.repeat(123, 12)
+    a1.sort(true)
+    a2 = ArrayGroupMember.repeat(123, 200)
+    a2.sort(true)
+    a3 = ArrayGroupMember.repeat(123, 12)
+    a3.sort(false)
+    a4 = ArrayGroupMember.repeat(123, 200)
+    a4.sort(false)
+    test: ok, errorsCoordinates
+        a1 == ArrayGroupMember.repeat(123, 12)
+        a2 == ArrayGroupMember.repeat(123, 200)
+        a3 == ArrayGroupMember.repeat(123, 12)
+        a4 == ArrayGroupMember.repeat(123, 200)
+        ArrayGroupMember.repeat(123, 12).sort$(true) == ArrayGroupMember.repeat(123, 12)
+        ArrayGroupMember.repeat(123, 12).sort$(false) == ArrayGroupMember.repeat(123, 12)
+        ArrayGroupMember.repeat(123, 200).sort$(true) == ArrayGroupMember.repeat(123, 200)
+        ArrayGroupMember.repeat(123, 200).sort$(false) == ArrayGroupMember.repeat(123, 200)
 
 #noinline
 def testArray_Put(write ok Int, write errorsCoordinates List)

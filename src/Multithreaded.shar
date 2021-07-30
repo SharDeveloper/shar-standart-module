@@ -15,8 +15,9 @@ export def yield()
 //@When this function is called, the current thread pauses its work for a time not less than the specified number of milliseconds, but the work is resumed as soon as possible.
 #alwaysinline
 export def sleep(milliseconds Int)
-    if milliseconds < 0
-        throw(enum::error_outOfRange, "Out of range.")
+    inthrow
+        if milliseconds < 0
+            throw(enum::error_outOfRange, "Out of range.")
     unsafe_sleep(milliseconds)
 
 #alwaysinline nothrow

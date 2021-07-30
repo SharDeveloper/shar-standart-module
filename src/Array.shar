@@ -382,14 +382,23 @@ export def sort(write array This, rise Bool)
     inthrow
         if !array.itemTypeInOrdered?()
             throw(enum::error_invalidType, "Invalid type.")
-    var unsortedRanges Array = []
-    var leftIndex Int = 0
-    var rightEdge Int = array.length~()
-    const randomNumber Int = const::staticRandomNumber
+    return array.quicksort(0, array.length~(), rise, const::staticRandomNumber)
+
+#this(Array)
+def quicksort(write array This, beginIndex, endEdge Int, rise Bool, randomNumber Int)
+    var leftIndex Int = beginIndex
+    var rightEdge Int = endEdge
     for :(mainLoop)
         const rangeLength Int = rightEdge - leftIndex
         if rangeLength > 16
-            array.swap(leftIndex, (randomNumber & (rangeLength - 1)) + leftIndex)
+            const length25p Int = rangeLength >> 2
+            const length75p Int = (length25p << 1) + length25p
+            var randomIndex Int = (randomNumber & (rangeLength - 1))
+            if randomIndex < length25p
+                randomIndex += length25p
+            elif randomIndex > length75p
+                randomIndex -= length25p
+            array.swap(leftIndex, randomIndex + leftIndex)
             const currentItem $Any = array[leftIndex]
             var currentIndex Int = leftIndex
             var oppositeIndex Int = rightEdge - 1
@@ -397,7 +406,7 @@ export def sort(write array This, rise Bool)
             var cmpModifier Bool = rise
             for :(loop)
                 const oppositeItem $Any = array[oppositeIndex]
-                if cmpModifier.select(currentItem > oppositeItem, currentItem < oppositeItem)
+                if cmpModifier.select(oppositeItem <= currentItem, currentItem <= oppositeItem)
                     array.swap(currentIndex, oppositeIndex)
                     exchange(currentIndex, oppositeIndex)
                     direction = !direction
@@ -424,36 +433,29 @@ export def sort(write array This, rise Bool)
                 smallRangeLength = rightRangeLength
                 bigRangeLeftIndex = leftIndex
                 bigRangeRightEdge = currentIndex
+            leftIndex = bigRangeLeftIndex
+            rightEdge = bigRangeRightEdge
             switch :(switch) smallRangeLength
             case 2
                 const firstItem $Any = array[smallRangeLeftIndex]
                 const secondItem $Any = array[smallRangeLeftIndex + 1]
-                if (firstItem > secondItem) == rise
+                if (secondItem < firstItem) == rise
                     array.swap(smallRangeLeftIndex, smallRangeLeftIndex + 1)
-                fallthrough switch
             case 0, 1
-                leftIndex = bigRangeLeftIndex
-                rightEdge = bigRangeRightEdge
+                nothing
             default
-                unsortedRanges.addItem(bigRangeLeftIndex)
-                unsortedRanges.addItem(bigRangeRightEdge)
-                leftIndex = smallRangeLeftIndex
-                rightEdge = smallRangeRightEdge
+                array.quicksort(smallRangeLeftIndex, smallRangeRightEdge, rise, randomNumber)
         else
             if rangeLength > 2
                 array.heapSort(leftIndex, rightEdge, rangeLength, rise)
             elif rangeLength == 2
                 const firstItem $Any = array[leftIndex]
                 const secondItem $Any = array[leftIndex + 1]
-                if (firstItem > secondItem) == rise
+                if (secondItem < firstItem) == rise
                     array.swap(leftIndex, leftIndex + 1)
-            if unsortedRanges.empty?()
-                end mainLoop
-            leftIndex = unsortedRanges[unsortedRanges.length~() - 2]
-            rightEdge = unsortedRanges[unsortedRanges.length~() - 1]
-            delete(unsortedRanges, unsortedRanges.length~() - 2, 2)
+            end mainLoop
 
-#this(Array) alwaysinline
+#this(Array)
 def heapSort(write array This, beginIndex, endEdge, count Int, rise Bool)
     for :(currentIndex Int = (count >> 1) + beginIndex - 1) currentIndex >= beginIndex; currentIndex--
         array.toHeap(currentIndex, beginIndex, endEdge, rise)
@@ -461,7 +463,7 @@ def heapSort(write array This, beginIndex, endEdge, count Int, rise Bool)
         array.swap(beginIndex, currentEdge)
         array.toHeap(beginIndex, beginIndex, currentEdge, rise)
 
-#this(Array) alwaysinline
+#this(Array)
 def toHeap(write array This, currentIndex, beginIndex, endEdge Int, rise Bool)
     var mutCurrentIndex Int = currentIndex
     for :(loop)
@@ -469,11 +471,11 @@ def toHeap(write array This, currentIndex, beginIndex, endEdge Int, rise Bool)
         const leftIndex Int = 2 * mutCurrentIndex - beginIndex + 1
         const rightIndex Int = leftIndex + 1
         if rightIndex < endEdge
-            if array[rightIndex] > array[largestIndex] == rise
+            if  array[largestIndex] < array[rightIndex] == rise
                 largestIndex = rightIndex
-            if array[leftIndex] > array[largestIndex] == rise
+            if  array[largestIndex] < array[leftIndex] == rise
                 largestIndex = leftIndex
-        elif leftIndex < endEdge && (array[leftIndex] > array[largestIndex] == rise)
+        elif leftIndex < endEdge && (array[largestIndex] < array[leftIndex] == rise)
             largestIndex = leftIndex
         if largestIndex != mutCurrentIndex
             array.swap(mutCurrentIndex, largestIndex)
