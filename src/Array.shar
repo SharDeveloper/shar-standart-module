@@ -483,6 +483,159 @@ def toHeap(write array This, currentIndex, beginIndex, endEdge Int, rise Bool)
         else
             end loop
 
+//@The function returns a sorted array of the items of the array given as the first argument.
+//@Sorting is performed in ascending order if the argument "rise" is equal to "true", otherwise the sorting is performed in descending order.
+//@The sorting is stable.
+//@If the array items are not members of the group "STD::Ordered" then the function returns an error with the code "enum::STD::error_invalidType".
+#this(Array)
+export def stableSort$(array This, rise Bool) This
+    var result This = array
+    result.stableSort(rise)
+    return result
+
+//@The function sorts the array given as the first argument.
+//@Sorting is performed in ascending order if the argument "rise" is equal to "true", otherwise the sorting is performed in descending order.
+//@The sorting is stable.
+//@If the array items are not members of the group "STD::Ordered" then the function returns an error with the code "enum::STD::error_invalidType".
+#this(Array)
+export def stableSort(write array This, rise Bool)
+    const length Int = array.length~()
+    if length == 0
+        return
+    inthrow
+        if !array.itemTypeInOrdered?()
+            throw(enum::error_invalidType, "Invalid type.")
+    var blockSize Int = 16
+    var blockBeginIndex Int = 0
+    var blockEnd Int = blockSize
+    for blockEnd <= length
+        array.insertionSort(blockBeginIndex, blockEnd, rise)
+        blockBeginIndex = blockEnd
+        blockEnd += blockSize
+    array.insertionSort(blockBeginIndex, length, rise)
+    for blockSize < length
+        blockBeginIndex = 0
+        blockEnd = blockSize * 2
+        for blockEnd <= length
+            array.mergeBlocks(blockBeginIndex, blockBeginIndex + blockSize, blockEnd, rise)
+            blockBeginIndex = blockEnd
+            blockEnd += blockSize * 2
+        const lastBlockBeginIndex Int = blockBeginIndex + blockSize
+        if lastBlockBeginIndex < length
+            array.mergeBlocks(blockBeginIndex, lastBlockBeginIndex, length, rise)
+        blockSize *= 2
+
+#this(Array) alwaysinline
+def insertionSort(write array This, beginIndex, endEdge Int, rise Bool)
+    if rise
+        for :(sortedPartEndIndex Int = beginIndex + 1) sortedPartEndIndex < endEdge; sortedPartEndIndex++
+            for :(currentIndex Int = sortedPartEndIndex) currentIndex > beginIndex && (array[currentIndex] < array[currentIndex - 1]); currentIndex--
+                array.swap(currentIndex, currentIndex - 1)
+    else
+        for :(sortedPartEndIndex Int = beginIndex + 1) sortedPartEndIndex < endEdge; sortedPartEndIndex++
+            for :(currentIndex Int = sortedPartEndIndex) currentIndex > beginIndex && (array[currentIndex - 1] < array[currentIndex]); currentIndex--
+                array.swap(currentIndex, currentIndex - 1)
+
+#this(Array)
+def mergeBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int, rise Bool)
+    var mutLeftBegin Int = leftBegin
+    var mutLeftEndRightBegin Int = leftEndRightBegin
+    var mutRightEnd Int = rightEnd
+    for :(mainLoop)
+        var roLeftBegin Int = mutLeftBegin
+        var roLeftEndRightBegin Int = mutLeftEndRightBegin
+        var roRightEnd Int = mutRightEnd
+        if roLeftEndRightBegin - roLeftBegin == 1
+            var binarySearchLeft Int = roLeftEndRightBegin
+            var binarySearchRight Int = roRightEnd
+            const firstLeftItem $Any = array[roLeftBegin]
+            for :(loop)
+                const centerIndex Int = (binarySearchLeft + binarySearchRight) >> 1
+                const centerItem $Any = array[centerIndex]
+                if rise.select(centerItem < firstLeftItem, firstLeftItem < centerItem)
+                    binarySearchLeft = centerIndex + 1
+                else
+                    binarySearchRight = centerIndex
+                if binarySearchLeft >= binarySearchRight
+                    end loop
+            binarySearchLeft--
+            for :(index Int = roLeftBegin) index < binarySearchLeft; index++
+                array.swap(index, index + 1)
+        elif roRightEnd - roLeftEndRightBegin == 1
+            var binarySearchLeft Int = roLeftBegin
+            var binarySearchRight Int = roLeftEndRightBegin
+            const firstRightItem $Any = array[roLeftEndRightBegin]
+            for :(loop)
+                const centerIndex Int = (binarySearchLeft + binarySearchRight) >> 1
+                const centerItem $Any = array[centerIndex]
+                if rise.select(firstRightItem < centerItem, centerItem < firstRightItem)
+                    binarySearchRight = centerIndex
+                else
+                    binarySearchLeft = centerIndex + 1
+                if binarySearchLeft >= binarySearchRight
+                    end loop
+            for :(index Int = roLeftEndRightBegin) index > binarySearchLeft; index--
+                array.swap(index, index - 1)
+        else
+            const blocksCenter Int = (roLeftBegin + roRightEnd) >> 1
+            const centerPlusRightBegin Int = blocksCenter + roLeftEndRightBegin
+            var binarySearchLeft Int = 0
+            var binarySearchRight Int = 0
+            if roLeftEndRightBegin > blocksCenter
+                binarySearchLeft = centerPlusRightBegin - roRightEnd
+                binarySearchRight = blocksCenter
+            else
+                binarySearchLeft = roLeftBegin
+                binarySearchRight = roLeftEndRightBegin
+            const tmp Int = centerPlusRightBegin - 1
+            for :(loop)
+                const centerIndex Int = (binarySearchLeft + binarySearchRight) >> 1
+                const centerItem $Any = array[centerIndex]
+                const item $Any = array[tmp - centerIndex]
+                if rise.select(item < centerItem, centerItem < item)
+                    binarySearchRight = centerIndex
+                else
+                    binarySearchLeft = centerIndex + 1
+                if binarySearchLeft >= binarySearchRight
+                    end loop
+            const centerBlockBegin Int = binarySearchLeft
+            const centerBlockEnd Int = centerPlusRightBegin - centerBlockBegin
+            if centerBlockBegin < roLeftEndRightBegin && roLeftEndRightBegin < centerBlockEnd
+                array.rotateBlocks(centerBlockBegin, roLeftEndRightBegin, centerBlockEnd)
+            const mergeFirst Bool = roLeftBegin < centerBlockBegin && centerBlockBegin < blocksCenter
+            if mergeFirst
+                mutLeftEndRightBegin = centerBlockBegin
+                mutRightEnd = blocksCenter
+            const mergeSecond Bool = blocksCenter < centerBlockEnd && centerBlockEnd < roRightEnd
+            if mergeSecond
+                if mergeFirst
+                    array.mergeBlocks(blocksCenter, centerBlockEnd, roRightEnd, rise)
+                else
+                    mutLeftBegin = blocksCenter
+                    mutLeftEndRightBegin = centerBlockEnd
+            if mergeFirst | mergeSecond
+                next mainLoop
+        end mainLoop
+
+#this(Array) alwaysinline
+def rotateBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int)
+    var leftSize Int = leftEndRightBegin - leftBegin
+    var rightSize Int = rightEnd - leftEndRightBegin
+    for leftSize != rightSize
+        const swapLeft Int = leftEndRightBegin - leftSize
+        if leftSize > rightSize
+            array.swapBlocks(swapLeft, leftEndRightBegin, rightSize)
+            leftSize -= rightSize
+        else
+            array.swapBlocks(swapLeft, swapLeft + rightSize, leftSize)
+            rightSize -= leftSize
+    array.swapBlocks(leftEndRightBegin - leftSize, leftEndRightBegin, leftSize)
+
+#this(Array) alwaysinline
+def swapBlocks(write array This, left, right, count Int)
+    for :(offset Int = 0) offset < count; offset++
+        array.swap(left + offset, right + offset)
+
 #override(STD) alwaysinline
 def partsEqual?(array1 Array, from1 Int, array2 Array, from2, length Int) Bool
     const array1Length Int = array1.length~()
