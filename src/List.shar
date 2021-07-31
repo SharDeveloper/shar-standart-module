@@ -409,3 +409,45 @@ def repeatPart(part List, count Int) List
         parse offset, item = part
             result.unsafe_list_setItemInDummy(index + offset, item)
     return result
+
+#override(STD) alwaysinline
+def reversePart(write list List, a, b Int)
+    inthrow
+        if !(a >= 0 && a <= b && b <= list.length~())
+            throw(enum::error_outOfRange, "Out of range.")
+    var mutA Int = a * 2
+    var mutB Int = b * 2
+    if list.use?()
+        list = list.clone()
+    const listItems Int = list.unsafe_offsetI64(2)
+    for mutB - mutA >= 8
+        const aAddress Int = listItems.unsafe_offsetI64(mutA)
+        mutA += 4
+        mutB -= 4
+        const bAddress Int = listItems.unsafe_offsetI64(mutB)
+        unsafe_list_simdReverseAndSwapParts(aAddress, bAddress)
+    mutB -= 2
+    for mutB > mutA
+        const typeA Int = listItems.unsafe_getI64(mutA)
+        const valueA Int = listItems.unsafe_getI64(mutA + 1)
+        listItems.unsafe_setI64(mutA, listItems.unsafe_getI64(mutB))
+        listItems.unsafe_setI64(mutA + 1, listItems.unsafe_getI64(mutB + 1))
+        listItems.unsafe_setI64(mutB, typeA)
+        listItems.unsafe_setI64(mutB + 1, valueA)
+        mutA += 2
+        mutB -= 2
+
+#alwaysinline nothrow
+def unsafe_list_simdReverseAndSwapParts(part1, part2 $Any)
+    llvm
+        %##nreg##part1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##part2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##part1 pointer## = inttoptr i64 %##reg##part1 i64## to <4 x i64>*
+        %##nreg##part2 pointer## = inttoptr i64 %##reg##part2 i64## to <4 x i64>*
+        %##nreg##part1## = load <4 x i64>, <4 x i64>* %##reg##part1 pointer##, align 8
+        %##nreg##part2## = load <4 x i64>, <4 x i64>* %##reg##part2 pointer##, align 8
+        %##nreg##reversed part1## = shufflevector <4 x i64> %##reg##part1##, <4 x i64> undef, <4 x i32> <i32 2, i32 3, i32 0, i32 1>
+        %##nreg##reversed part2## = shufflevector <4 x i64> %##reg##part2##, <4 x i64> undef, <4 x i32> <i32 2, i32 3, i32 0, i32 1>
+        store <4 x i64> %##reg##reversed part1##, <4 x i64>* %##reg##part2 pointer##, align 8
+        store <4 x i64> %##reg##reversed part2##, <4 x i64>* %##reg##part1 pointer##, align 8
+        ret [2 x i64] zeroinitializer

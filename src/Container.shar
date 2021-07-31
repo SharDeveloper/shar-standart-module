@@ -1211,3 +1211,36 @@ export def repeatPart(part This, count Int) This
             result += result[0 : (count - currentCount) * part.length~()]
             end currentCount
     return result
+
+//@The function returns a container identical to the container from the first argument, but in which the items of the container are moved, with indices from "a" to "b" (not including b), back to front.
+//@If "a" is less than 0 or more than "b", or "b" is greater than the number of items in the container, then the function returns an error with the code "enum::STD::error_outOfRange".
+#this(Container) alwaysinline
+export def reversePart$(container This, a, b Int) This
+    var result This = container
+    result.reversePart(a, b)
+    return result
+
+//@The function moves the items of the container, with indices from "a" to "b" (not including b), back to front.
+//@If "a" is less than 0 or more than "b", or "b" is greater than the number of items in the container, then the function returns an error with the code "enum::STD::error_outOfRange".
+//@If the function returns an error, then the container remains unchanged.
+#this(Container) alwaysinline
+export def reversePart(write container This, a, b Int)
+    inthrow
+        if !(a >= 0 && a <= b && b <= container.length~())
+            throw(enum::error_outOfRange, "Out of range.")
+    const halfLength Int = (b - a) >> 1
+    const lastIndex Int = b - 1
+    for :(offset Int = 0) offset < halfLength; offset++
+        container.swap(a + offset, lastIndex - offset)
+
+//@The function returns a container identical to the container from the first argument, but in which the items of the container are moved back to front.
+#this(Container) alwaysinline
+export def reverse$(container This) This
+    var result This = container
+    result.reversePart(0, container.length~())
+    return result
+
+//@The function moves the items of the container back to front.
+#this(Container) alwaysinline
+export def reverse(write container This)
+    container.reversePart(0, container.length~())

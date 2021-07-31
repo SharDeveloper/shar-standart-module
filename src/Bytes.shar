@@ -1446,3 +1446,43 @@ attach Bytes to Multithreaded
     #alwaysinline nothrow
     def prepareForThreads(bytes Bytes) Bytes
         return bytes.constant?().select(bytes, bytes.clone())
+
+#override(STD) alwaysinline
+def reversePart(write bytes Bytes, a, b Int)
+    inthrow
+        if !(a >= 0 && a <= b && b <= bytes.length~())
+            throw(enum::error_outOfRange, "Out of range.")
+    var mutA Int = a
+    var mutB Int = b
+    if bytes.use?()
+        bytes = bytes.clone()
+    const bytesItems Int = bytes.unsafe_offsetI8(16)
+    for mutB - mutA >= 64
+        const aAddress Int = bytesItems.unsafe_offsetI8(mutA)
+        mutA += 32
+        mutB -= 32
+        const bAddress Int = bytesItems.unsafe_offsetI8(mutB)
+        unsafe_bytes_simdReverseAndSwapParts(aAddress, bAddress)
+    mutB--
+    for mutB > mutA
+        const itemA Int = bytesItems.unsafe_getI8(mutA)
+        bytesItems.unsafe_setI8(mutA, bytesItems.unsafe_getI8(mutB))
+        bytesItems.unsafe_setI8(mutB, itemA)
+        mutB--
+        mutA++
+
+#alwaysinline nothrow
+def unsafe_bytes_simdReverseAndSwapParts(part1, part2 $Any)
+    llvm
+        ##llvmdeclare##llvm.bswap.i256##declare i256 @llvm.bswap.i256(i256)##
+        %##nreg##part1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##part2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##part1 pointer## = inttoptr i64 %##reg##part1 i64## to i256*
+        %##nreg##part2 pointer## = inttoptr i64 %##reg##part2 i64## to i256*
+        %##nreg##part1## = load i256, i256* %##reg##part1 pointer##, align 1
+        %##nreg##part2## = load i256, i256* %##reg##part2 pointer##, align 1
+        %##nreg##reversed part1## = call i256 @llvm.bswap.i256(i256 %##reg##part1##)
+        %##nreg##reversed part2## = call i256 @llvm.bswap.i256(i256 %##reg##part2##)
+        store i256 %##reg##reversed part1##, i256* %##reg##part2 pointer##, align 1
+        store i256 %##reg##reversed part2##, i256* %##reg##part1 pointer##, align 1
+        ret [2 x i64] zeroinitializer
