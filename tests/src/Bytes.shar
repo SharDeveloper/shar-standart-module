@@ -57,9 +57,9 @@ def testBytes_MemoryManagement(write ok Int, write errorsCoordinates List)
     var allOk Bool = false
     var count Int = 0
     try
-        parse :(parse) index, byte = bytes1
+        parse :(parse) index, byte_ = bytes1
             count++
-            allOk = index.inRange?(0, 3) && byte.type?(Int)
+            allOk = index.inRange?(0, 3) && byte_.type?(Int)
             if !allOk
                 end parse
     catch

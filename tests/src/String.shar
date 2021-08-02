@@ -58,9 +58,9 @@ def testString_MemoryManagement(write ok Int, write errorsCoordinates List)
     var allOk Bool = false
     var count Int = 0
     try
-        parse :(parse) index, char = string1
+        parse :(parse) index, char_ = string1
             count++
-            allOk = index.inRange?(0, 3) && char.type?(Char)
+            allOk = index.inRange?(0, 3) && char_.type?(Char)
             if !allOk
                 end parse
     catch
