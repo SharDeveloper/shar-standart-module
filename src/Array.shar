@@ -390,15 +390,20 @@ def quicksort(write array This, beginIndex, endEdge Int, rise Bool, randomNumber
     var rightEdge Int = endEdge
     for :(mainLoop)
         const rangeLength Int = rightEdge - leftIndex
+        var smallRangeLeftIndex Int = -1
+        var smallRangeRightEdge Int = -1
+        var smallRangeLength Int = -1
+        var bigRangeLeftIndex Int = -1
+        var bigRangeRightEdge Int = -1
         if rangeLength > 16
             const length25p Int = rangeLength >> 2
             const length75p Int = (length25p << 1) + length25p
-            var randomIndex Int = (randomNumber & (rangeLength - 1))
-            if randomIndex < length25p
-                randomIndex += length25p
-            elif randomIndex > length75p
-                randomIndex -= length25p
-            array.swap(leftIndex, randomIndex + leftIndex)
+            var randomOffset Int = (randomNumber & (rangeLength - 1))
+            if randomOffset < length25p
+                randomOffset += length25p
+            elif randomOffset > length75p
+                randomOffset -= length25p
+            array.swap(leftIndex, leftIndex + randomOffset)
             const currentItem $Any = array[leftIndex]
             var currentIndex Int = leftIndex
             var oppositeIndex Int = rightEdge - 1
@@ -416,11 +421,6 @@ def quicksort(write array This, beginIndex, endEdge Int, rise Bool, randomNumber
                 oppositeIndex += direction
             const leftRangeLength Int = currentIndex - leftIndex
             const rightRangeLength Int = rightEdge - currentIndex - 1
-            var smallRangeLeftIndex Int = -1
-            var smallRangeRightEdge Int = -1
-            var smallRangeLength Int = -1
-            var bigRangeLeftIndex Int = -1
-            var bigRangeRightEdge Int = -1
             if leftRangeLength < rightRangeLength
                 smallRangeLeftIndex = leftIndex
                 smallRangeRightEdge = currentIndex
@@ -435,24 +435,20 @@ def quicksort(write array This, beginIndex, endEdge Int, rise Bool, randomNumber
                 bigRangeRightEdge = currentIndex
             leftIndex = bigRangeLeftIndex
             rightEdge = bigRangeRightEdge
-            switch :(switch) smallRangeLength
-            case 2
-                const firstItem $Any = array[smallRangeLeftIndex]
-                const secondItem $Any = array[smallRangeLeftIndex + 1]
-                if (secondItem < firstItem) == rise
-                    array.swap(smallRangeLeftIndex, smallRangeLeftIndex + 1)
-            case 0, 1
-                nothing
-            default
-                array.quicksort(smallRangeLeftIndex, smallRangeRightEdge, rise, randomNumber)
         else
-            if rangeLength > 2
-                array.heapSort(leftIndex, rightEdge, rangeLength, rise)
-            elif rangeLength == 2
-                const firstItem $Any = array[leftIndex]
-                const secondItem $Any = array[leftIndex + 1]
-                if (secondItem < firstItem) == rise
-                    array.swap(leftIndex, leftIndex + 1)
+            smallRangeLeftIndex = leftIndex
+            smallRangeRightEdge = rightEdge
+            smallRangeLength = rangeLength
+        if smallRangeLength > 16
+            array.quicksort(smallRangeLeftIndex, smallRangeRightEdge, rise, randomNumber)
+        elif smallRangeLength > 2
+            array.heapSort(smallRangeLeftIndex, smallRangeRightEdge, smallRangeLength, rise)
+        elif smallRangeLength == 2
+            const firstItem $Any = array[smallRangeLeftIndex]
+            const secondItem $Any = array[smallRangeLeftIndex + 1]
+            if (secondItem < firstItem) == rise
+                array.swap(smallRangeLeftIndex, smallRangeLeftIndex + 1)
+        if bigRangeLeftIndex == -1
             end mainLoop
 
 #this(Array)
