@@ -84,6 +84,9 @@ def testThreads_Pipeline(write ok Int, write errorsCoordinates List)
         pOut.pop().nothing?()
         pIn.push("123").nothing?()
         pOut.pop() == "123"
+        pOut.wait(0) : error_outOfRange
+        pOut.wait(-1) : error_outOfRange
+        pOut.wait(-9223372036854775808) : error_outOfRange
     for :(counter Int = 0) counter < 65; counter++
         pIn.push(counter)
     var allOk Bool = true
@@ -92,15 +95,15 @@ def testThreads_Pipeline(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testThreads_Worker(write ok Int, write errorsCoordinates List)
-    const in Pipeline = createPipeline()
-    const out Pipeline = createPipeline()
+    var in Pipeline = createPipeline()
+    var out Pipeline = createPipeline()
     test: ok, errorsCoordinates
         worker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
         worker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
         worker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
     for :(counter Int = 1) counter < 1000; counter++
         in.push(counter).nothing?()
-    var counter Int = 0
+    var count Int = 0
     var allOk Bool = true
     for :(loopCounter Int = 0) loopCounter < 1000000; loopCounter++
         const value <>Int = out.pop()
@@ -108,9 +111,63 @@ def testThreads_Worker(write ok Int, write errorsCoordinates List)
             yield()
         else
             allOk = allOk && value.inRange?(-999, 0)
-            if counter == 998
+            if count == 998
                 end loopCounter
-            counter++
+            count++
+        if loopCounter == 999999
+            allOk = false
+            end loopCounter
+    test: ok, errorsCoordinates
+        allOk
+    in.push(-1)
+    in.push(-1)
+    in.push(-1)
+    in = createPipeline()
+    out = createPipeline()
+    test: ok, errorsCoordinates
+        waitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+        waitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+        waitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+    for :(counter Int = 1) counter < 1000; counter++
+        in.push(counter).nothing?()
+    count = 0
+    allOk = true
+    for :(loopCounter Int = 0) loopCounter < 1000000; loopCounter++
+        const value <>Int = out.pop()
+        if value.nothing?()
+            yield()
+        else
+            allOk = allOk && value.inRange?(-999, 0)
+            if count == 998
+                end loopCounter
+            count++
+        if loopCounter == 999999
+            allOk = false
+            end loopCounter
+    test: ok, errorsCoordinates
+        allOk
+    in.push(-1)
+    in.push(-1)
+    in.push(-1)
+    in = createPipeline()
+    out = createPipeline()
+    test: ok, errorsCoordinates
+        activeWaitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+        activeWaitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+        activeWaitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+    for :(counter Int = 1) counter < 1000; counter++
+        in.push(counter).nothing?()
+    count = 0
+    allOk = true
+    for :(loopCounter Int = 0) loopCounter < 1000000; loopCounter++
+        const value <>Int = out.pop()
+        if value.nothing?()
+            yield()
+        else
+            allOk = allOk && value.inRange?(-999, 0)
+            if count == 998
+                end loopCounter
+            count++
         if loopCounter == 999999
             allOk = false
             end loopCounter
@@ -130,3 +187,19 @@ def worker(in PipelineOut, out PipelineIn)
             if value == -1
                 end loop
             out.push(!value)
+
+#worker
+def waitWorker(in PipelineOut, out PipelineIn)
+    for :(loop)
+        const value Int = in.wait(50)
+        if value == -1
+            end loop
+        out.push(!value)
+
+#worker
+def activeWaitWorker(in PipelineOut, out PipelineIn)
+    for :(loop)
+        const value Int = in.activeWait()
+        if value == -1
+            end loop
+        out.push(!value)

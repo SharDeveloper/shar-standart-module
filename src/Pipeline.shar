@@ -231,3 +231,28 @@ attach PipelineOut to Pop
             %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
             %##nreg##result## = call [2 x i64] @shar__pipeline__pop(i64 %##reg##pipeline##)
             ret [2 x i64] %##reg##result##
+
+//@The function periodically tries to get a object from the pipeline, pausing between attempts.
+//@The second argument to the function is the approximate maximum number of milliseconds between attempts.
+//@If the second argument of the function is less than one, then the function returns an error with the code "enum::STD::error_outOfRange".
+#this(Pop) alwaysinline
+export def wait(pipeline This, maximumTimeBetweenAttempts Int) $Multithreaded
+    inthrow
+        if maximumTimeBetweenAttempts < 1
+            throw(enum::error_outOfRange, "Out of range.")
+    var counter Int = 0
+    for
+        const result <>$Multithreaded = pipeline.pop()
+        if !result.nothing?()
+            return result
+        sleep(min(1 + (counter >> 5), maximumTimeBetweenAttempts))
+        counter++
+
+//@The function periodically tries to get a object from the pipeline.
+#this(Pop) alwaysinline
+export def activeWait(pipeline This) $Multithreaded
+    for
+        const result <>$Multithreaded = pipeline.pop()
+        if !result.nothing?()
+            return result
+        yield()
