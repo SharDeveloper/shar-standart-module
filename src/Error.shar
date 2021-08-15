@@ -20,6 +20,7 @@ export enum
     error_clone
     error_invalidFileMode
     error_invalidCharacter
+    error_accessContentsOfNotDirectory
 
 //@The function returns an error with the code specified by the first function argument and contains the message from the second function argument.
 #cold

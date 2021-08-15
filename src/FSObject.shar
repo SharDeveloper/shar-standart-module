@@ -1,0 +1,48 @@
+module STD
+
+//@The file system object type.
+export enum
+    // block device
+    fsot_block
+    // character device
+    fsot_char
+    // directory
+    fsot_dir
+    // named pipe
+    fsot_pipe
+    // symbolic link
+    fsot_link
+    // regular file
+    fsot_file
+    // UNIX domain socket
+    fsot_socket
+    // unknown
+    fsot_unknown
+
+//@Type to store information about file system objects.
+//@An attempt to access the contents of a directory if the object is not a directory throws the "enum::STD::error_accessContentsOfNotDirectory" error.
+export type FSObject
+    // name String
+    // type enum::fsot_*
+    // (if type == fsot_dir) subObjects [FSObject] | (if it was not possible to access the contents of a directory) Nothing
+
+#alwaysinline
+export def fsoName~(fsObject FSObject) String
+    return fsObject.typeGetItem(0)
+
+#alwaysinline
+export def fsoType~(fsObject FSObject) Int
+    return fsObject.typeGetItem(1)
+
+#alwaysinline
+export def fsoSubObjects~(fsObject FSObject) <>Array
+    inthrow
+        if fsObject.fsoType~() != enum::fsot_dir
+            throw(enum::error_accessContentsOfNotDirectory, "An attempt was made to access the contents of a directory, but the object is not a directory.")
+    return fsObject.typeGetItem(2)
+
+#alwaysinline nothrow
+def fsObject(name String, type Int, subObjects <>Array) FSObject
+    if type == enum::fsot_dir
+        return FSObject.fromList({name, type, subObjects})
+    return FSObject.fromList({name, type})

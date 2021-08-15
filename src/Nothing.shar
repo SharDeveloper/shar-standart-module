@@ -4,25 +4,25 @@ module STD
 export primitive Nothing
 
 #override(STD) alwaysinline
-def shar__rc_free(nothing Nothing)
+def shar__rc_free(nothingArg Nothing)
     return nothing
 
 #override(STD) alwaysinline
-def shar__rc_use(nothing Nothing)
+def shar__rc_use(nothingArg Nothing)
     return nothing
 
 #override(STD) alwaysinline
-def shar__to_const(nothing Nothing)
+def shar__to_const(nothingArg Nothing)
     return nothing
 
 #override(STD) alwaysinline nothrow
-def use?(nothing Nothing) Bool
+def use?(nothingArg Nothing) Bool
     return false
 
 #override(STD) alwaysinline nothrow
-def constant?(nothing Nothing) Bool
+def constant?(nothingArg Nothing) Bool
     return false
 
 #override(STD) alwaysinline nothrow
-def clone(nothing Nothing) Nothing
+def clone(nothingArg Nothing) Nothing
     return nothing
