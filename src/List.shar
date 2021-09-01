@@ -44,6 +44,18 @@ def clone(list List) List
         result.unsafe_list_setItemInDummy(index, item)
     return result
 
+#override(STD)
+def dump(list List, level Int) String
+    const levelSpaces String = "  ".repeatPart(level)
+    var result String = levelSpaces + "Type: STD::List = ["
+    if !list.empty?()
+        result += "\n"
+        parse index, item = list
+            result += levelSpaces + "  " + index.toString() + ":\n" + item.dump(level + 2)
+        result += levelSpaces
+    result += "]\n"
+    return result
+
 attach List to Equal
 
 attach List to Shar__sugar__equal

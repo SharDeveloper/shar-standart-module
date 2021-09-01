@@ -182,6 +182,18 @@ def clone(pipeline PipelineOut) PipelineOut
 def clone(pipeline PipelineIn) PipelineIn
     return pipeline
 
+#override(STD) nothrow
+def dump(pipeline Pipeline, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Pipeline\n"
+
+#override(STD) nothrow
+def dump(pipeline PipelineIn, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::PipelineIn\n"
+
+#override(STD) nothrow
+def dump(pipeline PipelineOut, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::PipelineOut\n"
+
 attach Pipeline to Push
     #alwaysinline
     def push(pipeline Pipeline, object $Multithreaded)

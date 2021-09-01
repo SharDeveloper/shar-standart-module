@@ -87,6 +87,7 @@ def testSet(write ok Int, write errorsCoordinates List)
     testSet_Part2(ok, errorsCoordinates)
     testSet_Part3(ok, errorsCoordinates)
     testSet_Part4(ok, errorsCoordinates)
+    testSet_Dump(ok, errorsCoordinates)
 
 #noinline
 def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -636,3 +637,14 @@ def testSet_Part4(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         allOk
         d.length~() == 0
+
+#noinline
+def testSet_Dump(write ok Int, write errorsCoordinates List)
+    var d Set = Set.createEmpty()
+    test: ok, errorsCoordinates
+        d.dump(0) == "Type: STD::Set = []\n"
+        d.dump(1) == "  Type: STD::Set = []\n"
+    d.add(12)
+    test: ok, errorsCoordinates
+        d.dump(0) == "Type: STD::Set = [\n  Type: STD::Int = 12\n]\n"
+        d.dump(1) == "  Type: STD::Set = [\n    Type: STD::Int = 12\n  ]\n"

@@ -32,6 +32,10 @@ def constant?(real Real) Bool
 def clone(real Real) Real
     return real
 
+#override(STD) nothrow
+def dump(real Real, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Real = " + real.toString() + "\n"
+
 attach Real to Equal
 
 attach Real to Shar__sugar__equal

@@ -90,6 +90,7 @@ def testDict(write ok Int, write errorsCoordinates List)
     testDict_Part2(ok, errorsCoordinates)
     testDict_Part3(ok, errorsCoordinates)
     testDict_Part4(ok, errorsCoordinates)
+    testDict_Dump(ok, errorsCoordinates)
 
 #noinline
 def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -687,3 +688,14 @@ def testDict_Part4(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         allOk
         d.length~() == 0
+
+#noinline
+def testDict_Dump(write ok Int, write errorsCoordinates List)
+    var d Dict = Dict.createEmpty()
+    test: ok, errorsCoordinates
+        d.dump(0) == "Type: STD::Dict = []\n"
+        d.dump(1) == "  Type: STD::Dict = []\n"
+    d.put(12, "13")
+    test: ok, errorsCoordinates
+        d.dump(0) == "Type: STD::Dict = [\n  key:\n    Type: STD::Int = 12\n  value:\n    Type: STD::String = 13\n]\n"
+        d.dump(1) == "  Type: STD::Dict = [\n    key:\n      Type: STD::Int = 12\n    value:\n      Type: STD::String = 13\n  ]\n"

@@ -125,3 +125,8 @@ def testAny(write ok Int, write errorsCoordinates List)
         type2.toList().length~() == 300
         nothing.nothing?()
         !0.nothing?()
+        nothing.dump(0) == "Type: STD::Nothing\n"
+        Test_AnyType.fromList({1, nothing, "13"}).dump(0) == "Type: Main::Test_AnyType\n  Type: STD::Int = 1\n  Type: STD::Nothing\n  Type: STD::String = 13\n"
+        Test_AnyType.fromList({1, nothing, "13"}).dump(1) == "  Type: Main::Test_AnyType\n    Type: STD::Int = 1\n    Type: STD::Nothing\n    Type: STD::String = 13\n"
+        Test_AnyType.fromList({}).dump(0) == "Type: Main::Test_AnyType\n"
+        Test_AnyType.fromList({}).dump(1) == "  Type: Main::Test_AnyType\n"

@@ -49,6 +49,10 @@ def clone(string String) String
     unsafe_memcpyI16(result.unsafe_offsetI64(2), string.unsafe_offsetI64(2), string.length~())
     return result
 
+#override(STD) nothrow
+def dump(string String, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::String = " + string + "\n"
+
 #alwaysinline nothrow
 def unsafe_string_createDummy(length $Any) String
     var result $Any = unsafe_malloc(length * 2 + 16)

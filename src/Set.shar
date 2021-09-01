@@ -67,6 +67,18 @@ def clone(set Set) Set
     result.unsafe_setType(Set.typeNumber~())
     return result
 
+#override(STD)
+def dump(set Set, level Int) String
+    const levelSpaces String = "  ".repeatPart(level)
+    var result String = levelSpaces + "Type: STD::Set = ["
+    if !set.empty?()
+        result += "\n"
+        parse _, item = set
+            result += item.dump(level + 1)
+        result += levelSpaces
+    result += "]\n"
+    return result
+
 attach Set to Empty
     #alwaysinline nothrow
     def createEmpty(noread type Set) Set

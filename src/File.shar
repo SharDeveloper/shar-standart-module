@@ -60,6 +60,10 @@ def constant?(file File) Bool
 def clone(file File) File
     throw(enum::error_clone, "Files cannot be cloned.")
 
+#override(STD) nothrow
+def dump(file File, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::File\n"
+
 //@The function flushes the output buffer.
 //@If the flushed was successful, then the function returns "true", otherwise "false".
 #alwaysinline nothrow

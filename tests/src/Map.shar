@@ -91,6 +91,7 @@ def testMap(write ok Int, write errorsCoordinates List)
     testMap_Part2(ok, errorsCoordinates)
     testMap_Part3(ok, errorsCoordinates)
     testMap_Part4(ok, errorsCoordinates)
+    testMap_Dump(ok, errorsCoordinates)
 
 #noinline
 def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -697,3 +698,14 @@ def testMap_Part4(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         allOk
         d.length~() == 0
+
+#noinline
+def testMap_Dump(write ok Int, write errorsCoordinates List)
+    var d Map = Map.createEmpty()
+    test: ok, errorsCoordinates
+        d.dump(0) == "Type: STD::Map = []\n"
+        d.dump(1) == "  Type: STD::Map = []\n"
+    d.put(12, "13")
+    test: ok, errorsCoordinates
+        d.dump(0) == "Type: STD::Map = [\n  key:\n    Type: STD::Int = 12\n  value:\n    Type: STD::String = 13\n]\n"
+        d.dump(1) == "  Type: STD::Map = [\n    key:\n      Type: STD::Int = 12\n    value:\n      Type: STD::String = 13\n  ]\n"

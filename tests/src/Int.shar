@@ -20,6 +20,7 @@ def testInt(write ok Int, write errorsCoordinates List)
     testInt_IntToHex(ok, errorsCoordinates)
     testInt_HexToInt(ok, errorsCoordinates)
     testInt_BinarySerializable(ok, errorsCoordinates)
+    testInt_Dump(ok, errorsCoordinates)
 
 #noinline
 def testInt_Any(write ok Int, write errorsCoordinates List)
@@ -973,3 +974,11 @@ def testInt_BinarySerializable(write ok Int, write errorsCoordinates List)
     position = 9223372036854775807
     test: ok, errorsCoordinates
         Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+
+#noinline
+def testInt_Dump(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0.dump(0) == "Type: STD::Int = 0\n"
+        0.dump(1) == "  Type: STD::Int = 0\n"
+        -123.dump(0) == "Type: STD::Int = -123\n"
+        -123.dump(1) == "  Type: STD::Int = -123\n"

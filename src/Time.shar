@@ -478,6 +478,10 @@ def constant?(time Time) Bool
 def clone(time Time) Time
     return time
 
+#override(STD) nothrow
+def dump(time Time, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Time = " + time.toString() + "\n"
+
 attach Time to Equal
 
 attach Time to Shar__sugar__equal

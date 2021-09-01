@@ -61,6 +61,18 @@ def clone(dict Dict) Dict
     result.unsafe_setType(Dict.typeNumber~())
     return result
 
+#override(STD)
+def dump(dict Dict, level Int) String
+    const levelSpaces String = "  ".repeatPart(level)
+    var result String = levelSpaces + "Type: STD::Dict = ["
+    if !dict.empty?()
+        result += "\n"
+        parse key, value = dict
+            result += levelSpaces + "  key:\n" + key.dump(level + 2) + levelSpaces + "  value:\n" + value.dump(level + 2)
+        result += levelSpaces
+    result += "]\n"
+    return result
+
 attach Dict to Empty
     #alwaysinline nothrow
     def createEmpty(noread type Dict) Dict

@@ -21,6 +21,9 @@ def testTime_Any(write ok Int, write errorsCoordinates List)
         2.intToTime().constant?() == false
         3.intToTime().clone() == 3.intToTime()
         100.intToTime().clone() == 100.intToTime()
+        100.intToTime().dump(0) == ("Type: STD::Time = " + 100.intToTime().toString() + "\n")
+        100.intToTime().dump(1) == ("  Type: STD::Time = " + 100.intToTime().toString() + "\n")
+        100.intToTime().dump(2) == ("    Type: STD::Time = " + 100.intToTime().toString() + "\n")
 
 #noinline
 def testTime_Time(write ok Int, write errorsCoordinates List)

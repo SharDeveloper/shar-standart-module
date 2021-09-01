@@ -23,6 +23,10 @@ def testBool_Any(write ok Int, write errorsCoordinates List)
         true.clone().constant?() == false
         false.clone().use?() == false
         false.clone().constant?() == false
+        false.dump(0) == "Type: STD::Bool = false\n"
+        false.dump(1) == "  Type: STD::Bool = false\n"
+        true.dump(0) == "Type: STD::Bool = true\n"
+        true.dump(1) == "  Type: STD::Bool = true\n"
 
 #noinline
 def testBool_Equal(write ok Int, write errorsCoordinates List)

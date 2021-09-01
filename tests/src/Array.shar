@@ -184,6 +184,7 @@ def testArray(write ok Int, write errorsCoordinates List)
     testArray_Repeat(ok, errorsCoordinates)
     testArray_RepeatPart(ok, errorsCoordinates)
     testArray_ReversePart(ok, errorsCoordinates)
+    testArray_Dump(ok, errorsCoordinates)
 
 #noinline
 def testArray_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -2135,3 +2136,13 @@ def testArray_ReversePart(write ok Int, write errorsCoordinates List)
         c == [6, 7, 8, 3, 2, 1, 9, 4, 5]
         c.reversePart(9223372036854775807, -9223372036854775808) : error_outOfRange
         c == [6, 7, 8, 3, 2, 1, 9, 4, 5]
+
+#noinline
+def testArray_Dump(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].dump(0) == "Type: STD::Array = []\n"
+        [].dump(1) == "  Type: STD::Array = []\n"
+        [1].dump(0) == "Type: STD::Array = [\n  0:\n    Type: STD::Int = 1\n]\n"
+        [1].dump(1) == "  Type: STD::Array = [\n    0:\n      Type: STD::Int = 1\n  ]\n"
+        [1, 12].dump(0) == "Type: STD::Array = [\n  0:\n    Type: STD::Int = 1\n  1:\n    Type: STD::Int = 12\n]\n"
+        [1, 12].dump(1) == "  Type: STD::Array = [\n    0:\n      Type: STD::Int = 1\n    1:\n      Type: STD::Int = 12\n  ]\n"

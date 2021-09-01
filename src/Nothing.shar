@@ -26,3 +26,6 @@ def constant?(nothingArg Nothing) Bool
 #override(STD) alwaysinline nothrow
 def clone(nothingArg Nothing) Nothing
     return nothing
+#override(STD) nothrow
+def dump(nothingArg Nothing, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Nothing\n"

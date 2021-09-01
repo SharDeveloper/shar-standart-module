@@ -92,6 +92,14 @@ def testThreads_Pipeline(write ok Int, write errorsCoordinates List)
     var allOk Bool = true
     for :(counter Int = 0) counter < 65; counter++
         allOk = allOk && pOut.pop() == counter
+    test: ok, errorsCoordinates
+        allOk
+        p.dump(0) == "Type: STD::Pipeline\n"
+        p.dump(1) == "  Type: STD::Pipeline\n"
+        pIn.dump(0) == "Type: STD::PipelineIn\n"
+        pIn.dump(1) == "  Type: STD::PipelineIn\n"
+        pOut.dump(0) == "Type: STD::PipelineOut\n"
+        pOut.dump(1) == "  Type: STD::PipelineOut\n"
 
 #noinline
 def testThreads_Worker(write ok Int, write errorsCoordinates List)

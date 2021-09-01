@@ -29,6 +29,10 @@ def constant?(character Char) Bool
 def clone(character Char) Char
     return character
 
+#override(STD) nothrow
+def dump(character Char, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Char = " + character.toString() + "\n"
+
 attach Char to Equal
 
 attach Char to Shar__sugar__equal

@@ -53,6 +53,18 @@ def clone(array Array) Array
         result.unsafe_array_setItemInDummy(index, item)
     return result
 
+#override(STD)
+def dump(array Array, level Int) String
+    const levelSpaces String = "  ".repeatPart(level)
+    var result String = levelSpaces + "Type: STD::Array = ["
+    if !array.empty?()
+        result += "\n"
+        parse index, item = array
+            result += levelSpaces + "  " + index.toString() + ":\n" + item.dump(level + 2)
+        result += levelSpaces
+    result += "]\n"
+    return result
+
 attach Array to Equal
 
 attach Array to Shar__sugar__equal

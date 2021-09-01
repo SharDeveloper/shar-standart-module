@@ -20,6 +20,10 @@ def testChar_Any(write ok Int, write errorsCoordinates List)
         'b'.clone() == 'b'
         !'a'.clone().use?()
         !'b'.clone().constant?()
+        'a'.dump(0) == "Type: STD::Char = a\n"
+        'a'.dump(1) == "  Type: STD::Char = a\n"
+        'b'.dump(0) == "Type: STD::Char = b\n"
+        'b'.dump(1) == "  Type: STD::Char = b\n"
 
 #noinline
 def testChar_Equal(write ok Int, write errorsCoordinates List)

@@ -64,6 +64,18 @@ def clone(map Map) Map
     result.unsafe_setType(Map.typeNumber~())
     return result
 
+#override(STD)
+def dump(map Map, level Int) String
+    const levelSpaces String = "  ".repeatPart(level)
+    var result String = levelSpaces + "Type: STD::Map = ["
+    if !map.empty?()
+        result += "\n"
+        parse key, value = map
+            result += levelSpaces + "  key:\n" + key.dump(level + 2) + levelSpaces + "  value:\n" + value.dump(level + 2)
+        result += levelSpaces
+    result += "]\n"
+    return result
+
 attach Map to Empty
     #alwaysinline nothrow
     def createEmpty(noread type Map) Map

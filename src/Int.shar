@@ -35,6 +35,10 @@ def constant?(integer Int) Bool
 def clone(integer Int) Int
     return integer
 
+#override(STD) nothrow
+def dump(int Int, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Int = " + int.toString() + "\n"
+
 attach Int to Equal
 
 attach Int to Shar__sugar__equal

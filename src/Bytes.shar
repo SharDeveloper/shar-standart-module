@@ -40,6 +40,10 @@ def clone(bytes Bytes) Bytes
     unsafe_memcpyI8(result.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length~())
     return result
 
+#override(STD) nothrow
+def dump(bytes Bytes, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Bytes = " + bytes.toString() + "\n"
+
 #alwaysinline nothrow
 def unsafe_bytes_createDummy(length $Any) Bytes
     var result $Any = unsafe_malloc(length + 16)

@@ -43,6 +43,7 @@ def testBytes(write ok Int, write errorsCoordinates List)
     testBytes_Repeat(ok, errorsCoordinates)
     testBytes_RepeatPart(ok, errorsCoordinates)
     testBytes_ReversePart(ok, errorsCoordinates)
+    testBytes_Dump(ok, errorsCoordinates)
 
 #noinline
 def testBytes_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -2821,3 +2822,11 @@ def testBytes_ReversePart(write ok Int, write errorsCoordinates List)
         c[0 : 64] == c1
         c.reversePart(0, 65).nothing?()
         c[0 : 65] == c2
+
+#noinline
+def testBytes_Dump(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        Bytes.createEmpty().dump(0) == "Type: STD::Bytes = \n"
+        Bytes.createEmpty().dump(1) == "  Type: STD::Bytes = \n"
+        [1, 255].repackTo(Bytes).dump(0) == "Type: STD::Bytes = 01FF\n"
+        [1, 255].repackTo(Bytes).dump(1) == "  Type: STD::Bytes = 01FF\n"

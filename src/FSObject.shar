@@ -26,6 +26,45 @@ export type FSObject
     // type enum::fsot_*
     // (if type == fsot_dir) subObjects [FSObject] | (if it was not possible to access the contents of a directory) Nothing
 
+#override(STD)
+def dump(fsObject FSObject, level Int) String
+    const levelSpaces String = "  ".repeatPart(level)
+    var result String = levelSpaces + "Type: STD::FSObject = {name: " + fsObject.fsoName~() + ", type: "
+    var typeString String = ""
+    eSwitch fsObject.fsoType~()
+    case fsot_block
+        typeString = "block device"
+    case fsot_char
+        typeString = "character device"
+    case fsot_dir
+        typeString = "directory"
+    case fsot_pipe
+        typeString = "named pipe"
+    case fsot_link
+        typeString = "symbolic link"
+    case fsot_file
+        typeString = "regular file"
+    case fsot_socket
+        typeString = "UNIX domain socket"
+    case fsot_unknown
+        typeString = "unknown"
+    default
+        unreachable()
+    result += typeString + "}"
+    if fsObject.fsoType~() == enum::fsot_dir
+        const subObjects <>Array = fsObject.fsoSubObjects~()
+        if subObjects.nothing?()
+            result += " [!]"
+        elif subObjects.empty?()
+            result += " []"
+        else
+            result += " [\n"
+            parse _, subObject = subObjects
+                result += subObject.dump(level + 1)
+            result += levelSpaces + "]"
+    result += "\n"
+    return result
+
 #alwaysinline
 export def fsoName~(fsObject FSObject) String
     return fsObject.typeGetItem(0)
