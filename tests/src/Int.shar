@@ -135,6 +135,27 @@ def testInt_Ordered(write ok Int, write errorsCoordinates List)
         !(9223372036854775807 <= -9223372036854775807)
         !(9223372036854775807 <= -9223372036854775808)
         !(-9223372036854775807 <= -9223372036854775808)
+        compare(-9223372036854775808, 0) == enum::ord_less
+        compare(-1, 0) == enum::ord_less
+        compare(0, 1) == enum::ord_less
+        compare(0, 9223372036854775807) == enum::ord_less
+        compare(9223372036854775806, 9223372036854775807) == enum::ord_less
+        compare(-9223372036854775807, 9223372036854775807) == enum::ord_less
+        compare(-9223372036854775808, 9223372036854775807) == enum::ord_less
+        compare(-9223372036854775808, -9223372036854775807) == enum::ord_less
+        compare(-1, -1) == enum::ord_equal
+        compare(0, 0) == enum::ord_equal
+        compare(1, 1) == enum::ord_equal
+        compare(9223372036854775807, 9223372036854775807) == enum::ord_equal
+        compare(-9223372036854775808, -9223372036854775808) == enum::ord_equal
+        compare(0, -9223372036854775808) == enum::ord_great
+        compare(0, -1) == enum::ord_great
+        compare(1, 0) == enum::ord_great
+        compare(9223372036854775807, 0) == enum::ord_great
+        compare(9223372036854775807, 9223372036854775806) == enum::ord_great
+        compare(9223372036854775807, -9223372036854775807) == enum::ord_great
+        compare(9223372036854775807, -9223372036854775808) == enum::ord_great
+        compare(-9223372036854775807, -9223372036854775808) == enum::ord_great
 
 #noinline
 def testInt_Number(write ok Int, write errorsCoordinates List)

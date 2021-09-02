@@ -78,62 +78,35 @@ attach Array to Shar__sugar__notEqual
         return !(array1 == array2)
 
 attach Array to Ordered
+    #alwaysinline
+    def compare(array1, array2 Array) Int
+        const generalLength Int = array1.length~().min(array2.length~())
+        if generalLength != 0
+            for :(index Int = 0) index < generalLength; index++
+                const compareResult Int = array1[index].compare(array2[index])
+                if compareResult != enum::ord_equal
+                    return compareResult
+        return array1.length~().compare(array2.length~())
 
 attach Array to Shar__sugar__less
     #alwaysinline
     def shar__sugar__less(array1, array2 Array) Bool
-        const generalLength Int = array1.length~().min(array2.length~())
-        if generalLength != 0
-            for :(index Int = 0) index < generalLength; index++
-                const item1 $Any = array1[index]
-                const item2 $Any = array2[index]
-                if item1 < item2
-                    return true
-                elif item2 < item1
-                    return false
-        return array1.length~() < array2.length~()
+        return array1.compare(array2) == enum::ord_less
 
 attach Array to Shar__sugar__great
     #alwaysinline
     def shar__sugar__great(array1, array2 Array) Bool
-        const generalLength Int = array1.length~().min(array2.length~())
-        if generalLength != 0
-            for :(index Int = 0) index < generalLength; index++
-                const item1 $Any = array1[index]
-                const item2 $Any = array2[index]
-                if item1 > item2
-                    return true
-                elif item2 > item1
-                    return false
-        return array1.length~() > array2.length~()
+        return array1.compare(array2) == enum::ord_great
 
 attach Array to Shar__sugar__lessOrEqual
     #alwaysinline
     def shar__sugar__lessOrEqual(array1, array2 Array) Bool
-        const generalLength Int = array1.length~().min(array2.length~())
-        if generalLength != 0
-            for :(index Int = 0) index < generalLength; index++
-                const item1 $Any = array1[index]
-                const item2 $Any = array2[index]
-                if item1 < item2
-                    return true
-                elif item2 < item1
-                    return false
-        return array1.length~() <= array2.length~()
+        return array1.compare(array2) != enum::ord_great
 
 attach Array to Shar__sugar__greatOrEqual
     #alwaysinline
     def shar__sugar__greatOrEqual(array1, array2 Array) Bool
-        const generalLength Int = array1.length~().min(array2.length~())
-        if generalLength != 0
-            for :(index Int = 0) index < generalLength; index++
-                const item1 $Any = array1[index]
-                const item2 $Any = array2[index]
-                if item1 > item2
-                    return true
-                elif item2 > item1
-                    return false
-        return array1.length~() >= array2.length~()
+        return array1.compare(array2) != enum::ord_less
 
 attach Array to Shar__sugar__getRange
     #alwaysinline

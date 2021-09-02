@@ -46,6 +46,9 @@ def testChar_Ordered(write ok Int, write errorsCoordinates List)
         'b' >= 'a'
         'b' >= 'b'
         !('a' >= 'b')
+        compare('a', 'b') == enum::ord_less
+        compare('a', 'a') == enum::ord_equal
+        compare('b', 'a') == enum::ord_great
 
 #noinline
 def testChar_BitArray(write ok Int, write errorsCoordinates List)

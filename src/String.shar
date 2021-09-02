@@ -66,334 +66,114 @@ attach String to Equal
 attach String to Shar__sugar__equal
     #alwaysinline nothrow
     def shar__sugar__equal(string1, string2 String) Bool
-        return string1.length~() == string2.length~() && string1.partsEqual?(0, string2, 0, string1.length~())
+        return string1.compare(string2) == enum::ord_equal
 
 attach String to Shar__sugar__notEqual
     #alwaysinline nothrow
     def shar__sugar__notEqual(string1, string2 String) Bool
-        return !(string1 == string2)
+        return string1.compare(string2) != enum::ord_equal
 
 attach String to Ordered
+    #alwaysinline nothrow
+    def compare(string1, string2 String) Int
+        const length1 Int = string1.length~()
+        const length2 Int = string2.length~()
+        const generalLength Int = length1.min(length2)
+        return unsafe_string_compare(string1.unsafe_offsetI64(2), string2.unsafe_offsetI64(2), generalLength, length1, length2)
+
+#alwaysinline nothrow
+def unsafe_string_compare(address1, address2, generalLength, length1, length2 $Any) Int
+    llvm
+        br label %##reg##start##
+        ##nreg##start##:
+        %##nreg##address s1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address s1## = inttoptr i64 %##reg##address s1 i64## to <16 x i16>*
+        %##nreg##address s2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##address s2## = inttoptr i64 %##reg##address s2 i64## to <16 x i16>*
+        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
+        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##simd loop##:
+        %##nreg##remain chars 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
+        %##nreg##address s1 1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
+        %##nreg##address s2 1## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
+        %##nreg##vector from address s1## = load <16 x i16>, <16 x i16>* %##reg##address s1 1##, align 2
+        %##nreg##vector from address s2## = load <16 x i16>, <16 x i16>* %##reg##address s2 1##, align 2
+        %##nreg##vector compare result## = icmp ne <16 x i16> %##reg##vector from address s1##, %##reg##vector from address s2##
+        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
+        %##nreg##vectors not equal?## = icmp ne i16 %##reg##vector compare result i16##, 0
+        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
+        ##nreg##vector equal label##:
+        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
+        %##nreg##new simd address s1## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s1 1##, i64 1
+        %##nreg##new simd address s2## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s2 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
+        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
+        ##nreg##vector not equal label##:
+        ##llvmdeclare##llvm.cttz.i16##declare i16 @llvm.cttz.i16(i16, i1)##
+        %##nreg##vector index## = call i16 @llvm.cttz.i16(i16 %##reg##vector compare result i16##, i1 1)
+        %##nreg##char from vector s1## = extractelement <16 x i16> %##reg##vector from address s1##, i16 %##reg##vector index##
+        %##nreg##char from vector s2## = extractelement <16 x i16> %##reg##vector from address s2##, i16 %##reg##vector index##
+        %##nreg##simd less## = icmp ult i16 %##reg##char from vector s1##, %##reg##char from vector s2##
+        %##nreg##simd result i64## = select i1 %##reg##simd less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
+        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##simd result i64##, 1
+        ret [2 x i64] %##reg##simd result##
+        ##nreg##scalar label##:
+        %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
+        %##nreg##vector address s1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
+        %##nreg##vector address s2## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
+        %##nreg##address s1 2## = bitcast <16 x i16>* %##reg##vector address s1## to i16*
+        %##nreg##address s2 2## = bitcast <16 x i16>* %##reg##vector address s2## to i16*
+        %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
+        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##scalar loop##:
+        %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##equal label##]
+        %##nreg##address s1 3## = phi i16* [%##reg##address s1 2##, %##reg##scalar label##], [%##reg##new address s1 3##, %##reg##equal label##]
+        %##nreg##address s2 3## = phi i16* [%##reg##address s2 2##, %##reg##scalar label##], [%##reg##new address s2 3##, %##reg##equal label##]
+        %##nreg##char from address s1## = load i16, i16* %##reg##address s1 3##, align 2
+        %##nreg##char from address s2## = load i16, i16* %##reg##address s2 3##, align 2
+        %##nreg##chars not equal?## = icmp ne i16 %##reg##char from address s1##, %##reg##char from address s2##
+        br i1 %##reg##chars not equal?##, label %##reg##not equal label##, label %##reg##equal label##
+        ##nreg##equal label##:
+        %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
+        %##nreg##new address s1 3## = getelementptr i16, i16* %##reg##address s1 3##, i64 1
+        %##nreg##new address s2 3## = getelementptr i16, i16* %##reg##address s2 3##, i64 1
+        %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
+        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
+        ##nreg##not equal label##:
+        %##nreg##scalar less## = icmp ult i16 %##reg##char from address s1##, %##reg##char from address s2##
+        %##nreg##scalar result i64## = select i1 %##reg##scalar less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
+        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar result i64##, 1
+        ret [2 x i64] %##reg##scalar result##
+        ##nreg##end label##:
+        %##nreg##length s1## = extractvalue [2 x i64] %3, 1
+        %##nreg##length s2## = extractvalue [2 x i64] %4, 1
+        %##nreg##less## = icmp ult i64 %##reg##length s1##, %##reg##length s2##
+        %##nreg##equal## = icmp eq i64 %##reg##length s1##, %##reg##length s2##
+        %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
+        %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
 
 attach String to Shar__sugar__less
     #alwaysinline nothrow
     def shar__sugar__less(string1, string2 String) Bool
-        const length1 Int = string1.length~()
-        const length2 Int = string2.length~()
-        const generalLength Int = length1.min(length2)
-        return unsafe_string_less(string1.unsafe_offsetI64(2), string2.unsafe_offsetI64(2), generalLength, length1, length2)
-
-#alwaysinline nothrow
-def unsafe_string_less(address1, address2, generalLength, length1, length2 $Any) Bool
-    llvm
-        br label %##reg##start##
-        ##nreg##start##:
-        %##nreg##address s1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address s1## = inttoptr i64 %##reg##address s1 i64## to <16 x i16>*
-        %##nreg##address s2 i64## = extractvalue [2 x i64] %1, 1
-        %##nreg##address s2## = inttoptr i64 %##reg##address s2 i64## to <16 x i16>*
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
-        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
-        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##simd loop##:
-        %##nreg##remain chars 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##address s1 1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##address s2 1## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##vector from address s1## = load <16 x i16>, <16 x i16>* %##reg##address s1 1##, align 2
-        %##nreg##vector from address s2## = load <16 x i16>, <16 x i16>* %##reg##address s2 1##, align 2
-        %##nreg##vector compare result## = icmp ne <16 x i16> %##reg##vector from address s1##, %##reg##vector from address s2##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
-        %##nreg##vectors not equal?## = icmp ne i16 %##reg##vector compare result i16##, 0
-        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
-        ##nreg##vector equal label##:
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##new simd address s1## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s1 1##, i64 1
-        %##nreg##new simd address s2## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s2 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
-        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##vector not equal label##:
-        ##llvmdeclare##llvm.cttz.i16##declare i16 @llvm.cttz.i16(i16, i1)##
-        %##nreg##vector index## = call i16 @llvm.cttz.i16(i16 %##reg##vector compare result i16##, i1 1)
-        %##nreg##char from vector s1## = extractelement <16 x i16> %##reg##vector from address s1##, i16 %##reg##vector index##
-        %##nreg##char from vector s2## = extractelement <16 x i16> %##reg##vector from address s2##, i16 %##reg##vector index##
-        %##nreg##simd result i1## = icmp ult i16 %##reg##char from vector s1##, %##reg##char from vector s2##
-        %##nreg##simd result i64## = zext i1 %##reg##simd result i1## to i64
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##simd result i64##, 1
-        ret [2 x i64] %##reg##simd result##
-        ##nreg##scalar label##:
-        %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##vector address s1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##vector address s2## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##address s1 2## = bitcast <16 x i16>* %##reg##vector address s1## to i16*
-        %##nreg##address s2 2## = bitcast <16 x i16>* %##reg##vector address s2## to i16*
-        %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
-        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##scalar loop##:
-        %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##equal label##]
-        %##nreg##address s1 3## = phi i16* [%##reg##address s1 2##, %##reg##scalar label##], [%##reg##new address s1 3##, %##reg##equal label##]
-        %##nreg##address s2 3## = phi i16* [%##reg##address s2 2##, %##reg##scalar label##], [%##reg##new address s2 3##, %##reg##equal label##]
-        %##nreg##char from address s1## = load i16, i16* %##reg##address s1 3##, align 2
-        %##nreg##char from address s2## = load i16, i16* %##reg##address s2 3##, align 2
-        %##nreg##chars not equal?## = icmp ne i16 %##reg##char from address s1##, %##reg##char from address s2##
-        br i1 %##reg##chars not equal?##, label %##reg##not equal label##, label %##reg##equal label##
-        ##nreg##equal label##:
-        %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
-        %##nreg##new address s1 3## = getelementptr i16, i16* %##reg##address s1 3##, i64 1
-        %##nreg##new address s2 3## = getelementptr i16, i16* %##reg##address s2 3##, i64 1
-        %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
-        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##not equal label##:
-        %##nreg##scalar result i1## = icmp ult i16 %##reg##char from address s1##, %##reg##char from address s2##
-        %##nreg##scalar result i64## = zext i1 %##reg##scalar result i1## to i64
-        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##scalar result i64##, 1
-        ret [2 x i64] %##reg##scalar result##
-        ##nreg##end label##:
-        %##nreg##length s1## = extractvalue [2 x i64] %3, 1
-        %##nreg##length s2## = extractvalue [2 x i64] %4, 1
-        %##nreg##result i1## = icmp ult i64 %##reg##length s1##, %##reg##length s2##
-        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        return string1.compare(string2) == enum::ord_less
 
 attach String to Shar__sugar__great
     #alwaysinline nothrow
     def shar__sugar__great(string1, string2 String) Bool
-        const length1 Int = string1.length~()
-        const length2 Int = string2.length~()
-        const generalLength Int = length1.min(length2)
-        return unsafe_string_great(string1.unsafe_offsetI64(2), string2.unsafe_offsetI64(2), generalLength, length1, length2)
-
-#alwaysinline nothrow
-def unsafe_string_great(address1, address2, generalLength, length1, length2 $Any) Bool
-    llvm
-        br label %##reg##start##
-        ##nreg##start##:
-        %##nreg##address s1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address s1## = inttoptr i64 %##reg##address s1 i64## to <16 x i16>*
-        %##nreg##address s2 i64## = extractvalue [2 x i64] %1, 1
-        %##nreg##address s2## = inttoptr i64 %##reg##address s2 i64## to <16 x i16>*
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
-        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
-        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##simd loop##:
-        %##nreg##remain chars 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##address s1 1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##address s2 1## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##vector from address s1## = load <16 x i16>, <16 x i16>* %##reg##address s1 1##, align 2
-        %##nreg##vector from address s2## = load <16 x i16>, <16 x i16>* %##reg##address s2 1##, align 2
-        %##nreg##vector compare result## = icmp ne <16 x i16> %##reg##vector from address s1##, %##reg##vector from address s2##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
-        %##nreg##vectors not equal?## = icmp ne i16 %##reg##vector compare result i16##, 0
-        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
-        ##nreg##vector equal label##:
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##new simd address s1## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s1 1##, i64 1
-        %##nreg##new simd address s2## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s2 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
-        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##vector not equal label##:
-        ##llvmdeclare##llvm.cttz.i16##declare i16 @llvm.cttz.i16(i16, i1)##
-        %##nreg##vector index## = call i16 @llvm.cttz.i16(i16 %##reg##vector compare result i16##, i1 1)
-        %##nreg##char from vector s1## = extractelement <16 x i16> %##reg##vector from address s1##, i16 %##reg##vector index##
-        %##nreg##char from vector s2## = extractelement <16 x i16> %##reg##vector from address s2##, i16 %##reg##vector index##
-        %##nreg##simd result i1## = icmp ugt i16 %##reg##char from vector s1##, %##reg##char from vector s2##
-        %##nreg##simd result i64## = zext i1 %##reg##simd result i1## to i64
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##simd result i64##, 1
-        ret [2 x i64] %##reg##simd result##
-        ##nreg##scalar label##:
-        %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##vector address s1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##vector address s2## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##address s1 2## = bitcast <16 x i16>* %##reg##vector address s1## to i16*
-        %##nreg##address s2 2## = bitcast <16 x i16>* %##reg##vector address s2## to i16*
-        %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
-        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##scalar loop##:
-        %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##equal label##]
-        %##nreg##address s1 3## = phi i16* [%##reg##address s1 2##, %##reg##scalar label##], [%##reg##new address s1 3##, %##reg##equal label##]
-        %##nreg##address s2 3## = phi i16* [%##reg##address s2 2##, %##reg##scalar label##], [%##reg##new address s2 3##, %##reg##equal label##]
-        %##nreg##char from address s1## = load i16, i16* %##reg##address s1 3##, align 2
-        %##nreg##char from address s2## = load i16, i16* %##reg##address s2 3##, align 2
-        %##nreg##chars not equal?## = icmp ne i16 %##reg##char from address s1##, %##reg##char from address s2##
-        br i1 %##reg##chars not equal?##, label %##reg##not equal label##, label %##reg##equal label##
-        ##nreg##equal label##:
-        %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
-        %##nreg##new address s1 3## = getelementptr i16, i16* %##reg##address s1 3##, i64 1
-        %##nreg##new address s2 3## = getelementptr i16, i16* %##reg##address s2 3##, i64 1
-        %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
-        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##not equal label##:
-        %##nreg##scalar result i1## = icmp ugt i16 %##reg##char from address s1##, %##reg##char from address s2##
-        %##nreg##scalar result i64## = zext i1 %##reg##scalar result i1## to i64
-        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##scalar result i64##, 1
-        ret [2 x i64] %##reg##scalar result##
-        ##nreg##end label##:
-        %##nreg##length s1## = extractvalue [2 x i64] %3, 1
-        %##nreg##length s2## = extractvalue [2 x i64] %4, 1
-        %##nreg##result i1## = icmp ugt i64 %##reg##length s1##, %##reg##length s2##
-        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        return string1.compare(string2) == enum::ord_great
 
 attach String to Shar__sugar__lessOrEqual
     #alwaysinline nothrow
     def shar__sugar__lessOrEqual(string1, string2 String) Bool
-        const length1 Int = string1.length~()
-        const length2 Int = string2.length~()
-        const generalLength Int = length1.min(length2)
-        return unsafe_string_lessOrEqual(string1.unsafe_offsetI64(2), string2.unsafe_offsetI64(2), generalLength, length1, length2)
-
-#alwaysinline nothrow
-def unsafe_string_lessOrEqual(address1, address2, generalLength, length1, length2 $Any) Bool
-    llvm
-        br label %##reg##start##
-        ##nreg##start##:
-        %##nreg##address s1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address s1## = inttoptr i64 %##reg##address s1 i64## to <16 x i16>*
-        %##nreg##address s2 i64## = extractvalue [2 x i64] %1, 1
-        %##nreg##address s2## = inttoptr i64 %##reg##address s2 i64## to <16 x i16>*
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
-        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
-        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##simd loop##:
-        %##nreg##remain chars 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##address s1 1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##address s2 1## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##vector from address s1## = load <16 x i16>, <16 x i16>* %##reg##address s1 1##, align 2
-        %##nreg##vector from address s2## = load <16 x i16>, <16 x i16>* %##reg##address s2 1##, align 2
-        %##nreg##vector compare result## = icmp ne <16 x i16> %##reg##vector from address s1##, %##reg##vector from address s2##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
-        %##nreg##vectors not equal?## = icmp ne i16 %##reg##vector compare result i16##, 0
-        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
-        ##nreg##vector equal label##:
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##new simd address s1## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s1 1##, i64 1
-        %##nreg##new simd address s2## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s2 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
-        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##vector not equal label##:
-        ##llvmdeclare##llvm.cttz.i16##declare i16 @llvm.cttz.i16(i16, i1)##
-        %##nreg##vector index## = call i16 @llvm.cttz.i16(i16 %##reg##vector compare result i16##, i1 1)
-        %##nreg##char from vector s1## = extractelement <16 x i16> %##reg##vector from address s1##, i16 %##reg##vector index##
-        %##nreg##char from vector s2## = extractelement <16 x i16> %##reg##vector from address s2##, i16 %##reg##vector index##
-        %##nreg##simd result i1## = icmp ult i16 %##reg##char from vector s1##, %##reg##char from vector s2##
-        %##nreg##simd result i64## = zext i1 %##reg##simd result i1## to i64
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##simd result i64##, 1
-        ret [2 x i64] %##reg##simd result##
-        ##nreg##scalar label##:
-        %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##vector address s1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##vector address s2## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##address s1 2## = bitcast <16 x i16>* %##reg##vector address s1## to i16*
-        %##nreg##address s2 2## = bitcast <16 x i16>* %##reg##vector address s2## to i16*
-        %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
-        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##scalar loop##:
-        %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##equal label##]
-        %##nreg##address s1 3## = phi i16* [%##reg##address s1 2##, %##reg##scalar label##], [%##reg##new address s1 3##, %##reg##equal label##]
-        %##nreg##address s2 3## = phi i16* [%##reg##address s2 2##, %##reg##scalar label##], [%##reg##new address s2 3##, %##reg##equal label##]
-        %##nreg##char from address s1## = load i16, i16* %##reg##address s1 3##, align 2
-        %##nreg##char from address s2## = load i16, i16* %##reg##address s2 3##, align 2
-        %##nreg##chars not equal?## = icmp ne i16 %##reg##char from address s1##, %##reg##char from address s2##
-        br i1 %##reg##chars not equal?##, label %##reg##not equal label##, label %##reg##equal label##
-        ##nreg##equal label##:
-        %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
-        %##nreg##new address s1 3## = getelementptr i16, i16* %##reg##address s1 3##, i64 1
-        %##nreg##new address s2 3## = getelementptr i16, i16* %##reg##address s2 3##, i64 1
-        %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
-        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##not equal label##:
-        %##nreg##scalar result i1## = icmp ult i16 %##reg##char from address s1##, %##reg##char from address s2##
-        %##nreg##scalar result i64## = zext i1 %##reg##scalar result i1## to i64
-        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##scalar result i64##, 1
-        ret [2 x i64] %##reg##scalar result##
-        ##nreg##end label##:
-        %##nreg##length s1## = extractvalue [2 x i64] %3, 1
-        %##nreg##length s2## = extractvalue [2 x i64] %4, 1
-        %##nreg##result i1## = icmp ule i64 %##reg##length s1##, %##reg##length s2##
-        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        return string1.compare(string2) != enum::ord_great
 
 attach String to Shar__sugar__greatOrEqual
     #alwaysinline nothrow
     def shar__sugar__greatOrEqual(string1, string2 String) Bool
-        const length1 Int = string1.length~()
-        const length2 Int = string2.length~()
-        const generalLength Int = length1.min(length2)
-        return unsafe_string_greatOrEqual(string1.unsafe_offsetI64(2), string2.unsafe_offsetI64(2), generalLength, length1, length2)
-
-#alwaysinline nothrow
-def unsafe_string_greatOrEqual(address1, address2, generalLength, length1, length2 $Any) Bool
-    llvm
-        br label %##reg##start##
-        ##nreg##start##:
-        %##nreg##address s1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address s1## = inttoptr i64 %##reg##address s1 i64## to <16 x i16>*
-        %##nreg##address s2 i64## = extractvalue [2 x i64] %1, 1
-        %##nreg##address s2## = inttoptr i64 %##reg##address s2 i64## to <16 x i16>*
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
-        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
-        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##simd loop##:
-        %##nreg##remain chars 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##address s1 1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##address s2 1## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##vector from address s1## = load <16 x i16>, <16 x i16>* %##reg##address s1 1##, align 2
-        %##nreg##vector from address s2## = load <16 x i16>, <16 x i16>* %##reg##address s2 1##, align 2
-        %##nreg##vector compare result## = icmp ne <16 x i16> %##reg##vector from address s1##, %##reg##vector from address s2##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
-        %##nreg##vectors not equal?## = icmp ne i16 %##reg##vector compare result i16##, 0
-        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
-        ##nreg##vector equal label##:
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##new simd address s1## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s1 1##, i64 1
-        %##nreg##new simd address s2## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s2 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
-        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##vector not equal label##:
-        ##llvmdeclare##llvm.cttz.i16##declare i16 @llvm.cttz.i16(i16, i1)##
-        %##nreg##vector index## = call i16 @llvm.cttz.i16(i16 %##reg##vector compare result i16##, i1 1)
-        %##nreg##char from vector s1## = extractelement <16 x i16> %##reg##vector from address s1##, i16 %##reg##vector index##
-        %##nreg##char from vector s2## = extractelement <16 x i16> %##reg##vector from address s2##, i16 %##reg##vector index##
-        %##nreg##simd result i1## = icmp ugt i16 %##reg##char from vector s1##, %##reg##char from vector s2##
-        %##nreg##simd result i64## = zext i1 %##reg##simd result i1## to i64
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##simd result i64##, 1
-        ret [2 x i64] %##reg##simd result##
-        ##nreg##scalar label##:
-        %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##vector address s1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##vector address s2## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##address s1 2## = bitcast <16 x i16>* %##reg##vector address s1## to i16*
-        %##nreg##address s2 2## = bitcast <16 x i16>* %##reg##vector address s2## to i16*
-        %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
-        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##scalar loop##:
-        %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##equal label##]
-        %##nreg##address s1 3## = phi i16* [%##reg##address s1 2##, %##reg##scalar label##], [%##reg##new address s1 3##, %##reg##equal label##]
-        %##nreg##address s2 3## = phi i16* [%##reg##address s2 2##, %##reg##scalar label##], [%##reg##new address s2 3##, %##reg##equal label##]
-        %##nreg##char from address s1## = load i16, i16* %##reg##address s1 3##, align 2
-        %##nreg##char from address s2## = load i16, i16* %##reg##address s2 3##, align 2
-        %##nreg##chars not equal?## = icmp ne i16 %##reg##char from address s1##, %##reg##char from address s2##
-        br i1 %##reg##chars not equal?##, label %##reg##not equal label##, label %##reg##equal label##
-        ##nreg##equal label##:
-        %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
-        %##nreg##new address s1 3## = getelementptr i16, i16* %##reg##address s1 3##, i64 1
-        %##nreg##new address s2 3## = getelementptr i16, i16* %##reg##address s2 3##, i64 1
-        %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
-        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##not equal label##:
-        %##nreg##scalar result i1## = icmp ugt i16 %##reg##char from address s1##, %##reg##char from address s2##
-        %##nreg##scalar result i64## = zext i1 %##reg##scalar result i1## to i64
-        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##scalar result i64##, 1
-        ret [2 x i64] %##reg##scalar result##
-        ##nreg##end label##:
-        %##nreg##length s1## = extractvalue [2 x i64] %3, 1
-        %##nreg##length s2## = extractvalue [2 x i64] %4, 1
-        %##nreg##result i1## = icmp uge i64 %##reg##length s1##, %##reg##length s2##
-        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        return string1.compare(string2) != enum::ord_less
 
 attach String to Shar__sugar__getRange
     #alwaysinline
@@ -854,66 +634,8 @@ def partsEqual?(string1 String, from1 Int, string2 String, from2, length Int) Bo
         from1 >= 0 && from1 <= string1Length &&
         from2 >= 0 && from2 <= string2Length &&
         length >= 0 && length <= (string1Length - from1).min(string2Length - from2) &&
-        unsafe_string_partsEqual?(string1.unsafe_offsetI16(from1 + 8), string2.unsafe_offsetI16(from2 + 8), length)
+        unsafe_string_compare(string1.unsafe_offsetI16(from1 + 8), string2.unsafe_offsetI16(from2 + 8), length, length, length) == enum::ord_equal
     }
-
-#alwaysinline nothrow
-def unsafe_string_partsEqual?(address1, address2, length $Any) Bool
-    llvm
-        br label %##reg##start##
-        ##nreg##start##:
-        %##nreg##address s1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address s1## = inttoptr i64 %##reg##address s1 i64## to <16 x i16>*
-        %##nreg##address s2 i64## = extractvalue [2 x i64] %1, 1
-        %##nreg##address s2## = inttoptr i64 %##reg##address s2 i64## to <16 x i16>*
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
-        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
-        br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##simd loop##:
-        %##nreg##remain items 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
-        %##nreg##address s1 1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##address s2 1## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##vector from address s1## = load <16 x i16>, <16 x i16>* %##reg##address s1 1##, align 2
-        %##nreg##vector from address s2## = load <16 x i16>, <16 x i16>* %##reg##address s2 1##, align 2
-        %##nreg##vector compare result## = icmp eq <16 x i16> %##reg##vector from address s1##, %##reg##vector from address s2##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
-        %##nreg##vectors not equal?## = icmp ne i16 %##reg##vector compare result i16##, -1
-        br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
-        ##nreg##vector not equal label##:
-        ret [2 x i64] [i64 ##tnum##STD::Bool##, i64 0]
-        ##nreg##vector equal label##:
-        %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 16
-        %##nreg##new simd address s1## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s1 1##, i64 1
-        %##nreg##new simd address s2## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s2 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain items 1##, 16
-        br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
-        ##nreg##scalar label##:
-        %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
-        %##nreg##vector address s1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##vector address s2## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##address s1 2## = bitcast <16 x i16>* %##reg##vector address s1## to i16*
-        %##nreg##address s2 2## = bitcast <16 x i16>* %##reg##vector address s2## to i16*
-        %##nreg##continue 2## = icmp ne i64 %##reg##remain items 2##, 0
-        br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##scalar loop##:
-        %##nreg##remain items 3## = phi i64 [%##reg##remain items 2##, %##reg##scalar label##], [%##reg##new remain items 3##, %##reg##scalar loop##]
-        %##nreg##address s1 3## = phi i16* [%##reg##address s1 2##, %##reg##scalar label##], [%##reg##new address s1 3##, %##reg##scalar loop##]
-        %##nreg##address s2 3## = phi i16* [%##reg##address s2 2##, %##reg##scalar label##], [%##reg##new address s2 3##, %##reg##scalar loop##]
-        %##nreg##result i1## = phi i1 [1, %##reg##scalar label##], [%##reg##new result i1##, %##reg##scalar loop##]
-        %##nreg##item from address s1## = load i16, i16* %##reg##address s1 3##, align 2
-        %##nreg##item from address s2## = load i16, i16* %##reg##address s2 3##, align 2
-        %##nreg##item equal?## = icmp eq i16 %##reg##item from address s1##, %##reg##item from address s2##
-        %##nreg##new result i1## = and i1 %##reg##result i1##, %##reg##item equal?##
-        %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
-        %##nreg##new address s1 3## = getelementptr i16, i16* %##reg##address s1 3##, i64 1
-        %##nreg##new address s2 3## = getelementptr i16, i16* %##reg##address s2 3##, i64 1
-        %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
-        br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
-        ##nreg##end label##:
-        %##nreg##end result i1## = phi i1 [1, %##reg##scalar label##], [%##reg##new result i1##, %##reg##scalar loop##]
-        %##nreg##end result i64## = zext i1 %##reg##end result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##end result i64##, 1
-        ret [2 x i64] %##reg##result##
 
 #override(STD) alwaysinline
 def lookNFromAtoB(string String, char Char, n, a, b Int) <>Int

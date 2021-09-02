@@ -79,6 +79,26 @@ def unsafe_real_notEqual(real1, real2 $Any) Bool
         ret [2 x i64] %##reg##result##
 
 attach Real to Ordered
+    #alwaysinline
+    def compare(real1, real2 Real) Int
+        inthrow
+            if real1.nan?() || real2.nan?()
+                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.")
+        return unsafe_real_compare(real1, real2)
+
+#alwaysinline nothrow
+def unsafe_real_compare(real1, real2 $Any) Int
+    llvm
+        %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
+        %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
+        %##nreg##less## = fcmp olt double %##reg##real1##, %##reg##real2##
+        %##nreg##equal## = fcmp oeq double %##reg##real1##, %##reg##real2##
+        %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
+        %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
 
 attach Real to Shar__sugar__great
     #alwaysinline

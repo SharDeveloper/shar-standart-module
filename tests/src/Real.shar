@@ -96,6 +96,18 @@ def testReal_Ordered(write ok Int, write errorsCoordinates List)
         !(1.0 <= -1.0)
         0.0 <= (0.0 / 0.0) : error_compareWithNaN
         (0.0 / 0.0) <= 0.0 : error_compareWithNaN
+        compare(0.0, 0.0) == enum::ord_equal
+        compare(1.0, 1.0) == enum::ord_equal
+        compare(-1.0, 0.0) == enum::ord_less
+        compare(-0.0, 0.0) == enum::ord_equal
+        compare(-1.0, -0.0) == enum::ord_less
+        compare(-1.0, 1.0) == enum::ord_less
+        compare(0.0, -1.0) == enum::ord_great
+        compare(-0.0, -1.0) == enum::ord_great
+        compare(0.9, 0.1) == enum::ord_great
+        compare(1.0, -1.0) == enum::ord_great
+        compare(0.0, (0.0 / 0.0)) : error_compareWithNaN
+        compare((0.0 / 0.0), 0.0) : error_compareWithNaN
 
 #noinline
 def testReal_Number(write ok Int, write errorsCoordinates List)

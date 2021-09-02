@@ -192,6 +192,15 @@ def testTime_Ordered(write ok Int, write errorsCoordinates List)
         !(1.intToTime() <= 0.intToTime())
         !(9223372036854775807.intToTime() <= 0.intToTime())
         !(9223372036854775807.intToTime() <= 9223372036854775806.intToTime())
+        compare(0.intToTime(), 1.intToTime()) == enum::ord_less
+        compare(0.intToTime(), 9223372036854775807.intToTime()) == enum::ord_less
+        compare(9223372036854775806.intToTime(), 9223372036854775807.intToTime()) == enum::ord_less
+        compare(0.intToTime(), 0.intToTime()) == enum::ord_equal
+        compare(1.intToTime(), 1.intToTime()) == enum::ord_equal
+        compare(9223372036854775807.intToTime(), 9223372036854775807.intToTime()) == enum::ord_equal
+        compare(1.intToTime(), 0.intToTime()) == enum::ord_great
+        compare(9223372036854775807.intToTime(), 0.intToTime()) == enum::ord_great
+        compare(9223372036854775807.intToTime(), 9223372036854775806.intToTime()) == enum::ord_great
 
 #noinline
 def testTime_StringWriter(write ok Int, write errorsCoordinates List)

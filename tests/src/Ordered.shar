@@ -29,6 +29,8 @@ attach OrderedMember to Shar__sugar__lessOrEqual
         return a.typeGetItem(0).type!(Int) <= b.typeGetItem(0)
 
 attach OrderedMember to Ordered
+    def compare(a ,b OrderedMember) Int
+        return a.typeGetItem(0).type!(Int).compare(b.typeGetItem(0))
 
 def iToOM(i Int) OrderedMember
     return OrderedMember.fromList({i})

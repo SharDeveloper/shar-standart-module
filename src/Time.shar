@@ -495,6 +495,17 @@ attach Time to Shar__sugar__notEqual
         return timeToInt(time1) != timeToInt(time2)
 
 attach Time to Ordered
+    #alwaysinline nothrow
+    def compare(time1, time2 Time) Int
+        llvm
+            %##nreg##time1## = extractvalue [2 x i64] %0, 1
+            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##less## = icmp ult i64 %##reg##time1##, %##reg##time2##
+            %##nreg##equal## = icmp eq i64 %##reg##time1##, %##reg##time2##
+            %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
+            %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
 
 attach Time to Shar__sugar__great
     #alwaysinline nothrow

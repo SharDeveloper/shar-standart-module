@@ -21,6 +21,8 @@ attach ArrayGroupMember to Shar__sugar__notEqual
         return agm1.agmToArray() != agm2.agmToArray()
 
 attach ArrayGroupMember to Ordered
+    def compare(agm1, agm2 ArrayGroupMember) Int
+        return agm1.agmToArray().compare(agm2.agmToArray())
 
 attach ArrayGroupMember to Shar__sugar__less
     def shar__sugar__less(agm1, agm2 ArrayGroupMember) Bool
@@ -136,6 +138,8 @@ attach ItemForStableSort to Shar__sugar__notEqual
         return ifss1.sortedItem~() != ifss2.sortedItem~()
 
 attach ItemForStableSort to Ordered
+    def compare(ifss1, ifss2 ItemForStableSort) Int
+        return ifss1.sortedItem~().compare(ifss2.sortedItem~())
 
 attach ItemForStableSort to Shar__sugar__less
     def shar__sugar__less(ifss1, ifss2 ItemForStableSort) Bool
@@ -424,6 +428,21 @@ def testArray_Ordered(write ok Int, write errorsCoordinates List)
         !([0, 1, 2, 3] >= [0, 1, 2, 4])
         !([0, 1, 2, 3, 5] >= [0, 1, 2, 4])
         [1] > [1.0] : error_invalidType
+        compare([], [1]) == enum::ord_less
+        compare([], []) == enum::ord_equal
+        compare([1, 2, 3], [1, 2, 3]) == enum::ord_equal
+        compare([0, 2], [1]) == enum::ord_less
+        compare([0, 2], [1, 2]) == enum::ord_less
+        compare([0, 1], [0, 2]) == enum::ord_less
+        compare([0, 1, 2, 3], [0, 1, 2, 4]) == enum::ord_less
+        compare([0, 1, 2, 3, 5], [0, 1, 2, 4]) == enum::ord_less
+        compare([[], [1]], [[1.0], [2]]) == enum::ord_less
+        compare([1], []) == enum::ord_great
+        compare([1], [0, 2]) == enum::ord_great
+        compare([1, 2], [0, 2]) == enum::ord_great
+        compare([0, 2], [0, 1]) == enum::ord_great
+        compare([0, 1, 2, 4], [0, 1, 2, 3]) == enum::ord_great
+        compare([0, 1, 2, 4], [0, 1, 2, 3, 5]) == enum::ord_great
 
 #noinline
 def testArray_GetRange(write ok Int, write errorsCoordinates List)
