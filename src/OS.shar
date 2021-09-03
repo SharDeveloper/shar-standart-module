@@ -495,3 +495,18 @@ def unsafe_os_osLanguage(chars $Any)
         store i16 %##reg##char 0##, i16* %##reg##char 0 pointer##, align 2
         store i16 %##reg##char 1##, i16* %##reg##char 1 pointer##, align 2
         ret [2 x i64] zeroinitializer
+
+//@The function returns the number of processor cores.
+#alwaysinline nothrow
+export def getCPUCoresNumber() Int
+    llvm
+        %##nreg##result i64## = call i64 @shar__get__cpu__cores__number()
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
+
+//@The function returns the number of running threads.
+export def getActiveThreadsNumber() Int
+    llvm
+        %##nreg##result i64## = call i64 @shar__get__threads__number()
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
