@@ -1,6 +1,43 @@
 module STD
 
+const fileBlockSize Int = fileBlockSize()
+
+def fileBlockSize() Int
+    var result Int = 0
+    const environmentBlockSize <>String = getEnvironmentVariable("SHAR_FILE_BLOCK_SIZE")
+    if !environmentBlockSize.nothing?()
+        result = Int.fromString(environmentBlockSize)
+    if result < 4080
+        result = 4194288
+    return result
+
 export primitive File
+
+export type FileReader
+    // file               File
+    // buffer             Bytes
+    // position in buffer Int
+    // position in file   Int
+    // file size          Int
+
+export type FileWriter
+    // file   File
+    // buffer Bytes
+
+#override(STD)
+def shar__rc_free(writer FileWriter)
+    const counter Int = writer.unsafe_getI64(0)
+    if counter > 1
+        writer.unsafe_setI64(0, counter - 1)
+    elif counter == 1
+        var file File = writer.typeGetItem(0)
+        const buffer Bytes = writer.typeGetItem(1)
+        file.shar__rc_free()
+        buffer.shar__rc_free()
+        writer.unsafe_free()
+        if !buffer.empty?()
+            writeDataToFile(file, buffer.length~(), buffer)
+        flushFile(file)
 
 export enum
     fmode_read
@@ -201,3 +238,117 @@ def unsafe_file_setFilePosition(file, position $Any) Bool
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
         %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
         ret [2 x i64] %##reg##result##
+
+//@The function opens the file for reading it in parts.
+//@If the file can not be opened, the function returns "nothing".
+export def fileReader(fileName String) <>FileReader
+    const fileSize <>Int = getFileSize(fileName)
+    if fileSize.nothing?()
+        return nothing
+    const file <>File = openFile(fileName, enum::fmode_read)
+    if file.nothing?()
+        return nothing
+    return FileReader.fromList({file, Bytes.createEmpty(), 0, 0, fileSize})
+
+attach FileReader to Reader
+    def readData(noread type $BinarySerializable, write reader FileReader) <>$BinarySerializable
+        if reader.use?()
+            throw(enum::error_notASingleCopy, "Not a single copy.")
+        const file File = reader.typePut(0, nothing)
+        var buffer Bytes = reader.typePut(1, nothing)
+        var positionInBuffer Int = reader.typeGetItem(2)
+        var positionInFile Int = reader.typeGetItem(3)
+        const fileSize Int = reader.typeGetItem(4)
+        if fileSize == positionInFile && positionInBuffer == buffer.length~()
+            reader.typePut(0, file).type!(Nothing)
+            reader.typePut(1, buffer).type!(Nothing)
+            return nothing
+        if positionInBuffer == buffer.length~()
+            const remainDataSize Int = fileSize - positionInFile
+            const deltaDataSize Int = buffer.length~() - remainDataSize
+            if deltaDataSize > 0
+                buffer.delete(remainDataSize, deltaDataSize)
+            elif deltaDataSize < 0 && positionInBuffer == 0
+                buffer = unsafe_bytes_createDummy(min(const::fileBlockSize, remainDataSize))
+            if readDataFromFile(file, buffer.length~(), buffer) != buffer.length~()
+                reader = FileReader.fromList({file, buffer, positionInBuffer, positionInFile, fileSize})
+                throw(enum::error_cantReadFromFile, "Error reading from file.")
+            positionInFile += buffer.length~()
+            positionInBuffer = 0
+        var result $BinarySerializable = 0
+        for :(loop)
+            try
+                result = type.deserialize(buffer, positionInBuffer)
+                end loop
+            catch id, message
+                if id != enum::error_outOfRange
+                    reader = FileReader.fromList({file, buffer, positionInBuffer, positionInFile, fileSize})
+                    throw(id, message)
+                const remainDataSize Int = fileSize - positionInFile
+                if remainDataSize <= 0
+                    throw(id, message)
+                const addedBufferSize Int = min(buffer.length~(), remainDataSize)
+                var addedBuffer Bytes = unsafe_bytes_createDummy(addedBufferSize)
+                if readDataFromFile(file, addedBufferSize, addedBuffer) != addedBufferSize
+                    reader = FileReader.fromList({file, buffer, positionInBuffer, positionInFile, fileSize})
+                    throw(enum::error_cantReadFromFile, "Error reading from file.")
+                positionInFile += addedBufferSize
+                if positionInBuffer != 0
+                    buffer.delete(0, positionInBuffer)
+                    positionInBuffer = 0
+                buffer += addedBuffer
+        reader.typePut(0, file).type!(Nothing)
+        reader.typePut(1, buffer).type!(Nothing)
+        reader.typePut(2, positionInBuffer).type!(Int)
+        reader.typePut(3, positionInFile).type!(Int)
+        return result
+
+    #alwaysinline nothrow
+    def end?(reader FileReader) Bool
+        const bufferSize Int = reader.typeGetItem(1).type!(Bytes).length~()
+        const positionInBuffer Int = reader.typeGetItem(2)
+        const positionInFile Int = reader.typeGetItem(3)
+        const fileSize Int = reader.typeGetItem(4)
+        return fileSize == positionInFile && positionInBuffer == bufferSize
+
+//@The function opens a file for writing data in parts.
+//@If the file does not exist, then it will be created.
+//@If the file could not be created or opened, the function returns "nothing".
+//@If the second argument of the function is "true" and the file exists, then the data will be written to the end of the existing ones.
+//@If the second argument of the function is "false" and the file exists, then all existing data from the file will be deleted.
+export def fileWriter(fileName String, append Bool) <>FileWriter
+    const file <>File = openFile(fileName, append.select(enum::fmode_append, enum::fmode_write))
+    if file.nothing?()
+        return nothing
+    return FileWriter.fromList({file, Bytes.createEmpty()})
+
+attach FileWriter to Writer
+    def write(write writer FileWriter, data $BinarySerializable)
+        if writer.use?()
+            throw(enum::error_notASingleCopy, "Not a single copy.")
+        const file File = writer.typePut(0, nothing)
+        var buffer Bytes = writer.typePut(1, nothing)
+        const oldBufferSize Int = buffer.length~()
+        data.serialize(buffer)
+        if buffer.length~() >= const::fileBlockSize
+            if writeDataToFile(file, buffer.length~(), buffer) != buffer.length~()
+                buffer.delete(oldBufferSize, buffer.length~() - oldBufferSize)
+                writer = FileWriter.fromList({file, buffer})
+                throw(enum::error_cantWriteToFile, "Error writing to file.")
+            buffer.delete(0, buffer.length~())
+        writer.typePut(0, file).type!(Nothing)
+        writer.typePut(1, buffer).type!(Nothing)
+
+    def flush(write writer FileWriter)
+        if writer.use?()
+            throw(enum::error_notASingleCopy, "Not a single copy.")
+        const file File = writer.typePut(0, nothing)
+        var buffer Bytes = writer.typePut(1, nothing)
+        if !buffer.empty?()
+            if writeDataToFile(file, buffer.length~(), buffer) != buffer.length~()
+                writer = FileWriter.fromList({file, buffer})
+                throw(enum::error_cantWriteToFile, "Error writing to file.")
+            buffer.delete(0, buffer.length~())
+        flushFile(file)
+        writer.typePut(0, file).type!(Nothing)
+        writer.typePut(1, Bytes.createEmpty()).type!(Nothing)

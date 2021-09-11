@@ -21,6 +21,8 @@ export enum
     error_invalidFileMode
     error_invalidCharacter
     error_accessContentsOfNotDirectory
+    error_cantReadFromFile
+    error_cantWriteToFile
 
 //@The function returns an error with the code specified by the first function argument and contains the message from the second function argument.
 #cold
