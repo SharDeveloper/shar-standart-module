@@ -233,7 +233,7 @@ attach List to Container
 #alwaysinline nothrow
 def unsafe_list_setItem(list, index, newItem $Any)
     var oldItem $Any = 0
-    const offset $Any = index + 1
+    const offset Int = index + 1
     list.unsafe_get2xI64(offset, oldItem)
     newItem.shar__rc_use()
     list.unsafe_set2xI64(offset, newItem)

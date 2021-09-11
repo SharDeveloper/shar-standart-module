@@ -300,7 +300,7 @@ attach Array to Container
 
 #alwaysinline nothrow
 def unsafe_array_setItem(array, index, newItem $Any)
-    const offset $Any = index + 3
+    const offset Int = index + 3
     var oldItem $Any = array.unsafe_getI64(offset)
     oldItem.unsafe_setType(array.unsafe_getI64(2))
     newItem.shar__rc_use()
