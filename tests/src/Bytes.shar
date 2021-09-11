@@ -881,9 +881,9 @@ def testBytes_BinarySerializable(write ok Int, write errorsCoordinates List)
         Bytes.deserialize(bytes, position) : error_outOfRange
     position = 0
     test: ok, errorsCoordinates
-        Bytes.deserialize([0, 0, 0, 0, 0, 0, 0, 1].repackTo(Bytes), position) : error_outOfRange
+        Bytes.deserialize([1, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
         position == 0
-        Bytes.deserialize([0, 0, 0, 0, 0, 0, 0, 2, 0].repackTo(Bytes), position) : error_outOfRange
+        Bytes.deserialize([2, 0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
         position == 0
         Bytes.deserialize([0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
         position == 0
