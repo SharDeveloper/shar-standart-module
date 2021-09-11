@@ -372,16 +372,16 @@ attach String to String
         const utf8String <>Bytes = loadFile(fileName)
         if utf8String.nothing?()
             return nothing
-        const utf8StringLength Int = utf8String.length~()
+        const utf8StringSizeInBytes Int = utf8String.length~()
         var positionInUTF8String Int = 0
         var result String = ""
-        for positionInUTF8String < utf8StringLength
+        for positionInUTF8String < utf8StringSizeInBytes
             var newChar Int = utf8String[positionInUTF8String]
             positionInUTF8String++
             if newChar > 127
                 if (newChar & 224) == 192
                     inthrow
-                        if positionInUTF8String == utf8StringLength
+                        if positionInUTF8String == utf8StringSizeInBytes
                             throw(enum::error_invalidCharacter, "Invalid character.")
                     var charPart Int = utf8String[positionInUTF8String]
                     positionInUTF8String++
@@ -393,7 +393,7 @@ attach String to String
                     newChar |= charPart ^ 128
                 elif (newChar & 240) == 224
                     inthrow
-                        if positionInUTF8String == utf8StringLength
+                        if positionInUTF8String == utf8StringSizeInBytes
                             throw(enum::error_invalidCharacter, "Invalid character.")
                     var charPart Int = utf8String[positionInUTF8String]
                     positionInUTF8String++
@@ -404,7 +404,7 @@ attach String to String
                     newChar <<= 6
                     newChar |= charPart ^ 128
                     inthrow
-                        if positionInUTF8String == utf8StringLength
+                        if positionInUTF8String == utf8StringSizeInBytes
                             throw(enum::error_invalidCharacter, "Invalid character.")
                     charPart = utf8String[positionInUTF8String]
                     positionInUTF8String++
@@ -477,17 +477,18 @@ attach String to BinarySerializable
 
     #alwaysinline
     def deserialize(noread type String, bytes Bytes, write position Int) String
-        const utf8String Bytes = Bytes.deserialize(bytes, position)
-        const utf8StringLength Int = utf8String.length~()
+        var currentPosition Int = position
+        const utf8String Bytes = Bytes.deserialize(bytes, currentPosition)
+        const utf8StringSizeInBytes Int = utf8String.length~()
         var positionInUTF8String Int = 0
         var result String = ""
-        for positionInUTF8String < utf8StringLength
+        for positionInUTF8String < utf8StringSizeInBytes
             var newChar Int = utf8String[positionInUTF8String]
             positionInUTF8String++
             if newChar > 127
                 if (newChar & 224) == 192
                     inthrow
-                        if positionInUTF8String == utf8StringLength
+                        if positionInUTF8String == utf8StringSizeInBytes
                             throw(enum::error_invalidCharacter, "Invalid character.")
                     var charPart Int = utf8String[positionInUTF8String]
                     positionInUTF8String++
@@ -499,7 +500,7 @@ attach String to BinarySerializable
                     newChar |= charPart ^ 128
                 elif (newChar & 240) == 224
                     inthrow
-                        if positionInUTF8String == utf8StringLength
+                        if positionInUTF8String == utf8StringSizeInBytes
                             throw(enum::error_invalidCharacter, "Invalid character.")
                     var charPart Int = utf8String[positionInUTF8String]
                     positionInUTF8String++
@@ -510,7 +511,7 @@ attach String to BinarySerializable
                     newChar <<= 6
                     newChar |= charPart ^ 128
                     inthrow
-                        if positionInUTF8String == utf8StringLength
+                        if positionInUTF8String == utf8StringSizeInBytes
                             throw(enum::error_invalidCharacter, "Invalid character.")
                     charPart = utf8String[positionInUTF8String]
                     positionInUTF8String++
@@ -522,6 +523,7 @@ attach String to BinarySerializable
                 else
                     throw(enum::error_invalidCharacter, "Invalid character.")
             result.addItem(newChar.unsafe_int_intToChar())
+        position = currentPosition
         return result
 
 #override(STD) alwaysinline
