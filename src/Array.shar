@@ -401,7 +401,7 @@ def quicksort(write array This, beginIndex, endEdge Int, rise Bool, randomNumber
                     exchange(currentIndex, oppositeIndex)
                     direction = !direction
                     cmpModifier = !cmpModifier
-                if (currentIndex - oppositeIndex).abs() == 1
+                if (currentIndex - oppositeIndex).inRange?(-1, 2)
                     end loop
                 oppositeIndex += direction
             const leftRangeLength Int = currentIndex - leftIndex
