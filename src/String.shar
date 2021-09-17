@@ -420,7 +420,7 @@ attach String to String
 
     #alwaysinline nothrow
     def saveToUTF8File(string, fileName String) Bool
-        var utf8String Bytes = Bytes.createEmpty()
+        var utf8String Bytes = Bytes()
         parse _, char = string
             const charAsInt Int = char.charToInt()
             if charAsInt < 0x80
@@ -461,7 +461,7 @@ def copy(write destination String, destinationPosition Int, source String, sourc
 attach String to BinarySerializable
     #alwaysinline nothrow
     def serialize(string String, write bytes Bytes)
-        var utf8String Bytes = Bytes.createEmpty()
+        var utf8String Bytes = Bytes()
         parse _, char = string
             const charAsInt Int = char.charToInt()
             if charAsInt < 0x80

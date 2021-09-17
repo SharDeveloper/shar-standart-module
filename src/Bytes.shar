@@ -7,6 +7,11 @@ module STD
 //@When comparing two arrays for more, less, equal, the comparison occurs from the beginning of the array to the end. Comparison takes place until the result is clear.
 export primitive Bytes
 
+//@The function creates an empty array of bytes.
+#alwaysinline nothrow
+export def Bytes() Bytes
+    return Bytes.createEmpty()
+
 #override(STD) alwaysinline
 def shar__rc_free(bytes Bytes)
     const counter Int = bytes.unsafe_getI64(0)
@@ -173,7 +178,7 @@ attach Bytes to Shar__sugar__getRange
         inthrow
             if !(from >= 0 && from <= to && to <= bytes.length~())
                 throw(enum::error_outOfRange, "Out of range.")
-        var result Bytes = Bytes.createEmpty()
+        var result Bytes = Bytes()
         const length Int = to - from
         if length != 0
             result = unsafe_bytes_createDummy(length)
@@ -238,7 +243,7 @@ attach Bytes to StringWriter
 
 attach Bytes to StringReader
     def fromString(noread type Bytes, string $String) Bytes
-        var result Bytes = Bytes.createEmpty()
+        var result Bytes = Bytes()
         var stringIsCorrect Bool = (string.length~() & 1) == 0
         if stringIsCorrect
             for :(index Int = 0) index < string.length~(); index += 2

@@ -9,6 +9,11 @@ export group Map: AArray, KeyTypeNumber
 //@A type that is a member of the "STD::Map" group.
 export primitive Map
 
+//@The function creates an empty associative array of the "STD::Map" type.
+#alwaysinline nothrow
+export def Map() Map
+    return Map.createEmpty()
+
 #override(STD)
 def shar__rc_free(map Map)
     const counter Int = map.unsafe_map_getCounter()
@@ -138,7 +143,7 @@ attach Map to Put
                 return nothing
             elif map.length~() == 1
                 oldValue.shar__rc_use()
-                map = Map.createEmpty()
+                map = Map()
                 return oldValue
         if map.use?()
             map = map.clone()

@@ -12,6 +12,11 @@ export group Set: Iterable, Empty, Shar__sugar__getItem
 //@A type is a set of items of the same type.
 export primitive Set
 
+//@The function creates an empty set.
+#alwaysinline nothrow
+export def Set() Set
+    return Set.createEmpty()
+
 #override(STD)
 def shar__rc_free(set Set)
     const counter Int = set.unsafe_set_getCounter()
@@ -239,7 +244,7 @@ attach Set to Set
         if !result
             return false
         elif set.length~() == 1
-            set = Set.createEmpty()
+            set = Set()
             return true
         if set.use?()
             set = set.clone()

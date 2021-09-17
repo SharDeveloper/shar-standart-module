@@ -6,6 +6,11 @@ export group Dict: AArray, KeyTypeNumber
 //@A type that is a member of the "STD::Dict" group.
 export primitive Dict
 
+//@The function creates an empty associative array of the "STD::Dict" type.
+#alwaysinline nothrow
+export def Dict() Dict
+    return Dict.createEmpty()
+
 #override(STD)
 def shar__rc_free(dict Dict)
     const counter Int = dict.unsafe_dict_getCounter()
@@ -134,7 +139,7 @@ attach Dict to Put
                 return nothing
             elif dict.length~() == 1
                 oldValue.shar__rc_use()
-                dict = Dict.createEmpty()
+                dict = Dict()
                 return oldValue
         if dict.use?()
             dict = dict.clone()

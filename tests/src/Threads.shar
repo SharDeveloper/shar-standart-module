@@ -44,9 +44,9 @@ def testThreads_Multithreaded(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testThreads_Pipeline(write ok Int, write errorsCoordinates List)
-    const p Pipeline = createPipeline()
-    const pOut PipelineOut = p.getPipelineOut()
-    const pIn PipelineIn = p.getPipelineIn()
+    const p Pipeline = Pipeline()
+    const pOut PipelineOut = PipelineOut(p)
+    const pIn PipelineIn = PipelineIn(p)
     var s1 String = "123".clone()
     const s2 String = s1
     var s3 String = "".clone()
@@ -103,12 +103,12 @@ def testThreads_Pipeline(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testThreads_Worker(write ok Int, write errorsCoordinates List)
-    var in Pipeline = createPipeline()
-    var out Pipeline = createPipeline()
+    var in Pipeline = Pipeline()
+    var out Pipeline = Pipeline()
     test: ok, errorsCoordinates
-        worker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
-        worker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
-        worker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+        worker(PipelineOut(in), PipelineIn(out)).nothing?()
+        worker(PipelineOut(in), PipelineIn(out)).nothing?()
+        worker(PipelineOut(in), PipelineIn(out)).nothing?()
     for :(counter Int = 1) counter < 1000; counter++
         in.push(counter).nothing?()
     var count Int = 0
@@ -130,12 +130,12 @@ def testThreads_Worker(write ok Int, write errorsCoordinates List)
     in.push(-1)
     in.push(-1)
     in.push(-1)
-    in = createPipeline()
-    out = createPipeline()
+    in = Pipeline()
+    out = Pipeline()
     test: ok, errorsCoordinates
-        waitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
-        waitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
-        waitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+        waitWorker(PipelineOut(in), PipelineIn(out)).nothing?()
+        waitWorker(PipelineOut(in), PipelineIn(out)).nothing?()
+        waitWorker(PipelineOut(in), PipelineIn(out)).nothing?()
     for :(counter Int = 1) counter < 1000; counter++
         in.push(counter).nothing?()
     count = 0
@@ -157,12 +157,12 @@ def testThreads_Worker(write ok Int, write errorsCoordinates List)
     in.push(-1)
     in.push(-1)
     in.push(-1)
-    in = createPipeline()
-    out = createPipeline()
+    in = Pipeline()
+    out = Pipeline()
     test: ok, errorsCoordinates
-        activeWaitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
-        activeWaitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
-        activeWaitWorker(in.getPipelineOut(), out.getPipelineIn()).nothing?()
+        activeWaitWorker(PipelineOut(in), PipelineIn(out)).nothing?()
+        activeWaitWorker(PipelineOut(in), PipelineIn(out)).nothing?()
+        activeWaitWorker(PipelineOut(in), PipelineIn(out)).nothing?()
     for :(counter Int = 1) counter < 1000; counter++
         in.push(counter).nothing?()
     count = 0

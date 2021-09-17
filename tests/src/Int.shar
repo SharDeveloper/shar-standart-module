@@ -963,7 +963,7 @@ def testInt_HexToInt(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testInt_BinarySerializable(write ok Int, write errorsCoordinates List)
-    var bytes Bytes = Bytes.createEmpty()
+    var bytes Bytes = Bytes()
     var position Int = 0
     test: ok, errorsCoordinates
         0.serialize(bytes).nothing?()

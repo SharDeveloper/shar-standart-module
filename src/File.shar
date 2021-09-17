@@ -248,7 +248,7 @@ export def fileReader(fileName String) <>FileReader
     const file <>File = openFile(fileName, enum::fmode_read)
     if file.nothing?()
         return nothing
-    return FileReader.fromList({file, Bytes.createEmpty(), 0, 0, fileSize})
+    return FileReader.fromList({file, Bytes(), 0, 0, fileSize})
 
 attach FileReader to Reader
     def readData(noread type $BinarySerializable, write reader FileReader) <>$BinarySerializable
@@ -320,7 +320,7 @@ export def fileWriter(fileName String, append Bool) <>FileWriter
     const file <>File = openFile(fileName, append.select(enum::fmode_append, enum::fmode_write))
     if file.nothing?()
         return nothing
-    return FileWriter.fromList({file, Bytes.createEmpty()})
+    return FileWriter.fromList({file, Bytes()})
 
 attach FileWriter to Writer
     def write(write writer FileWriter, data $BinarySerializable)
@@ -351,4 +351,4 @@ attach FileWriter to Writer
             buffer.delete(0, buffer.length~())
         flushFile(file)
         writer.typePut(0, file).type!(Nothing)
-        writer.typePut(1, Bytes.createEmpty()).type!(Nothing)
+        writer.typePut(1, Bytes()).type!(Nothing)

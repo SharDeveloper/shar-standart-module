@@ -97,14 +97,14 @@ def testMap(write ok Int, write errorsCoordinates List)
 def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
     var k String = "123".clone()
     var v String = "12".clone()
-    var d1 Map = Map.createEmpty()
+    var d1 Map = Map()
     test: ok, errorsCoordinates
         d1.put("0", v).nothing?()
         d1.put(k, v).nothing?()
         d1.put("2", "3").nothing?()
         k.unsafe_getI64(0) == 2
         v.unsafe_getI64(0) == 3
-    var d2 Map = Map.createEmpty()
+    var d2 Map = Map()
     test: ok, errorsCoordinates
         d2.put(k, d1).nothing?()
         d2.put("1", d1).nothing?()
@@ -122,14 +122,14 @@ def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
         k.unsafe_getI64(0) == 3
         v.unsafe_getI64(0) == 3
         count == 2
-    var d3 Map = Map.createEmpty()
+    var d3 Map = Map()
     test: ok, errorsCoordinates
         d3.put("0", v).nothing?()
         d3.put(k, v).nothing?()
         d3.put("2", "3").nothing?()
         k.unsafe_getI64(0) == 4
         v.unsafe_getI64(0) == 5
-    var d4 Map = Map.createEmpty()
+    var d4 Map = Map()
     test: ok, errorsCoordinates
         d4.put(k, d3).nothing?()
         d4.put("1", d3).nothing?()
@@ -152,7 +152,7 @@ def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
         unsafe_map_getCounter(d2) == 1
         k.unsafe_getI64(0) == 5
         v.unsafe_getI64(0) == 5
-    d2 = Map.createEmpty()
+    d2 = Map()
     test: ok, errorsCoordinates
         unsafe_map_getCounter(d1) == 1
         unsafe_map_getCounter(d2) == 0
@@ -187,14 +187,14 @@ def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
         !d2.constant?()
     k = k.clone()
     v = v.clone()
-    d1 = Map.createEmpty()
+    d1 = Map()
     test: ok, errorsCoordinates
         d1.put("0", v).nothing?()
         d1.put(k, v).nothing?()
         d1.put("2", "3").nothing?()
         k.unsafe_getI64(0) == 2
         v.unsafe_getI64(0) == 3
-    d2 = Map.createEmpty()
+    d2 = Map()
     test: ok, errorsCoordinates
         d2.put(k, d1).nothing?()
         d2.put("1", d1).nothing?()
@@ -215,14 +215,14 @@ def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
         v.unsafe_getI64(0) == 0
     k = k.clone()
     v = v.clone()
-    d1 = Map.createEmpty()
+    d1 = Map()
     test: ok, errorsCoordinates
         d1.put("0", v).nothing?()
         d1.put(k, v).nothing?()
         d1.put("2", "3").nothing?()
         k.unsafe_getI64(0) == 2
         v.unsafe_getI64(0) == 3
-    d2 = Map.createEmpty()
+    d2 = Map()
     test: ok, errorsCoordinates
         d2.put(k, d1).nothing?()
         d2.put("1", d1).nothing?()
@@ -244,7 +244,7 @@ def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
         d1.put(k, nothing) == v
         k.unsafe_getI64(0) == 1
         v.unsafe_getI64(0) == 1
-    d1 = Map.createEmpty()
+    d1 = Map()
     test: ok, errorsCoordinates
         d1.put("0", v).nothing?()
         d1.put(k, v).nothing?()
@@ -255,8 +255,8 @@ def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         d1.put("123", "") == v
         d2.put("123", "") == v
-    d1 = Map.createEmpty()
-    d2 = Map.createEmpty()
+    d1 = Map()
+    d2 = Map()
     test: ok, errorsCoordinates
         k.unsafe_getI64(0) == 1
         v.unsafe_getI64(0) == 1
@@ -312,8 +312,8 @@ def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testMap_Part1(write ok Int, write errorsCoordinates List)
-    const ed Map = Map.createEmpty()
-    var d Map = Map.createEmpty()
+    const ed Map = Map()
+    var d Map = Map()
     var s String = "123".clone()
     test: ok, errorsCoordinates
         ed.length~() == 0
@@ -459,7 +459,7 @@ def testMap_Part1(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testMap_Part2(write ok Int, write errorsCoordinates List)
-    var d Map = Map.createEmpty()
+    var d Map = Map()
     var allOk Bool = true
     try
         parse _, _ = d
@@ -549,7 +549,7 @@ def testMap_Part2(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testMap_Part3(write ok Int, write errorsCoordinates List)
-    var d Map = Map.createEmpty()
+    var d Map = Map()
     var a Array = []
     for :(index Int = 0) index < 200; index++
         a += [Int.getRandom(), Int.getRandom()]
@@ -620,7 +620,7 @@ def testMap_Part3(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testMap_Part4(write ok Int, write errorsCoordinates List)
-    var d Map = Map.createEmpty()
+    var d Map = Map()
     var allOk Bool = false
     try
         for :(index Int = 0) index < 200; index++
@@ -701,7 +701,7 @@ def testMap_Part4(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testMap_Dump(write ok Int, write errorsCoordinates List)
-    var d Map = Map.createEmpty()
+    var d Map = Map()
     test: ok, errorsCoordinates
         d.dump(0) == "Type: STD::Map = []\n"
         d.dump(1) == "  Type: STD::Map = []\n"

@@ -295,7 +295,7 @@ export def loadFile(fileName String) <>Bytes
     const file <>File = openFile(fileName, enum::fmode_read)
     if file.nothing?()
         return nothing
-    var result Bytes = Bytes.createEmpty()
+    var result Bytes = Bytes()
     if readDataFromFile(file, fileSize, result) != fileSize
         return nothing
     return result
@@ -397,7 +397,7 @@ export def listDirectory(directoryName String, recursive Bool) <>Array
             unreachable()
         result.addItem{
             (
-                fsObject(
+                FSObject(
                     fsObjectName,
                     type,
                     (type == enum::fsot_dir).select(

@@ -93,7 +93,7 @@ def testSet(write ok Int, write errorsCoordinates List)
 def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
     var k String = "123".clone()
     var v String = "12".clone()
-    var d1 Set = Set.createEmpty()
+    var d1 Set = Set()
     test: ok, errorsCoordinates
         !d1.add(v)
         !d1.add(k)
@@ -119,7 +119,7 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
         v.unsafe_getI64(0) == 2
         count == 3
     var d2 Array = [d1, d1]
-    var d3 Set = Set.createEmpty()
+    var d3 Set = Set()
     d2.same()
     test: ok, errorsCoordinates
         !d3.add(v)
@@ -178,7 +178,7 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
         !d3.constant?()
     k = k.clone()
     v = v.clone()
-    d1 = Set.createEmpty()
+    d1 = Set()
     test: ok, errorsCoordinates
         !d1.add(v)
         !d1.add(k)
@@ -195,7 +195,7 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
         d1.remove(v)
         k.unsafe_getI64(0) == 1
         v.unsafe_getI64(0) == 1
-    d1 = Set.createEmpty()
+    d1 = Set()
     test: ok, errorsCoordinates
         !d1.add(k)
         !d1.add(v)
@@ -206,8 +206,8 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         d1.add("123")
         d3.add("123")
-    d1 = Set.createEmpty()
-    d3 = Set.createEmpty()
+    d1 = Set()
+    d3 = Set()
     test: ok, errorsCoordinates
         k.unsafe_getI64(0) == 1
         v.unsafe_getI64(0) == 1
@@ -263,8 +263,8 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testSet_Part1(write ok Int, write errorsCoordinates List)
-    const ed Set = Set.createEmpty()
-    var d Set = Set.createEmpty()
+    const ed Set = Set()
+    var d Set = Set()
     var s String = "123".clone()
     test: ok, errorsCoordinates
         ed.length~() == 0
@@ -365,7 +365,7 @@ def testSet_Part1(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testSet_Part2(write ok Int, write errorsCoordinates List)
-    var d Set = Set.createEmpty()
+    var d Set = Set()
     var allOk Bool = true
     try
         parse _, _ = d
@@ -466,7 +466,7 @@ def testSet_Part2(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testSet_Part3(write ok Int, write errorsCoordinates List)
-    var d Set = Set.createEmpty()
+    var d Set = Set()
     var a Array = []
     for :(index Int = 0) index < 200; index++
         a += [Int.getRandom()]
@@ -548,7 +548,7 @@ def testSet_Part3(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testSet_Part4(write ok Int, write errorsCoordinates List)
-    var d Set = Set.createEmpty()
+    var d Set = Set()
     var allOk Bool = false
     try
         for :(index Int = 0) index < 200; index++
@@ -640,7 +640,7 @@ def testSet_Part4(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testSet_Dump(write ok Int, write errorsCoordinates List)
-    var d Set = Set.createEmpty()
+    var d Set = Set()
     test: ok, errorsCoordinates
         d.dump(0) == "Type: STD::Set = []\n"
         d.dump(1) == "  Type: STD::Set = []\n"

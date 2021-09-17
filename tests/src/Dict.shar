@@ -96,14 +96,14 @@ def testDict(write ok Int, write errorsCoordinates List)
 def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
     var k String = "123".clone()
     var v String = "12".clone()
-    var d1 Dict = Dict.createEmpty()
+    var d1 Dict = Dict()
     test: ok, errorsCoordinates
         d1.put("0", v).nothing?()
         d1.put(k, v).nothing?()
         d1.put("2", 3).nothing?()
         k.unsafe_getI64(0) == 2
         v.unsafe_getI64(0) == 3
-    var d2 Dict = Dict.createEmpty()
+    var d2 Dict = Dict()
     test: ok, errorsCoordinates
         d2.put(k, d1).nothing?()
         d2.put("1", k).nothing?()
@@ -123,14 +123,14 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
         k.unsafe_getI64(0) == 4
         v.unsafe_getI64(0) == 4
         count == 3
-    var d3 Dict = Dict.createEmpty()
+    var d3 Dict = Dict()
     test: ok, errorsCoordinates
         d3.put("0", v).nothing?()
         d3.put(k, v).nothing?()
         d3.put("2", 3).nothing?()
         k.unsafe_getI64(0) == 5
         v.unsafe_getI64(0) == 6
-    var d4 Dict = Dict.createEmpty()
+    var d4 Dict = Dict()
     test: ok, errorsCoordinates
         d4.put(k, d3).nothing?()
         d4.put("1", k).nothing?()
@@ -154,7 +154,7 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
         unsafe_dict_getCounter(d2) == 1
         k.unsafe_getI64(0) == 7
         v.unsafe_getI64(0) == 7
-    d2 = Dict.createEmpty()
+    d2 = Dict()
     test: ok, errorsCoordinates
         unsafe_dict_getCounter(d1) == 1
         unsafe_dict_getCounter(d2) == 0
@@ -189,14 +189,14 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
         !d2.constant?()
     k = k.clone()
     v = v.clone()
-    d1 = Dict.createEmpty()
+    d1 = Dict()
     test: ok, errorsCoordinates
         d1.put("0", v).nothing?()
         d1.put(k, v).nothing?()
         d1.put("2", 3).nothing?()
         k.unsafe_getI64(0) == 2
         v.unsafe_getI64(0) == 3
-    d2 = Dict.createEmpty()
+    d2 = Dict()
     test: ok, errorsCoordinates
         d2.put(k, d1).nothing?()
         d2.put("1", k).nothing?()
@@ -218,14 +218,14 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
         v.unsafe_getI64(0) == 0
     k = k.clone()
     v = v.clone()
-    d1 = Dict.createEmpty()
+    d1 = Dict()
     test: ok, errorsCoordinates
         d1.put("0", v).nothing?()
         d1.put(k, v).nothing?()
         d1.put("2", 3).nothing?()
         k.unsafe_getI64(0) == 2
         v.unsafe_getI64(0) == 3
-    d2 = Dict.createEmpty()
+    d2 = Dict()
     test: ok, errorsCoordinates
         d2.put(k, d1).nothing?()
         d2.put("1", k).nothing?()
@@ -252,7 +252,7 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
         d2.put("2", nothing) == v
         k.unsafe_getI64(0) == 1
         v.unsafe_getI64(0) == 1
-    d1 = Dict.createEmpty()
+    d1 = Dict()
     test: ok, errorsCoordinates
         d1.put("0", v).nothing?()
         d1.put(k, v).nothing?()
@@ -263,8 +263,8 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         d1.put("123", "") == v
         d2.put("123", "") == v
-    d1 = Dict.createEmpty()
-    d2 = Dict.createEmpty()
+    d1 = Dict()
+    d2 = Dict()
     test: ok, errorsCoordinates
         k.unsafe_getI64(0) == 1
         v.unsafe_getI64(0) == 1
@@ -320,8 +320,8 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testDict_Part1(write ok Int, write errorsCoordinates List)
-    const ed Dict = Dict.createEmpty()
-    var d Dict = Dict.createEmpty()
+    const ed Dict = Dict()
+    var d Dict = Dict()
     var s String = "123".clone()
     test: ok, errorsCoordinates
         ed.length~() == 0
@@ -450,7 +450,7 @@ def testDict_Part1(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testDict_Part2(write ok Int, write errorsCoordinates List)
-    var d Dict = Dict.createEmpty()
+    var d Dict = Dict()
     var allOk Bool = true
     try
         parse _, _ = d
@@ -539,7 +539,7 @@ def testDict_Part2(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testDict_Part3(write ok Int, write errorsCoordinates List)
-    var d Dict = Dict.createEmpty()
+    var d Dict = Dict()
     var a Array = []
     for :(index Int = 0) index < 200; index++
         a += [Int.getRandom(), Int.getRandom()]
@@ -610,7 +610,7 @@ def testDict_Part3(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testDict_Part4(write ok Int, write errorsCoordinates List)
-    var d Dict = Dict.createEmpty()
+    var d Dict = Dict()
     var allOk Bool = false
     try
         for :(index Int = 0) index < 200; index++
@@ -691,7 +691,7 @@ def testDict_Part4(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testDict_Dump(write ok Int, write errorsCoordinates List)
-    var d Dict = Dict.createEmpty()
+    var d Dict = Dict()
     test: ok, errorsCoordinates
         d.dump(0) == "Type: STD::Dict = []\n"
         d.dump(1) == "  Type: STD::Dict = []\n"

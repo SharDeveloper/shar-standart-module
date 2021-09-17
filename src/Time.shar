@@ -5,7 +5,7 @@ export primitive Time
 
 //@The function creates an object of the "STD::Time" type, which stores the time specified using the arguments.
 //@If the time specified in the arguments is not correct, or if a time is specified that the "STD::Time" type cannot store, then the function returns an error with the "enum::STD::error_outOfRange" code.
-export def time(year, month, day, hour, minute, second Int) Time
+export def Time(year, month, day, hour, minute, second Int) Time
     if {
         year.inRange?(1970, 292277026597) &&
         month.inRange?(1, 13) &&
@@ -735,7 +735,7 @@ attach Time to StringReader
                 const minute Int = (charToInt(str[index + 3]) - charToInt('0')) * 10 + charToInt(str[index + 4]) - charToInt('0')
                 const second Int = (charToInt(str[index + 6]) - charToInt('0')) * 10 + charToInt(str[index + 7]) - charToInt('0')
                 try
-                    return time(year, month, day, hour, minute, second)
+                    return Time(year, month, day, hour, minute, second)
                 catch
                     nothing
         throw(enum::error_readFromString, "Reading from the string caused an error.")

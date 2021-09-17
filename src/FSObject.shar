@@ -81,7 +81,7 @@ export def fsoSubObjects~(fsObject FSObject) <>Array
     return fsObject.typeGetItem(2)
 
 #alwaysinline nothrow
-def fsObject(name String, type Int, subObjects <>Array) FSObject
+def FSObject(name String, type Int, subObjects <>Array) FSObject
     if type == enum::fsot_dir
         return FSObject.fromList({name, type, subObjects})
     return FSObject.fromList({name, type})
