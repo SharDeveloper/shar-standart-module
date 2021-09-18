@@ -173,6 +173,15 @@ export def unsafe_setValue(write object, value $Any)
         ret [2 x i64] zeroinitializer
 
 #alwaysinline nothrow
+export def unsafe_object(typeNumber, value $Any) $Any
+    llvm
+        %##nreg##type number## = extractvalue [2 x i64] %0, 1
+        %##nreg##value## = extractvalue [2 x i64] %1, 1
+        %##nreg##half result## = insertvalue [2 x i64] undef, i64 %##reg##type number##, 0
+        %##nreg##result## = insertvalue [2 x i64] %##reg##half result##, i64 %##reg##value##, 1
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
 export def unsafe_memcpyI8(destination, source, count $Any)
     llvm
         %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
@@ -481,3 +490,13 @@ export def unsafe_offsetI64(address, index $Any) Int
         %##nreg##result value## = ptrtoint i64* %##reg##result value i64*## to i64
         %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
         ret [2 x i64] %##reg##result##
+
+#alwaysinline nothrow
+export def unsafe_use_object(typeNumber, value $Any)
+    llvm
+        %##nreg##type number## = extractvalue [2 x i64] %0, 1
+        %##nreg##value## = extractvalue [2 x i64] %1, 1
+        %##nreg##half object## = insertvalue [2 x i64] undef, i64 %##reg##type number##, 0
+        %##nreg##object## = insertvalue [2 x i64] %##reg##half object##, i64 %##reg##value##, 1
+        %##nreg##unneeded## = call [2 x i64] ##ancntfunc##STD::shar__rc_use##([2 x i64] %##reg##object##)
+        ret [2 x i64] zeroinitializer
