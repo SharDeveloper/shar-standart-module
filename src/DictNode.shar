@@ -43,10 +43,9 @@ def unsafe_dictNode_clone(node, keyTypeNumber $Any) DictNode
         for :(hashPartIndex Int = 0) hashPartIndex < hashPartsCount; hashPartIndex++
             node.unsafe_dictNode_useKeysAndValuesWithSameHashPart(hashPartIndex, keyTypeNumber)
     const nodeSizeInI16 Int = hashPartsCount * 5 + 4
-    var result $Any = unsafe_malloc(nodeSizeInI16 * 2)
+    const result DictNode = unsafe_object(DictNode.typeNumber~(), unsafe_malloc(nodeSizeInI16 * 2))
     unsafe_memcpyI16(result, node, nodeSizeInI16)
     result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
-    result.unsafe_setType(DictNode.typeNumber~())
     for :(hashPartIndex Int = 0) hashPartIndex < hashPartsCount; hashPartIndex++
         const sourceArray Int = node.unsafe_getI64(hashPartIndex + 1)
         const countOfItems Int = sourceArray.unsafe_getI64(0)
@@ -107,21 +106,16 @@ def unsafe_dictNode_getValueByHash(node, hashPart, key, write keysIndex, write k
         const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
         const keysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(1)
         for :(keyInNodeIndex Int = 0) keyInNodeIndex < countOfKeysAndValuesWithSameHashPart; keyInNodeIndex++
-            var keyInNode $Any = keysAndValuesWithSameHashPart.unsafe_getI64(keyInNodeIndex * 3)
-            keyInNode.unsafe_setType(key.typeNumber~())
             found = false
             try
-                found = keyInNode == key
+                found = unsafe_equal(key.typeNumber~(), keysAndValuesWithSameHashPart.unsafe_getI64(keyInNodeIndex * 3), key.typeNumber~(), key)
             catch id, message
-                keyInNode.unsafe_setType(Int.typeNumber~())
                 keysEqualError = {id, message}
                 return nothing
-            keyInNode.unsafe_setType(Int.typeNumber~())
             if found
                 keyIndex = keyInNodeIndex
-                var result $Any = 0
-                keysAndValuesWithSameHashPart.unsafe_offsetI64(keyInNodeIndex * 3 + 1).unsafe_get2xI64(0, result)
-                return result
+                const offset Int = keyInNodeIndex * 3 + 1
+                return unsafe_object(keysAndValuesWithSameHashPart.unsafe_getI64(offset), keysAndValuesWithSameHashPart.unsafe_getI64(offset + 1))
     return nothing
 
 #inline nothrow
@@ -130,11 +124,10 @@ def unsafe_dictNode_createNewNode(hashPart, key, value $Any) DictNode
     countAndKeyAndValue.unsafe_setI64(0, 1)
     countAndKeyAndValue.unsafe_setI64(1, key)
     countAndKeyAndValue.unsafe_set2xI64(1, value)
-    var result $Any = unsafe_malloc(18)
+    const result DictNode = unsafe_object(DictNode.typeNumber~(), unsafe_malloc(18))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, countAndKeyAndValue)
     result.unsafe_setI16(8, hashPart)
-    result.unsafe_setType(DictNode.typeNumber~())
     return result
 
 #unsafewrite nothrow
@@ -143,8 +136,7 @@ def unsafe_dictNode_deleteValue(write node, keysIndex, keyIndex, keyTypeNumber $
     var keysAndValuesWithSameHashPart_withCount Int = keysAndValues.unsafe_getI64(keysIndex)
     const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
     const keyAddress Int = keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(keyIndex * 3 + 1)
-    var key $Any = keyAddress.unsafe_getI64(0)
-    key.unsafe_setType(keyTypeNumber)
+    const freeKeyValue Int = keyAddress.unsafe_getI64(0)
     if countOfKeysAndValuesWithSameHashPart == 1
         keysAndValuesWithSameHashPart_withCount.unsafe_free()
         const hashPartsCount Int = node.unsafe_dictNode_getHashPartsCount()
@@ -166,6 +158,7 @@ def unsafe_dictNode_deleteValue(write node, keysIndex, keyIndex, keyTypeNumber $
         unsafe_memmoveI64(keyAddress, lastKeyAddress, 3)
         keysAndValuesWithSameHashPart_withCount.unsafe_realloc(lastIndexOffset * 8)
         keysAndValues.unsafe_setI64(keysIndex, keysAndValuesWithSameHashPart_withCount)
+    unsafe_object(keyTypeNumber, freeKeyValue)
 
 #inline unsafewrite nothrow
 def unsafe_dictNode_addKVWithNewHashCode(write node, hashPart, keysInsertIndex, key, value $Any)
@@ -201,8 +194,7 @@ def unsafe_dictNode_addKVWithExistedHashCode(node, keysIndex, keyIndex, key, val
     else
         const newKeyAddress Int = keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(keyIndex * 3 + 1)
         const newValueAddress Int = newKeyAddress.unsafe_offsetI64(1)
-        var oldKey $Any = newKeyAddress.unsafe_getI64(0)
-        oldKey.unsafe_setType(key.typeNumber~())
+        unsafe_object(key.typeNumber~(), newKeyAddress.unsafe_getI64(0))
         newKeyAddress.unsafe_setI64(0, key)
         newValueAddress.unsafe_set2xI64(0, value)
 
@@ -211,33 +203,21 @@ def unsafe_dictNode_keysAndValuesWithSameHashPartToConst(node, keysAndValuesInde
     const keysAndValuesWithSameHashPart_withCount Int = node.unsafe_getI64(keysAndValuesIndex + 1)
     const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
     for :(keyOffset Int = 1) keyOffset < countOfKeysAndValuesWithSameHashPart * 3; keyOffset += 3
-        var key $Any = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset)
-        key.unsafe_setType(keyTypeNumber)
-        key.shar__to_const()
-        var value $Any = 0
-        keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(keyOffset + 1).unsafe_get2xI64(0, value)
-        value.shar__to_const()
+        unsafe_object(keyTypeNumber, keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset)).shar__to_const()
+        unsafe_object(keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset + 1), keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset + 2)).shar__to_const()
 
 #alwaysinline nothrow
 def unsafe_dictNode_useKeysAndValuesWithSameHashPart(node, keysAndValuesIndex, keyTypeNumber $Any)
     const keysAndValuesWithSameHashPart_withCount Int = node.unsafe_getI64(keysAndValuesIndex + 1)
     const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
     for :(keyOffset Int = 1) keyOffset < countOfKeysAndValuesWithSameHashPart * 3; keyOffset += 3
-        var key $Any = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset)
-        key.unsafe_setType(keyTypeNumber)
-        key.shar__rc_use()
-        key.unsafe_setType(Int.typeNumber~())
-        var value $Any = 0
-        keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(keyOffset + 1).unsafe_get2xI64(0, value)
-        value.shar__rc_use()
-        value.unsafe_setType(Int.typeNumber~())
+        unsafe_use_object(keyTypeNumber, keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset))
+        unsafe_use_object(keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset + 1), keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset + 2))
 
 #alwaysinline nothrow
 def unsafe_dictNode_freeKeysAndValuesWithSameHashPart(node, keysAndValuesIndex, keyTypeNumber $Any)
     const keysAndValuesWithSameHashPart_withCount Int = node.unsafe_getI64(keysAndValuesIndex + 1)
     const countOfKeysAndValuesWithSameHashPart Int = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(0)
     for :(keyOffset Int = 1) keyOffset < countOfKeysAndValuesWithSameHashPart * 3; keyOffset += 3
-        var key $Any = keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset)
-        key.unsafe_setType(keyTypeNumber)
-        var value $Any = 0
-        keysAndValuesWithSameHashPart_withCount.unsafe_offsetI64(keyOffset + 1).unsafe_get2xI64(0, value)
+        unsafe_object(keyTypeNumber, keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset))
+        unsafe_object(keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset + 1), keysAndValuesWithSameHashPart_withCount.unsafe_getI64(keyOffset + 2))

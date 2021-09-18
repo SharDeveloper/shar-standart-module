@@ -46,44 +46,10 @@ def map_toGood(int TestMap_BadInt) Int
 
 #alwaysinline nothrow
 def map_toBad(int Int) TestMap_BadInt
-    var result $Any = int
-    result.unsafe_setType(TestMap_BadInt.typeNumber~())
-    return result
+    return unsafe_object(TestMap_BadInt.typeNumber~(), int)
 
 def unsafe_map_getCounter(map $Any) Int
     return map.unsafe_getI64(0) & 0xffffffffffff
-
-def mapPrintln(map Map)
-    if map.empty?()
-        "Map: empty".println()
-        return
-    "Map: ".println()
-    ("  counter: " + (map.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
-    ("  count of nodes: " + map.unsafe_getI16(3).toString()).println()
-    ("  count of items: " + map.unsafe_getI64(1).toString()).println()
-    ("  key type: " + map.unsafe_getI64(2).getTypeName()).println()
-    ("  value type: " + map.unsafe_getI64(3).getTypeName()).println()
-    "  Nodes:".println()
-    for :(index Int = 0) index < map.unsafe_getI16(3); index++
-        ("    Node with hash part " + map.unsafe_getI8(32 + map.unsafe_getI16(3) * 8 + index).toString() + ": ").println()
-        (map.unsafe_getI64(index + 4).mapNodePrint(map.unsafe_getI64(2), map.unsafe_getI64(3)))
-
-def mapNodePrint(node, keyTypeNumber, valueTypeNumber $Any)
-    ("      counter: " + (node.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
-    ("      count of hash parts: " + (node.unsafe_getI16(3) + 1).toString()).println()
-    for :(index Int = 0) index <= node.unsafe_getI16(3); index++
-        const keysAndValues Int = node.unsafe_getI64(1 + index)
-        ("      Keys and values with hash part " + node.unsafe_getI16(4 + node.unsafe_getI16(3) * 4 + index).toString() + ": ").println()
-        ("        Count of keys and values: " + keysAndValues.unsafe_getI64(0).toString()).println()
-        ("        Keys and values:").println()
-        for :(keyIndex Int = 0) keyIndex < keysAndValues.unsafe_getI64(0); keyIndex++
-            var key $Any = keysAndValues.unsafe_getI64(keyIndex * 2 + 1)
-            key.unsafe_setType(keyTypeNumber)
-            var value $Any = keysAndValues.unsafe_getI64(keyIndex * 2 + 2)
-            value.unsafe_setType(valueTypeNumber)
-            ("          Key " + (keyIndex + 1).toString() + ": " + key.toString() + "\n          Value " + (keyIndex + 1).toString() + ": " + value.toString()).println()
-            key.unsafe_setType(Int.typeNumber~())
-            value.unsafe_setType(Int.typeNumber~())
 
 def testMap(write ok Int, write errorsCoordinates List)
     testMap_MemoryManagement(ok, errorsCoordinates)

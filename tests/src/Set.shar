@@ -46,40 +46,10 @@ def set_toGood(int TestSet_BadInt) Int
 
 #alwaysinline nothrow
 def set_toBad(int Int) TestSet_BadInt
-    var result $Any = int
-    result.unsafe_setType(TestSet_BadInt.typeNumber~())
-    return result
+    return unsafe_object(TestSet_BadInt.typeNumber~(), int)
 
 def unsafe_set_getCounter(set $Any) Int
     return set.unsafe_getI64(0) & 0xffffffffffff
-
-def setPrintln(set Set)
-    if set.empty?()
-        "Set: empty".println()
-        return
-    "Set: ".println()
-    ("  counter: " + (set.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
-    ("  count of nodes: " + set.unsafe_getI16(3).toString()).println()
-    ("  count of items: " + set.unsafe_getI64(1).toString()).println()
-    ("  item type: " + set.unsafe_getI64(2).getTypeName()).println()
-    "  Nodes:".println()
-    for :(index Int = 0) index < set.unsafe_getI16(3); index++
-        ("    Node with hash part " + set.unsafe_getI8(24 + set.unsafe_getI8(3) * 8 + index).toString() + ": ").println()
-        (set.unsafe_getI64(index + 3).setNodePrint(set.unsafe_getI64(2)))
-
-def setNodePrint(node, itemTypeNumber $Any)
-    ("      counter: " + (node.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
-    ("      count of hash parts: " + (node.unsafe_getI16(3) + 1).toString()).println()
-    for :(index Int = 0) index <= node.unsafe_getI16(3); index++
-        const items Int = node.unsafe_getI64(1 + index)
-        ("      Items and values with hash part " + node.unsafe_getI16(4 + node.unsafe_getI16(3) * 4 + index).toString() + ": ").println()
-        ("        Count of items and values: " + items.unsafe_getI64(0).toString()).println()
-        ("        Items and values:").println()
-        for :(itemIndex Int = 0) itemIndex < items.unsafe_getI64(0); itemIndex++
-            var item $Any = items.unsafe_getI64(itemIndex + 1)
-            item.unsafe_setType(itemTypeNumber)
-            ("          Item " + (itemIndex + 1).toString() + ": " + item.toString()).println()
-            item.unsafe_setType(Int.typeNumber~())
 
 def testSet(write ok Int, write errorsCoordinates List)
     testSet_MemoryManagement(ok, errorsCoordinates)

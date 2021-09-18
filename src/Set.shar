@@ -66,10 +66,9 @@ def clone(set Set) Set
         if nodeCounter != 0
             node.unsafe_setNode_setCounter(nodeCounter + 1)
     const setSizeInI8 Int = hashPartsCount * 9 + 24
-    var result $Any = unsafe_malloc(setSizeInI8)
+    const result $Any = unsafe_object(Set.typeNumber~(), unsafe_malloc(setSizeInI8))
     unsafe_memcpyI8(result, set, setSizeInI8)
     result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
-    result.unsafe_setType(Set.typeNumber~())
     return result
 
 #override(STD)
@@ -154,8 +153,7 @@ attach Set to Iterable
         const itemIndex Int = index >> 25
         const node SetNode = set.unsafe_set_getNodeByIndex(nodeIndex)
         const array Int = node.unsafe_getI64(1 + arrayIndex)
-        var item $Any = array.unsafe_getI64(itemIndex + 1)
-        item.unsafe_setType(set.itemTypeNumber~())
+        const item $Any = unsafe_object(set.itemTypeNumber~(), array.unsafe_getI64(itemIndex + 1))
         item.shar__rc_use()
         return item
 
@@ -166,8 +164,7 @@ attach Set to Iterable
         const itemIndex Int = index >> 25
         const node SetNode = set.unsafe_set_getNodeByIndex(nodeIndex)
         const array Int = node.unsafe_getI64(1 + arrayIndex)
-        var item $Any = array.unsafe_getI64(itemIndex + 1)
-        item.unsafe_setType(set.itemTypeNumber~())
+        const item $Any = unsafe_object(set.itemTypeNumber~(), array.unsafe_getI64(itemIndex + 1))
         item.shar__rc_use()
         return item
 
@@ -280,9 +277,7 @@ def unsafe_set_getHashPartsCount(set $Any) Int
 
 #alwaysinline nothrow
 def unsafe_set_getNodeByIndex(set, index $Any) SetNode
-    var result $Any = set.unsafe_getI64(index + 3)
-    result.unsafe_setType(SetNode.typeNumber~())
-    return result
+    return unsafe_object(SetNode.typeNumber~(), set.unsafe_getI64(index + 3))
 
 #alwaysinline unsafewrite nothrow
 def unsafe_set_getNodeByHash(set, hashPart, write nodeIndex, write nodeInsertIndex $Any) <>SetNode
@@ -301,18 +296,14 @@ def unsafe_set_getNodeByHash(set, hashPart, write nodeIndex, write nodeInsertInd
             const centerHashPart Int = hashParts.unsafe_getI8(centerIndex)
             if centerHashPart == hashPart
                 nodeIndex = centerIndex
-                var result $Any = nodes.unsafe_getI64(centerIndex)
-                result.unsafe_setType(SetNode.typeNumber~())
-                return result
+                return unsafe_object(SetNode.typeNumber~(), nodes.unsafe_getI64(centerIndex))
             if centerHashPart < hashPart
                 leftIndex = centerIndex + 1
             else
                 rightEdge = centerIndex
     elif hashPartsCount == 256
         nodeIndex = hashPart
-        var result $Any = nodes.unsafe_getI64(hashPart)
-        result.unsafe_setType(SetNode.typeNumber~())
-        return result
+        return unsafe_object(SetNode.typeNumber~(), nodes.unsafe_getI64(hashPart))
     else
         nodeInsertIndex = 0
     return nothing

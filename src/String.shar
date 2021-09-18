@@ -55,10 +55,9 @@ def dump(string String, level Int) String
 
 #alwaysinline nothrow
 def unsafe_string_createDummy(length $Any) String
-    var result $Any = unsafe_malloc(length * 2 + 16)
+    const result String = unsafe_object(String.typeNumber~(), unsafe_malloc(length * 2 + 16))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, length)
-    result.unsafe_setType(String.typeNumber~())
     return result
 
 attach String to Equal

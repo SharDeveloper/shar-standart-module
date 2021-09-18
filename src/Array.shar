@@ -132,8 +132,7 @@ attach Array to Shar__sugar__getItem
 
 #alwaysinline nothrow
 def unsafe_array_getItem(array, index $Any) $Any
-    var result $Any = array.unsafe_getI64(index + 3)
-    result.unsafe_setType(array.unsafe_getI64(2))
+    const result $Any = unsafe_object(array.unsafe_getI64(2), array.unsafe_getI64(index + 3))
     result.shar__rc_use()
     return result
 
@@ -300,19 +299,16 @@ attach Array to Container
 
 #alwaysinline nothrow
 def unsafe_array_setItem(array, index, newItem $Any)
-    const offset Int = index + 3
-    var oldItem $Any = array.unsafe_getI64(offset)
-    oldItem.unsafe_setType(array.unsafe_getI64(2))
     newItem.shar__rc_use()
-    array.unsafe_setI64(offset, newItem)
+    unsafe_object(array.unsafe_getI64(2), array.unsafe_getI64(index + 3))
+    array.unsafe_setI64(index + 3, newItem)
 
 #alwaysinline nothrow
 def unsafe_array_createDummy(length, itemTypeNumber $Any) Array
-    var result $Any = unsafe_malloc(length * 8 + 24)
+    const result Array = unsafe_object(Array.typeNumber~(), unsafe_malloc(length * 8 + 24))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, length)
     result.unsafe_setI64(2, itemTypeNumber)
-    result.unsafe_setType(Array.typeNumber~())
     return result
 
 #alwaysinline nothrow

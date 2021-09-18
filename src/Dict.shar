@@ -60,10 +60,9 @@ def clone(dict Dict) Dict
         if nodeCounter != 0
             node.unsafe_dictNode_setCounter(nodeCounter + 1)
     const dictSizeInI8 Int = hashPartsCount * 9 + 24
-    var result $Any = unsafe_malloc(dictSizeInI8)
+    const result Dict = unsafe_object(Dict.typeNumber~(), unsafe_malloc(dictSizeInI8))
     unsafe_memcpyI8(result, dict, dictSizeInI8)
     result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
-    result.unsafe_setType(Dict.typeNumber~())
     return result
 
 #override(STD)
@@ -191,9 +190,7 @@ def unsafe_dict_getHashPartsCount(dict $Any) Int
 
 #alwaysinline nothrow
 def unsafe_dict_getNodeByIndex(dict, index $Any) DictNode
-    var result $Any = dict.unsafe_getI64(index + 3)
-    result.unsafe_setType(DictNode.typeNumber~())
-    return result
+    return unsafe_object(DictNode.typeNumber~(), dict.unsafe_getI64(index + 3))
 
 #alwaysinline unsafewrite nothrow
 def unsafe_dict_getNodeByHash(dict, hashPart, write nodeIndex, write nodeInsertIndex $Any) <>DictNode
@@ -212,18 +209,14 @@ def unsafe_dict_getNodeByHash(dict, hashPart, write nodeIndex, write nodeInsertI
             const centerHashPart Int = hashParts.unsafe_getI8(centerIndex)
             if centerHashPart == hashPart
                 nodeIndex = centerIndex
-                var result $Any = nodes.unsafe_getI64(centerIndex)
-                result.unsafe_setType(DictNode.typeNumber~())
-                return result
+                return unsafe_object(DictNode.typeNumber~(), nodes.unsafe_getI64(centerIndex))
             if centerHashPart < hashPart
                 leftIndex = centerIndex + 1
             else
                 rightEdge = centerIndex
     elif hashPartsCount == 256
         nodeIndex = hashPart
-        var result $Any = nodes.unsafe_getI64(hashPart)
-        result.unsafe_setType(DictNode.typeNumber~())
-        return result
+        return unsafe_object(DictNode.typeNumber~(), nodes.unsafe_getI64(hashPart))
     else
         nodeInsertIndex = 0
     return nothing
@@ -293,8 +286,7 @@ attach Dict to Iterable
         const keyIndex Int = index >> 25
         const node DictNode = dict.unsafe_dict_getNodeByIndex(nodeIndex)
         const array Int = node.unsafe_getI64(1 + arrayIndex)
-        var key $Any = array.unsafe_getI64(3 * keyIndex + 1)
-        key.unsafe_setType(dict.keyTypeNumber~())
+        const key $Any = unsafe_object(dict.keyTypeNumber~(), array.unsafe_getI64(3 * keyIndex + 1))
         key.shar__rc_use()
         return key
 
@@ -305,8 +297,8 @@ attach Dict to Iterable
         const keyIndex Int = index >> 25
         const node DictNode = dict.unsafe_dict_getNodeByIndex(nodeIndex)
         const array Int = node.unsafe_getI64(1 + arrayIndex)
-        var value $Any = nothing
-        array.unsafe_offsetI64(3 * keyIndex + 2).unsafe_get2xI64(0, value)
+        const offset Int = 3 * keyIndex + 2
+        const value $Any = unsafe_object(array.unsafe_getI64(offset), array.unsafe_getI64(offset + 1))
         value.shar__rc_use()
         return value
 

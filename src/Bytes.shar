@@ -51,10 +51,9 @@ def dump(bytes Bytes, level Int) String
 
 #alwaysinline nothrow
 def unsafe_bytes_createDummy(length $Any) Bytes
-    var result $Any = unsafe_malloc(length + 16)
+    const result Bytes = unsafe_object(Bytes.typeNumber~(), unsafe_malloc(length + 16))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, length)
-    result.unsafe_setType(Bytes.typeNumber~())
     return result
 
 attach Bytes to Equal

@@ -46,43 +46,10 @@ def dict_toGood(int TestDict_BadInt) Int
 
 #alwaysinline nothrow
 def dict_toBad(int Int) TestDict_BadInt
-    var result $Any = int
-    result.unsafe_setType(TestDict_BadInt.typeNumber~())
-    return result
+    return unsafe_object(TestDict_BadInt.typeNumber~(), int)
 
 def unsafe_dict_getCounter(dict $Any) Int
     return dict.unsafe_getI64(0) & 0xffffffffffff
-
-def dictPrintln(dict Dict)
-    if dict.empty?()
-        "Dict: empty".println()
-        return
-    "Dict: ".println()
-    ("  counter: " + (dict.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
-    ("  count of nodes: " + dict.unsafe_getI16(3).toString()).println()
-    ("  count of items: " + dict.unsafe_getI64(1).toString()).println()
-    ("  key type: " + dict.unsafe_getI64(2).getTypeName()).println()
-    "  Nodes:".println()
-    for :(index Int = 0) index < dict.unsafe_getI16(3); index++
-        ("    Node with hash part " + dict.unsafe_getI8(24 + dict.unsafe_getI16(3) * 8 + index).toString() + ": ").println()
-        (dict.unsafe_getI64(index + 3).dictNodePrint(dict.unsafe_getI64(2)))
-
-def dictNodePrint(node, keyTypeNumber $Any)
-    ("      counter: " + (node.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
-    ("      count of hash parts: " + (node.unsafe_getI16(3) + 1).toString()).println()
-    for :(index Int = 0) index <= node.unsafe_getI16(3); index++
-        const keysAndValues Int = node.unsafe_getI64(1 + index)
-        ("      Keys and values with hash part " + node.unsafe_getI16(4 + node.unsafe_getI16(3) * 4 + index).toString() + ": ").println()
-        ("        Count of keys and values: " + keysAndValues.unsafe_getI64(0).toString()).println()
-        ("        Keys and values:").println()
-        for :(keyIndex Int = 0) keyIndex < keysAndValues.unsafe_getI64(0); keyIndex++
-            var key $Any = keysAndValues.unsafe_getI64(keyIndex * 3 + 1)
-            key.unsafe_setType(keyTypeNumber)
-            var value $Any = 0
-            keysAndValues.unsafe_offsetI64(keyIndex * 3 + 2).unsafe_get2xI64(0, value)
-            ("          Key " + (keyIndex + 1).toString() + ": " + key.toString() + "\n          Value " + (keyIndex + 1).toString() + ": " + value.toString()).println()
-            key.unsafe_setType(Int.typeNumber~())
-            value.unsafe_setType(Int.typeNumber~())
 
 def testDict(write ok Int, write errorsCoordinates List)
     testDict_MemoryManagement(ok, errorsCoordinates)

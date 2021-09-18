@@ -43,10 +43,9 @@ def unsafe_setNode_clone(node, itemTypeNumber $Any) SetNode
         for :(hashPartIndex Int = 0) hashPartIndex < hashPartsCount; hashPartIndex++
             node.unsafe_setNode_useItemsWithSameHashPart(hashPartIndex, itemTypeNumber)
     const nodeSizeInI16 Int = hashPartsCount * 5 + 4
-    var result $Any = unsafe_malloc(nodeSizeInI16 * 2)
+    const result SetNode = unsafe_object(SetNode.typeNumber~(), unsafe_malloc(nodeSizeInI16 * 2))
     unsafe_memcpyI16(result, node, nodeSizeInI16)
     result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
-    result.unsafe_setType(SetNode.typeNumber~())
     for :(hashPartIndex Int = 0) hashPartIndex < hashPartsCount; hashPartIndex++
         const sourceArray Int = node.unsafe_getI64(hashPartIndex + 1)
         const countOfItems Int = sourceArray.unsafe_getI64(0)
@@ -107,16 +106,12 @@ def unsafe_setNode_itemExist?(node, hashPart, item, write itemsIndex, write item
         const countOfItemsWithSameHashPart Int = itemsWithSameHashPart_withCount.unsafe_getI64(0)
         const itemsWithSameHashPart Int = itemsWithSameHashPart_withCount.unsafe_offsetI64(1)
         for :(itemInNodeIndex Int = 0) itemInNodeIndex < countOfItemsWithSameHashPart; itemInNodeIndex++
-            var itemInNode $Any = itemsWithSameHashPart.unsafe_getI64(itemInNodeIndex)
-            itemInNode.unsafe_setType(item.typeNumber~())
             found = false
             try
-                found = itemInNode == item
+                found = unsafe_equal(item.typeNumber~(), itemsWithSameHashPart.unsafe_getI64(itemInNodeIndex), item.typeNumber~(), item)
             catch id, message
-                itemInNode.unsafe_setType(Int.typeNumber~())
                 itemsEqualError = {id, message}
                 return false
-            itemInNode.unsafe_setType(Int.typeNumber~())
             if found
                 itemIndex = itemInNodeIndex
                 return true
@@ -127,11 +122,10 @@ def unsafe_setNode_createNewNode(hashPart, item $Any) SetNode
     const countAndItem Int = unsafe_malloc(16)
     countAndItem.unsafe_setI64(0, 1)
     countAndItem.unsafe_setI64(1, item)
-    var result $Any = unsafe_malloc(18)
+    const result SetNode = unsafe_object(SetNode.typeNumber~(), unsafe_malloc(18))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, countAndItem)
     result.unsafe_setI16(8, hashPart)
-    result.unsafe_setType(SetNode.typeNumber~())
     return result
 
 #inline unsafewrite nothrow
@@ -140,8 +134,7 @@ def unsafe_setNode_deleteItem(write node, itemsIndex, itemIndex, itemTypeNumber 
     var itemsWithSameHashPart_withCount Int = items.unsafe_getI64(itemsIndex)
     const countOfItemsWithSameHashPart Int = itemsWithSameHashPart_withCount.unsafe_getI64(0)
     const itemAddress Int = itemsWithSameHashPart_withCount.unsafe_offsetI64(itemIndex + 1)
-    var item $Any = itemAddress.unsafe_getI64(0)
-    item.unsafe_setType(itemTypeNumber)
+    const freeItemValue Int = itemAddress.unsafe_getI64(0)
     if countOfItemsWithSameHashPart == 1
         itemsWithSameHashPart_withCount.unsafe_free()
         const hashPartsCount Int = node.unsafe_setNode_getHashPartsCount()
@@ -161,6 +154,7 @@ def unsafe_setNode_deleteItem(write node, itemsIndex, itemIndex, itemTypeNumber 
         itemAddress.unsafe_setI64(0, itemsWithSameHashPart_withCount.unsafe_getI64(countOfItemsWithSameHashPart))
         itemsWithSameHashPart_withCount.unsafe_realloc(countOfItemsWithSameHashPart * 8)
         items.unsafe_setI64(itemsIndex, itemsWithSameHashPart_withCount)
+    unsafe_object(itemTypeNumber, freeItemValue)
 
 #inline unsafewrite nothrow
 def unsafe_setNode_addItemWithNewHashCode(write node, hashPart, itemsInsertIndex, item $Any)
@@ -190,8 +184,7 @@ def unsafe_setNode_addItemWithExistedHashCode(node, itemsIndex, itemIndex, item 
         node.unsafe_setI64(itemsIndex + 1, itemsWithSameHashPart_withCount)
         itemsWithSameHashPart_withCount.unsafe_setI64(newItemOffset, item)
     else
-        var oldItem $Any = itemsWithSameHashPart_withCount.unsafe_getI64(itemIndex + 1)
-        oldItem.unsafe_setType(item.typeNumber~())
+        unsafe_object(item.typeNumber~(), itemsWithSameHashPart_withCount.unsafe_getI64(itemIndex + 1))
         itemsWithSameHashPart_withCount.unsafe_setI64(itemIndex + 1, item)
 
 #alwaysinline nothrow
@@ -199,24 +192,18 @@ def unsafe_setNode_itemsWithSameHashPartToConst(node, itemsIndex, itemTypeNumber
     const itemsWithSameHashPart_withCount Int = node.unsafe_getI64(itemsIndex + 1)
     const countOfItemsWithSameHashPart Int = itemsWithSameHashPart_withCount.unsafe_getI64(0)
     for :(itemOffset Int = 1) itemOffset <= countOfItemsWithSameHashPart; itemOffset++
-        var item $Any = itemsWithSameHashPart_withCount.unsafe_getI64(itemOffset)
-        item.unsafe_setType(itemTypeNumber)
-        item.shar__to_const()
+        unsafe_object(itemTypeNumber, itemsWithSameHashPart_withCount.unsafe_getI64(itemOffset)).shar__to_const()
 
 #alwaysinline nothrow
 def unsafe_setNode_useItemsWithSameHashPart(node, itemsIndex, itemTypeNumber $Any)
     const itemsWithSameHashPart_withCount Int = node.unsafe_getI64(itemsIndex + 1)
     const countOfItemsWithSameHashPart Int = itemsWithSameHashPart_withCount.unsafe_getI64(0)
     for :(itemOffset Int = 1) itemOffset <= countOfItemsWithSameHashPart; itemOffset++
-        var item $Any = itemsWithSameHashPart_withCount.unsafe_getI64(itemOffset)
-        item.unsafe_setType(itemTypeNumber)
-        item.shar__rc_use()
-        item.unsafe_setType(Int.typeNumber~())
+        unsafe_use_object(itemTypeNumber, itemsWithSameHashPart_withCount.unsafe_getI64(itemOffset))
 
 #alwaysinline nothrow
 def unsafe_setNode_freeItemsWithSameHashPart(node, itemsIndex, itemTypeNumber $Any)
     const itemsWithSameHashPart_withCount Int = node.unsafe_getI64(itemsIndex + 1)
     const countOfItemsWithSameHashPart Int = itemsWithSameHashPart_withCount.unsafe_getI64(0)
     for :(itemOffset Int = 1) itemOffset <= countOfItemsWithSameHashPart; itemOffset++
-        var item $Any = itemsWithSameHashPart_withCount.unsafe_getI64(itemOffset)
-        item.unsafe_setType(itemTypeNumber)
+        unsafe_object(itemTypeNumber, itemsWithSameHashPart_withCount.unsafe_getI64(itemOffset))

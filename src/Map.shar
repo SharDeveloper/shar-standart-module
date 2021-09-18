@@ -63,10 +63,9 @@ def clone(map Map) Map
         if nodeCounter != 0
             node.unsafe_mapNode_setCounter(nodeCounter + 1)
     const mapSizeInI8 Int = hashPartsCount * 9 + 32
-    var result $Any = unsafe_malloc(mapSizeInI8)
+    const result Map = unsafe_object(Map.typeNumber~(), unsafe_malloc(mapSizeInI8))
     unsafe_memcpyI8(result, map, mapSizeInI8)
     result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
-    result.unsafe_setType(Map.typeNumber~())
     return result
 
 #override(STD)
@@ -196,9 +195,7 @@ def unsafe_map_getHashPartsCount(map $Any) Int
 
 #alwaysinline nothrow
 def unsafe_map_getNodeByIndex(map, index $Any) MapNode
-    var result $Any = map.unsafe_getI64(index + 4)
-    result.unsafe_setType(MapNode.typeNumber~())
-    return result
+    return unsafe_object(MapNode.typeNumber~(), map.unsafe_getI64(index + 4))
 
 #alwaysinline unsafewrite nothrow
 def unsafe_map_getNodeByHash(map, hashPart, write nodeIndex, write nodeInsertIndex $Any) <>MapNode
@@ -217,18 +214,14 @@ def unsafe_map_getNodeByHash(map, hashPart, write nodeIndex, write nodeInsertInd
             const centerHashPart Int = hashParts.unsafe_getI8(centerIndex)
             if centerHashPart == hashPart
                 nodeIndex = centerIndex
-                var result $Any = nodes.unsafe_getI64(centerIndex)
-                result.unsafe_setType(MapNode.typeNumber~())
-                return result
+                return unsafe_object(MapNode.typeNumber~(), nodes.unsafe_getI64(centerIndex))
             if centerHashPart < hashPart
                 leftIndex = centerIndex + 1
             else
                 rightEdge = centerIndex
     elif hashPartsCount == 256
         nodeIndex = hashPart
-        var result $Any = nodes.unsafe_getI64(hashPart)
-        result.unsafe_setType(MapNode.typeNumber~())
-        return result
+        return unsafe_object(MapNode.typeNumber~(), nodes.unsafe_getI64(hashPart))
     else
         nodeInsertIndex = 0
     return nothing
@@ -293,8 +286,7 @@ attach Map to Iterable
         const keyIndex Int = index >> 25
         const node MapNode = map.unsafe_map_getNodeByIndex(nodeIndex)
         const array Int = node.unsafe_getI64(1 + arrayIndex)
-        var key $Any = array.unsafe_getI64(2 * keyIndex + 1)
-        key.unsafe_setType(map.keyTypeNumber~())
+        const key $Any = unsafe_object(map.keyTypeNumber~(), array.unsafe_getI64(2 * keyIndex + 1))
         key.shar__rc_use()
         return key
 
@@ -305,8 +297,7 @@ attach Map to Iterable
         const keyIndex Int = index >> 25
         const node MapNode = map.unsafe_map_getNodeByIndex(nodeIndex)
         const array Int = node.unsafe_getI64(1 + arrayIndex)
-        var value $Any = array.unsafe_getI64(2 * (keyIndex + 1))
-        value.unsafe_setType(map.valueTypeNumber~())
+        const value $Any = unsafe_object(map.valueTypeNumber~(), array.unsafe_getI64(2 * (keyIndex + 1)))
         value.shar__rc_use()
         return value
 
