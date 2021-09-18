@@ -241,7 +241,7 @@ def unsafe_file_setFilePosition(file, position $Any) Bool
 
 //@The function opens the file for reading it in parts.
 //@If the file can not be opened, the function returns "nothing".
-export def fileReader(fileName String) <>FileReader
+export def FileReader(fileName String) <>FileReader
     const fileSize <>Int = getFileSize(fileName)
     if fileSize.nothing?()
         return nothing
@@ -316,7 +316,7 @@ attach FileReader to Reader
 //@If the file could not be created or opened, the function returns "nothing".
 //@If the second argument of the function is "true" and the file exists, then the data will be written to the end of the existing ones.
 //@If the second argument of the function is "false" and the file exists, then all existing data from the file will be deleted.
-export def fileWriter(fileName String, append Bool) <>FileWriter
+export def FileWriter(fileName String, append Bool) <>FileWriter
     const file <>File = openFile(fileName, append.select(enum::fmode_append, enum::fmode_write))
     if file.nothing?()
         return nothing
