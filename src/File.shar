@@ -251,7 +251,7 @@ export def FileReader(fileName String) <>FileReader
     return FileReader.fromList({file, Bytes(), 0, 0, fileSize})
 
 attach FileReader to Reader
-    def readData(noread type $BinarySerializable, write reader FileReader) <>$BinarySerializable
+    def readData(write reader FileReader, noread type $BinarySerializable) <>$BinarySerializable
         if reader.use?()
             throw(enum::error_notASingleCopy, "Not a single copy.")
         const file File = reader.typePut(0, nothing)

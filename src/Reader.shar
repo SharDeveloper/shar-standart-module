@@ -5,12 +5,12 @@ export group Reader
     //@The function reads data from some source.
     //@The function returns "nothing" if it failed to get the data.
     //@The function is used only to add types to the group, to read data use the "STD::read" function.
-    readData(noread $BinarySerializable, write This) <>$BinarySerializable
+    readData(write This, noread $BinarySerializable) <>$BinarySerializable
     //@The function returns "true" if there is nothing more to read, otherwise it returns "false".
     end?(This) Bool
 
 //@The function reads data from some source.
 //@The function returns "nothing" if it failed to get the data.
 #this(BinarySerializable) unsafewrite
-export def read(noread type This, write reader $Reader) <>This
-    return readData(type, reader)
+export def read(write reader $Reader, noread type This) <>This
+    return readData(reader, type)
