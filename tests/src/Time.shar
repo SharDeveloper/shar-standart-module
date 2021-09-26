@@ -21,64 +21,67 @@ def testTime_Any(write ok Int, write errorsCoordinates List)
         2.intToTime().constant?() == false
         3.intToTime().clone() == 3.intToTime()
         100.intToTime().clone() == 100.intToTime()
+        100.intToTime().dump(0) == ("Type: STD::Time = " + 100.intToTime().toString() + "\n")
+        100.intToTime().dump(1) == ("  Type: STD::Time = " + 100.intToTime().toString() + "\n")
+        100.intToTime().dump(2) == ("    Type: STD::Time = " + 100.intToTime().toString() + "\n")
 
 #noinline
 def testTime_Time(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        time(2048599, 6, 28, 1, 38, 56).timeToInt() == 64585388540336
-        time(2563656, 9, 6, 21, 43, 43).timeToInt() == 80839023745423
-        time(4436113, 12, 16, 1, 22, 16).timeToInt() == 139928067998536
-        time(1115545, 8, 18, 6, 10, 19).timeToInt() == 35141052636619
-        time(5439295, 1, 25, 15, 24, 50).timeToInt() == 171585406221890
-        time(820054, 5, 17, 13, 0, 4).timeToInt() == 25816249371604
-        time(4668702, 2, 9, 19, 31, 14).timeToInt() == 147267841116674
-        time(5225877, 11, 20, 19, 35, 43).timeToInt() == 164850610476943
-        time(2004, 2, 29, 12, 18, 35).timeToInt() == 1078057115
-        time(2004, 2, 28, 12, 18, 35).timeToInt() == 1077970715
-        time(2003, 2, 28, 0, 18, 35).timeToInt() == 1046391515
-        time(2333, 12, 31, 7, 18, 35).timeToInt() == 11486647115
-        time(1976, 4, 10, 14, 28, 16).timeToInt() == 197994496
-        time(1974, 3, 8, 7, 44, 1).timeToInt() == 131960641
-        time(1974, 6, 20, 2, 20, 32).timeToInt() == 140926832
-        time(1977, 1, 22, 22, 4, 56).timeToInt() == 222818696
-        time(1979, 4, 14, 16, 6, 46).timeToInt() == 292954006
-        time(1978, 8, 5, 3, 43, 27).timeToInt() == 271136607
-        time(1973, 7, 19, 19, 37, 23).timeToInt() == 111958643
-        time(1976, 10, 27, 16, 37, 38).timeToInt() == 215282258
-        time(1980, 2, 29, 12, 18, 35).timeToInt() == 320674715
-        time(1980, 2, 28, 12, 18, 35).timeToInt() == 320588315
-        time(1983, 2, 28, 12, 18, 35).timeToInt() == 415282715
-        time(1999, 12, 31, 7, 18, 35).timeToInt() == 946624715
-        time(1970, 1, 1, 0, 0, 0).timeToInt() == 0
-        time(1969, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1900, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        time(-1, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        time(-9223372036854775808, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        time(0, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 0, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 13, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 9223372036854775807, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, -1, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 32, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 9223372036854775807, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 0, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, -1, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, -9223372036854775808, 7, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 25, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 9223372036854775807, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 12, -1, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 12, -9223372036854775808, 18, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 0, 60, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 0, 9223372036854775807, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 0, -1, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 0, -9223372036854775808, 35).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 0, 0, 60).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 0, 0, 9223372036854775807).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 0, 0, -1).timeToInt() : error_outOfRange
-        time(1970, 3, 12, 0, 0, -9223372036854775808).timeToInt() : error_outOfRange
-        time(1969, 0, 0, -1, 61, 61).timeToInt() : error_outOfRange
-        time(1970, 2, 29, 0, 0, 0).timeToInt() : error_outOfRange
-        time(1970, 4, 31, 0, 0, 0).timeToInt() : error_outOfRange
+        Time(2048599, 6, 28, 1, 38, 56).timeToInt() == 64585388540336
+        Time(2563656, 9, 6, 21, 43, 43).timeToInt() == 80839023745423
+        Time(4436113, 12, 16, 1, 22, 16).timeToInt() == 139928067998536
+        Time(1115545, 8, 18, 6, 10, 19).timeToInt() == 35141052636619
+        Time(5439295, 1, 25, 15, 24, 50).timeToInt() == 171585406221890
+        Time(820054, 5, 17, 13, 0, 4).timeToInt() == 25816249371604
+        Time(4668702, 2, 9, 19, 31, 14).timeToInt() == 147267841116674
+        Time(5225877, 11, 20, 19, 35, 43).timeToInt() == 164850610476943
+        Time(2004, 2, 29, 12, 18, 35).timeToInt() == 1078057115
+        Time(2004, 2, 28, 12, 18, 35).timeToInt() == 1077970715
+        Time(2003, 2, 28, 0, 18, 35).timeToInt() == 1046391515
+        Time(2333, 12, 31, 7, 18, 35).timeToInt() == 11486647115
+        Time(1976, 4, 10, 14, 28, 16).timeToInt() == 197994496
+        Time(1974, 3, 8, 7, 44, 1).timeToInt() == 131960641
+        Time(1974, 6, 20, 2, 20, 32).timeToInt() == 140926832
+        Time(1977, 1, 22, 22, 4, 56).timeToInt() == 222818696
+        Time(1979, 4, 14, 16, 6, 46).timeToInt() == 292954006
+        Time(1978, 8, 5, 3, 43, 27).timeToInt() == 271136607
+        Time(1973, 7, 19, 19, 37, 23).timeToInt() == 111958643
+        Time(1976, 10, 27, 16, 37, 38).timeToInt() == 215282258
+        Time(1980, 2, 29, 12, 18, 35).timeToInt() == 320674715
+        Time(1980, 2, 28, 12, 18, 35).timeToInt() == 320588315
+        Time(1983, 2, 28, 12, 18, 35).timeToInt() == 415282715
+        Time(1999, 12, 31, 7, 18, 35).timeToInt() == 946624715
+        Time(1970, 1, 1, 0, 0, 0).timeToInt() == 0
+        Time(1969, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1900, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(-1, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(-9223372036854775808, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(0, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 0, 31, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 13, 31, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 9223372036854775807, 31, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, -1, 31, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 32, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 9223372036854775807, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 0, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, -1, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, -9223372036854775808, 7, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 25, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 9223372036854775807, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, -1, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, -9223372036854775808, 18, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 60, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 9223372036854775807, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, -1, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, -9223372036854775808, 35).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 0, 60).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 0, 9223372036854775807).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 0, -1).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 0, -9223372036854775808).timeToInt() : error_outOfRange
+        Time(1969, 0, 0, -1, 61, 61).timeToInt() : error_outOfRange
+        Time(1970, 2, 29, 0, 0, 0).timeToInt() : error_outOfRange
+        Time(1970, 4, 31, 0, 0, 0).timeToInt() : error_outOfRange
 
 #noinline
 def testTime_DisassembleTime(write ok Int, write errorsCoordinates List)
@@ -189,6 +192,15 @@ def testTime_Ordered(write ok Int, write errorsCoordinates List)
         !(1.intToTime() <= 0.intToTime())
         !(9223372036854775807.intToTime() <= 0.intToTime())
         !(9223372036854775807.intToTime() <= 9223372036854775806.intToTime())
+        compare(0.intToTime(), 1.intToTime()) == enum::ord_less
+        compare(0.intToTime(), 9223372036854775807.intToTime()) == enum::ord_less
+        compare(9223372036854775806.intToTime(), 9223372036854775807.intToTime()) == enum::ord_less
+        compare(0.intToTime(), 0.intToTime()) == enum::ord_equal
+        compare(1.intToTime(), 1.intToTime()) == enum::ord_equal
+        compare(9223372036854775807.intToTime(), 9223372036854775807.intToTime()) == enum::ord_equal
+        compare(1.intToTime(), 0.intToTime()) == enum::ord_great
+        compare(9223372036854775807.intToTime(), 0.intToTime()) == enum::ord_great
+        compare(9223372036854775807.intToTime(), 9223372036854775806.intToTime()) == enum::ord_great
 
 #noinline
 def testTime_StringWriter(write ok Int, write errorsCoordinates List)
@@ -276,7 +288,7 @@ def testTime_Hashable(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testTime_BinarySerializable(write ok Int, write errorsCoordinates List)
-    var bytes Bytes = Bytes.createEmpty()
+    var bytes Bytes = Bytes()
     var position Int = 0
     test: ok, errorsCoordinates
         0.intToTime().serialize(bytes).nothing?()

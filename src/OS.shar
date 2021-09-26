@@ -295,7 +295,7 @@ export def loadFile(fileName String) <>Bytes
     const file <>File = openFile(fileName, enum::fmode_read)
     if file.nothing?()
         return nothing
-    var result Bytes = Bytes.createEmpty()
+    var result Bytes = Bytes()
     if readDataFromFile(file, fileSize, result) != fileSize
         return nothing
     return result
@@ -397,7 +397,7 @@ export def listDirectory(directoryName String, recursive Bool) <>Array
             unreachable()
         result.addItem{
             (
-                fsObject(
+                FSObject(
                     fsObjectName,
                     type,
                     (type == enum::fsot_dir).select(
@@ -474,4 +474,39 @@ export def makeDirectory(directoryName String, ignoreExistedDirectory Bool) Bool
         %##nreg##result i1## = call i1 @shar__make__directory(i64 %##reg##name length##, i16* %##reg##name chars##, i1 %##reg##ignoreExistedDirectory##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
         %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
+
+//@The function returns the system language code according to the "ISO 639-1" standard
+#alwaysinline nothrow
+export def osLanguage() String
+    var result String = unsafe_string_createDummy(2)
+    unsafe_os_osLanguage(result.unsafe_offsetI64(2))
+    return result
+
+#alwaysinline nothrow
+def unsafe_os_osLanguage(chars $Any)
+    llvm
+        %##nreg##chars## = extractvalue [2 x i64] %0, 1
+        %##nreg##char 0 pointer## = inttoptr i64 %##reg##chars## to i16*
+        %##nreg##char 1 pointer## = getelementptr i16, i16* %##reg##char 0 pointer##, i64 1
+        %##nreg##lang code## = call i16 @shar__get__language__code()
+        %##nreg##char 0## = and i16 %##reg##lang code##, 255
+        %##nreg##char 1## = lshr i16 %##reg##lang code##, 8
+        store i16 %##reg##char 0##, i16* %##reg##char 0 pointer##, align 2
+        store i16 %##reg##char 1##, i16* %##reg##char 1 pointer##, align 2
+        ret [2 x i64] zeroinitializer
+
+//@The function returns the number of processor cores.
+#alwaysinline nothrow
+export def getCPUCoresNumber() Int
+    llvm
+        %##nreg##result i64## = call i64 @shar__get__cpu__cores__number()
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
+
+//@The function returns the number of running threads.
+export def getActiveThreadsNumber() Int
+    llvm
+        %##nreg##result i64## = call i64 @shar__get__threads__number()
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
         ret [2 x i64] %##reg##result##

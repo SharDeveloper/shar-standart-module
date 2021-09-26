@@ -24,6 +24,10 @@ def testReal_Any(write ok Int, write errorsCoordinates List)
         1.0.use?() == false
         1.0.constant?() == false
         3.1.clone() == 3.1
+        3.1.dump(0) == "Type: STD::Real = " + 3.1.toString() + "\n"
+        3.1.dump(1) == "  Type: STD::Real = " + 3.1.toString() + "\n"
+        (0.1 / 0.0).dump(0) == "Type: STD::Real = " + (0.1 / 0.0).toString() + "\n"
+        (0.1 / 0.0).dump(1) == "  Type: STD::Real = " + (0.1 / 0.0).toString() + "\n"
 
 #noinline
 def testReal_Equal(write ok Int, write errorsCoordinates List)
@@ -92,6 +96,18 @@ def testReal_Ordered(write ok Int, write errorsCoordinates List)
         !(1.0 <= -1.0)
         0.0 <= (0.0 / 0.0) : error_compareWithNaN
         (0.0 / 0.0) <= 0.0 : error_compareWithNaN
+        compare(0.0, 0.0) == enum::ord_equal
+        compare(1.0, 1.0) == enum::ord_equal
+        compare(-1.0, 0.0) == enum::ord_less
+        compare(-0.0, 0.0) == enum::ord_equal
+        compare(-1.0, -0.0) == enum::ord_less
+        compare(-1.0, 1.0) == enum::ord_less
+        compare(0.0, -1.0) == enum::ord_great
+        compare(-0.0, -1.0) == enum::ord_great
+        compare(0.9, 0.1) == enum::ord_great
+        compare(1.0, -1.0) == enum::ord_great
+        compare(0.0, (0.0 / 0.0)) : error_compareWithNaN
+        compare((0.0 / 0.0), 0.0) : error_compareWithNaN
 
 #noinline
 def testReal_Number(write ok Int, write errorsCoordinates List)
@@ -773,7 +789,7 @@ def testReal_RealToInt(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testReal_BinarySerializable(write ok Int, write errorsCoordinates List)
-    var bytes Bytes = Bytes.createEmpty()
+    var bytes Bytes = Bytes()
     var position Int = 0
     test: ok, errorsCoordinates
         0.intAsReal_testReal().serialize(bytes).nothing?()

@@ -5,7 +5,7 @@ export primitive Time
 
 //@The function creates an object of the "STD::Time" type, which stores the time specified using the arguments.
 //@If the time specified in the arguments is not correct, or if a time is specified that the "STD::Time" type cannot store, then the function returns an error with the "enum::STD::error_outOfRange" code.
-export def time(year, month, day, hour, minute, second Int) Time
+export def Time(year, month, day, hour, minute, second Int) Time
     if {
         year.inRange?(1970, 292277026597) &&
         month.inRange?(1, 13) &&
@@ -478,6 +478,10 @@ def constant?(time Time) Bool
 def clone(time Time) Time
     return time
 
+#override(STD) nothrow
+def dump(time Time, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Time = " + time.toString() + "\n"
+
 attach Time to Equal
 
 attach Time to Shar__sugar__equal
@@ -491,6 +495,17 @@ attach Time to Shar__sugar__notEqual
         return timeToInt(time1) != timeToInt(time2)
 
 attach Time to Ordered
+    #alwaysinline nothrow
+    def compare(time1, time2 Time) Int
+        llvm
+            %##nreg##time1## = extractvalue [2 x i64] %0, 1
+            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##less## = icmp ult i64 %##reg##time1##, %##reg##time2##
+            %##nreg##equal## = icmp eq i64 %##reg##time1##, %##reg##time2##
+            %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
+            %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
 
 attach Time to Shar__sugar__great
     #alwaysinline nothrow
@@ -720,7 +735,7 @@ attach Time to StringReader
                 const minute Int = (charToInt(str[index + 3]) - charToInt('0')) * 10 + charToInt(str[index + 4]) - charToInt('0')
                 const second Int = (charToInt(str[index + 6]) - charToInt('0')) * 10 + charToInt(str[index + 7]) - charToInt('0')
                 try
-                    return time(year, month, day, hour, minute, second)
+                    return Time(year, month, day, hour, minute, second)
                 catch
                     nothing
         throw(enum::error_readFromString, "Reading from the string caused an error.")

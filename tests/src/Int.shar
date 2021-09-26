@@ -20,6 +20,7 @@ def testInt(write ok Int, write errorsCoordinates List)
     testInt_IntToHex(ok, errorsCoordinates)
     testInt_HexToInt(ok, errorsCoordinates)
     testInt_BinarySerializable(ok, errorsCoordinates)
+    testInt_Dump(ok, errorsCoordinates)
 
 #noinline
 def testInt_Any(write ok Int, write errorsCoordinates List)
@@ -134,6 +135,27 @@ def testInt_Ordered(write ok Int, write errorsCoordinates List)
         !(9223372036854775807 <= -9223372036854775807)
         !(9223372036854775807 <= -9223372036854775808)
         !(-9223372036854775807 <= -9223372036854775808)
+        compare(-9223372036854775808, 0) == enum::ord_less
+        compare(-1, 0) == enum::ord_less
+        compare(0, 1) == enum::ord_less
+        compare(0, 9223372036854775807) == enum::ord_less
+        compare(9223372036854775806, 9223372036854775807) == enum::ord_less
+        compare(-9223372036854775807, 9223372036854775807) == enum::ord_less
+        compare(-9223372036854775808, 9223372036854775807) == enum::ord_less
+        compare(-9223372036854775808, -9223372036854775807) == enum::ord_less
+        compare(-1, -1) == enum::ord_equal
+        compare(0, 0) == enum::ord_equal
+        compare(1, 1) == enum::ord_equal
+        compare(9223372036854775807, 9223372036854775807) == enum::ord_equal
+        compare(-9223372036854775808, -9223372036854775808) == enum::ord_equal
+        compare(0, -9223372036854775808) == enum::ord_great
+        compare(0, -1) == enum::ord_great
+        compare(1, 0) == enum::ord_great
+        compare(9223372036854775807, 0) == enum::ord_great
+        compare(9223372036854775807, 9223372036854775806) == enum::ord_great
+        compare(9223372036854775807, -9223372036854775807) == enum::ord_great
+        compare(9223372036854775807, -9223372036854775808) == enum::ord_great
+        compare(-9223372036854775807, -9223372036854775808) == enum::ord_great
 
 #noinline
 def testInt_Number(write ok Int, write errorsCoordinates List)
@@ -941,7 +963,7 @@ def testInt_HexToInt(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testInt_BinarySerializable(write ok Int, write errorsCoordinates List)
-    var bytes Bytes = Bytes.createEmpty()
+    var bytes Bytes = Bytes()
     var position Int = 0
     test: ok, errorsCoordinates
         0.serialize(bytes).nothing?()
@@ -973,3 +995,11 @@ def testInt_BinarySerializable(write ok Int, write errorsCoordinates List)
     position = 9223372036854775807
     test: ok, errorsCoordinates
         Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+
+#noinline
+def testInt_Dump(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0.dump(0) == "Type: STD::Int = 0\n"
+        0.dump(1) == "  Type: STD::Int = 0\n"
+        -123.dump(0) == "Type: STD::Int = -123\n"
+        -123.dump(1) == "  Type: STD::Int = -123\n"

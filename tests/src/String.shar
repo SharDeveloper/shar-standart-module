@@ -44,6 +44,7 @@ def testString(write ok Int, write errorsCoordinates List)
     testString_Repeat(ok, errorsCoordinates)
     testString_RepeatPart(ok, errorsCoordinates)
     testString_ReversePart(ok, errorsCoordinates)
+    testString_Dump(ok, errorsCoordinates)
 
 #noinline
 def testString_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -373,6 +374,33 @@ def testString_Ordered(write ok Int, write errorsCoordinates List)
         !("123456771234567812345678123456781" >= "123456781234567812345678123456781")
         !("123456781234567812345677123456781" >= "123456781234567812345678123456781")
         !("123456781234567812345678123456780" >= "123456781234567812345678123456781")
+        compare("0234567812345678123456781234567", "1234567812345678123456781234567") == enum::ord_less
+        compare("1234567712345678123456781234567", "1234567812345678123456781234567") == enum::ord_less
+        compare("1234567812345678123456771234567", "1234567812345678123456781234567") == enum::ord_less
+        compare("1234567812345678123456781234566", "1234567812345678123456781234567") == enum::ord_less
+        compare("1234567812345678123456781234567", "1234567812345678123456781234567") == enum::ord_equal
+        compare("2234567812345678123456781234567", "1234567812345678123456781234567") == enum::ord_great
+        compare("1234567912345678123456781234567", "1234567812345678123456781234567") == enum::ord_great
+        compare("1234567812345678123456791234567", "1234567812345678123456781234567") == enum::ord_great
+        compare("1234567812345678123456781234568", "1234567812345678123456781234567") == enum::ord_great
+        compare("02345678123456781234567812345678", "12345678123456781234567812345678") == enum::ord_less
+        compare("12345677123456781234567812345678", "12345678123456781234567812345678") == enum::ord_less
+        compare("12345678123456781234567712345678", "12345678123456781234567812345678") == enum::ord_less
+        compare("12345678123456781234567812345677", "12345678123456781234567812345678") == enum::ord_less
+        compare("12345678123456781234567812345678", "12345678123456781234567812345678") == enum::ord_equal
+        compare("22345678123456781234567812345678", "12345678123456781234567812345678") == enum::ord_great
+        compare("12345679123456781234567812345678", "12345678123456781234567812345678") == enum::ord_great
+        compare("12345678123456781234567912345678", "12345678123456781234567812345678") == enum::ord_great
+        compare("12345678123456781234567812345679", "12345678123456781234567812345678") == enum::ord_great
+        compare("023456781234567812345678123456781", "123456781234567812345678123456781") == enum::ord_less
+        compare("123456771234567812345678123456781", "123456781234567812345678123456781") == enum::ord_less
+        compare("123456781234567812345677123456781", "123456781234567812345678123456781") == enum::ord_less
+        compare("123456781234567812345678123456780", "123456781234567812345678123456781") == enum::ord_less
+        compare("123456781234567812345678123456781", "123456781234567812345678123456781") == enum::ord_equal
+        compare("223456781234567812345678123456781", "123456781234567812345678123456781") == enum::ord_great
+        compare("123456791234567812345678123456781", "123456781234567812345678123456781") == enum::ord_great
+        compare("123456781234567812345679123456781", "123456781234567812345678123456781") == enum::ord_great
+        compare("123456781234567812345678123456782", "123456781234567812345678123456781") == enum::ord_great
 
 #noinline
 def testString_GetRange(write ok Int, write errorsCoordinates List)
@@ -841,7 +869,7 @@ def testString_Iterator(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testString_BinarySerializable(write ok Int, write errorsCoordinates List)
-    var bytes Bytes = Bytes.createEmpty()
+    var bytes Bytes = Bytes()
     var position Int = 0
     test: ok, errorsCoordinates
         "".serialize(bytes).nothing?()
@@ -859,6 +887,10 @@ def testString_BinarySerializable(write ok Int, write errorsCoordinates List)
         String.deserialize(bytes, position) : error_outOfRange
     position = 0
     test: ok, errorsCoordinates
+        String.deserialize([1, 0, 0, 0, 0, 0, 0, 0, 255].repackTo(Bytes), position) : error_invalidCharacter
+        position == 0
+        String.deserialize([1, 0, 0, 0, 0, 0, 0, 0, 255, 255].repackTo(Bytes), position) : error_invalidCharacter
+        position == 0
         String.deserialize([2, 0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
         position == 0
         String.deserialize([1, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
@@ -2823,3 +2855,11 @@ def testString_ReversePart(write ok Int, write errorsCoordinates List)
         c[0 : 64] == c1
         c.reversePart(0, 65).nothing?()
         c[0 : 65] == c2
+
+#noinline
+def testString_Dump(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        "".dump(0) == "Type: STD::String = \n"
+        "".dump(1) == "  Type: STD::String = \n"
+        "1".dump(0) == "Type: STD::String = 1\n"
+        "1".dump(1) == "  Type: STD::String = 1\n"

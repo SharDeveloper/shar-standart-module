@@ -42,6 +42,17 @@ export def constant?(a This) Bool
 export def clone(a This) This
     return a.inGroups?(Type).select(a.type_clone(), a)
 
+//@The function gets information about the content of the object. (used for debugging)
+//@The "level" argument indicates how many nesting levels the function is, when it is called recursively.
+#this(Any)
+export def dump(object This, level Int) String
+    var result String = "  ".repeatPart(level) + "Type: " + object.typeNumber~().getTypeName() + "\n"
+    if object.inGroups?(Type)
+        const objectAsAnyType $Any = object
+        parse _, field = objectAsAnyType.toList()
+            result += field.dump(level + 1)
+    return result
+
 //@The function returns its argument.
 #this(Any) alwaysinline
 export def same(a This) This

@@ -27,6 +27,7 @@ def testList(write ok Int, write errorsCoordinates List)
     testList_Repeat(ok, errorsCoordinates)
     testList_RepeatPart(ok, errorsCoordinates)
     testList_ReversePart(ok, errorsCoordinates)
+    testList_Dump(ok, errorsCoordinates)
 
 #noinline
 def testList_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -1347,3 +1348,13 @@ def testList_ReversePart(write ok Int, write errorsCoordinates List)
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
         c.reversePart(9223372036854775807, -9223372036854775808) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
+
+#noinline
+def testList_Dump(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        {}.dump(0) == "Type: STD::List = []\n"
+        {}.dump(1) == "  Type: STD::List = []\n"
+        {1}.dump(0) == "Type: STD::List = [\n  0:\n    Type: STD::Int = 1\n]\n"
+        {1}.dump(1) == "  Type: STD::List = [\n    0:\n      Type: STD::Int = 1\n  ]\n"
+        {1, nothing}.dump(0) == "Type: STD::List = [\n  0:\n    Type: STD::Int = 1\n  1:\n    Type: STD::Nothing\n]\n"
+        {1, nothing}.dump(1) == "  Type: STD::List = [\n    0:\n      Type: STD::Int = 1\n    1:\n      Type: STD::Nothing\n  ]\n"

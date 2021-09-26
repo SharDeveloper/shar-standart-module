@@ -35,6 +35,10 @@ def constant?(integer Int) Bool
 def clone(integer Int) Int
     return integer
 
+#override(STD) nothrow
+def dump(int Int, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Int = " + int.toString() + "\n"
+
 attach Int to Equal
 
 attach Int to Shar__sugar__equal
@@ -60,6 +64,17 @@ attach Int to Shar__sugar__notEqual
             ret [2 x i64] %##reg##result##
 
 attach Int to Ordered
+    #alwaysinline nothrow
+    def compare(integer1, integer2 Int) Int
+        llvm
+            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
+            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##less## = icmp slt i64 %##reg##integer1##, %##reg##integer2##
+            %##nreg##equal## = icmp eq i64 %##reg##integer1##, %##reg##integer2##
+            %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
+            %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
+            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
+            ret [2 x i64] %##reg##result##
 
 attach Int to Shar__sugar__great
     #alwaysinline nothrow

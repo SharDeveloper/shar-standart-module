@@ -14,12 +14,14 @@ def testUnsafe(write ok Int, write errorsCoordinates List)
     testUnsafe_unsafe_malloc_free(ok, errorsCoordinates)
     testUnsafe_unsafe_realloc_free(ok, errorsCoordinates)
     testUnsafe_unsafe_setType(ok, errorsCoordinates)
+    testUnsafe_unsafe_object(ok, errorsCoordinates)
     testUnsafe_unsafe_getValue(ok, errorsCoordinates)
     testUnsafe_unsafe_setValue(ok, errorsCoordinates)
     testUnsafe_unsafe_offset(ok, errorsCoordinates)
     testUnsafe_unsafe_memcpy(ok, errorsCoordinates)
     testUnsafe_unsafe_memmove(ok, errorsCoordinates)
     testUnsafe_unsafe_memset(ok, errorsCoordinates)
+    testUnsafe_unsafe_use_object(ok, errorsCoordinates)
 
 #noinline
 def testUnsafe_unsafe_getI8(write ok Int, write errorsCoordinates List)
@@ -261,6 +263,20 @@ def testUnsafe_unsafe_setType(write ok Int, write errorsCoordinates List)
         m == [0x00aa11bb22cc33dd, 0x00aaffbb22cc33dd].clone()
 
 #noinline
+def testUnsafe_unsafe_object(write ok Int, write errorsCoordinates List)
+    const s String = "".clone()
+    s.shar__rc_use()
+    test: ok, errorsCoordinates
+        unsafe_object(Int.typeNumber~(), 12) == 12
+        unsafe_object(Int.typeNumber~(), 0) == 0
+        unsafe_object(Bool.typeNumber~(), true)
+        !unsafe_object(Bool.typeNumber~(), false)
+        unsafe_object(String.typeNumber~(), "Hello") == "Hello"
+        unsafe_object(String.typeNumber~(), "") == ""
+        unsafe_object(String.typeNumber~(), s).unsafe_getI64(0) == 2
+        s.unsafe_getI64(0) == 1
+
+#noinline
 def testUnsafe_unsafe_getValue(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         12.unsafe_getValue() == 12
@@ -290,8 +306,7 @@ def testUnsafe_unsafe_offset(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testUnsafe_unsafe_memcpy(write ok Int, write errorsCoordinates List)
-    var a $Any = unsafe_malloc(24)
-    a.unsafe_setType(String.typeNumber~())
+    const a String = unsafe_object(String.typeNumber~(), unsafe_malloc(24))
     unsafe_memcpyI8(a, "0123", 24)
     test: ok, errorsCoordinates
         a == "0123"
@@ -417,3 +432,12 @@ def testUnsafe_unsafe_memset(write ok Int, write errorsCoordinates List)
     unsafe_memset2xI64(l.unsafe_offsetI64(2), 123, 0)
     test: ok, errorsCoordinates
         l == {"abc", 1.0, 0x3513934aaaccb341}
+
+#noinline
+def testUnsafe_unsafe_use_object(write ok Int, write errorsCoordinates List)
+    const s String = "".clone()
+    test: ok, errorsCoordinates
+        s.unsafe_getI64(0) == 1
+        unsafe_use_object(String.typeNumber~(), s.unsafe_getValue()).nothing?()
+        s.unsafe_getI64(0) == 2
+    s.shar__rc_free()

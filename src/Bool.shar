@@ -29,6 +29,10 @@ def constant?(boolean Bool) Bool
 def clone(boolean Bool) Bool
     return boolean
 
+#override(STD) nothrow
+def dump(bool Bool, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Bool = " + bool.toString() + "\n"
+
 attach Bool to Equal
 
 attach Bool to Shar__sugar__equal

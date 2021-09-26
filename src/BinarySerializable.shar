@@ -8,4 +8,5 @@ export group BinarySerializable
     //@The function deserializes an object from a byte array at the position specified by the third function argument and returns the deserialized object as a result, and then the position is increased by the number of bytes used for serialization.
     //@The result is of the same type as the first argument to the function.
     //@If the function returns an error, the position should remain unchanged.
+    //@If the number of bytes, from the current position, required for deserialization is not enough, then the function should return an error with the code "enum::STD::error_outOfRange".
     deserialize(noread This, Bytes, write Int) This

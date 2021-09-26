@@ -44,6 +44,18 @@ def clone(list List) List
         result.unsafe_list_setItemInDummy(index, item)
     return result
 
+#override(STD)
+def dump(list List, level Int) String
+    const levelSpaces String = "  ".repeatPart(level)
+    var result String = levelSpaces + "Type: STD::List = ["
+    if !list.empty?()
+        result += "\n"
+        parse index, item = list
+            result += levelSpaces + "  " + index.toString() + ":\n" + item.dump(level + 2)
+        result += levelSpaces
+    result += "]\n"
+    return result
+
 attach List to Equal
 
 attach List to Shar__sugar__equal
@@ -77,8 +89,8 @@ attach List to Shar__sugar__getItem
 
 #alwaysinline nothrow
 def unsafe_list_getItem(list, index $Any) $Any
-    var result $Any = 0
-    list.unsafe_get2xI64(index + 1, result)
+    const offset Int = index * 2 + 2
+    const result $Any = unsafe_object(list.unsafe_getI64(offset), list.unsafe_getI64(offset + 1))
     result.shar__rc_use()
     return result
 
@@ -220,18 +232,16 @@ attach List to Container
 
 #alwaysinline nothrow
 def unsafe_list_setItem(list, index, newItem $Any)
-    var oldItem $Any = 0
-    const offset $Any = index + 1
-    list.unsafe_get2xI64(offset, oldItem)
     newItem.shar__rc_use()
-    list.unsafe_set2xI64(offset, newItem)
+    const offset Int = index * 2 + 2
+    unsafe_object(list.unsafe_getI64(offset), list.unsafe_getI64(offset + 1))
+    list.unsafe_set2xI64(index + 1, newItem)
 
 #alwaysinline nothrow
 def unsafe_list_createDummy(length $Any) List
-    var result $Any = unsafe_malloc(length * 16 + 16)
+    const result List = unsafe_object(List.typeNumber~(), unsafe_malloc(length * 16 + 16))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, length)
-    result.unsafe_setType(List.typeNumber~())
     return result
 
 #alwaysinline nothrow

@@ -46,40 +46,10 @@ def set_toGood(int TestSet_BadInt) Int
 
 #alwaysinline nothrow
 def set_toBad(int Int) TestSet_BadInt
-    var result $Any = int
-    result.unsafe_setType(TestSet_BadInt.typeNumber~())
-    return result
+    return unsafe_object(TestSet_BadInt.typeNumber~(), int)
 
 def unsafe_set_getCounter(set $Any) Int
-    return set.unsafe_getI64(0) & 0xffffffffffff
-
-def setPrintln(set Set)
-    if set.empty?()
-        "Set: empty".println()
-        return
-    "Set: ".println()
-    ("  counter: " + (set.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
-    ("  count of nodes: " + set.unsafe_getI16(3).toString()).println()
-    ("  count of items: " + set.unsafe_getI64(1).toString()).println()
-    ("  item type: " + set.unsafe_getI64(2).getTypeName()).println()
-    "  Nodes:".println()
-    for :(index Int = 0) index < set.unsafe_getI16(3); index++
-        ("    Node with hash part " + set.unsafe_getI8(24 + set.unsafe_getI8(3) * 8 + index).toString() + ": ").println()
-        (set.unsafe_getI64(index + 3).setNodePrint(set.unsafe_getI64(2)))
-
-def setNodePrint(node, itemTypeNumber $Any)
-    ("      counter: " + (node.unsafe_getI64(0) & 0xffffffffffff).toString()).println()
-    ("      count of hash parts: " + (node.unsafe_getI16(3) + 1).toString()).println()
-    for :(index Int = 0) index <= node.unsafe_getI16(3); index++
-        const items Int = node.unsafe_getI64(1 + index)
-        ("      Items and values with hash part " + node.unsafe_getI16(4 + node.unsafe_getI16(3) * 4 + index).toString() + ": ").println()
-        ("        Count of items and values: " + items.unsafe_getI64(0).toString()).println()
-        ("        Items and values:").println()
-        for :(itemIndex Int = 0) itemIndex < items.unsafe_getI64(0); itemIndex++
-            var item $Any = items.unsafe_getI64(itemIndex + 1)
-            item.unsafe_setType(itemTypeNumber)
-            ("          Item " + (itemIndex + 1).toString() + ": " + item.toString()).println()
-            item.unsafe_setType(Int.typeNumber~())
+    return set.unsafe_getI64(0)
 
 def testSet(write ok Int, write errorsCoordinates List)
     testSet_MemoryManagement(ok, errorsCoordinates)
@@ -87,12 +57,13 @@ def testSet(write ok Int, write errorsCoordinates List)
     testSet_Part2(ok, errorsCoordinates)
     testSet_Part3(ok, errorsCoordinates)
     testSet_Part4(ok, errorsCoordinates)
+    testSet_Dump(ok, errorsCoordinates)
 
 #noinline
 def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
     var k String = "123".clone()
     var v String = "12".clone()
-    var d1 Set = Set.createEmpty()
+    var d1 Set = Set()
     test: ok, errorsCoordinates
         !d1.add(v)
         !d1.add(k)
@@ -118,7 +89,7 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
         v.unsafe_getI64(0) == 2
         count == 3
     var d2 Array = [d1, d1]
-    var d3 Set = Set.createEmpty()
+    var d3 Set = Set()
     d2.same()
     test: ok, errorsCoordinates
         !d3.add(v)
@@ -177,7 +148,7 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
         !d3.constant?()
     k = k.clone()
     v = v.clone()
-    d1 = Set.createEmpty()
+    d1 = Set()
     test: ok, errorsCoordinates
         !d1.add(v)
         !d1.add(k)
@@ -194,7 +165,7 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
         d1.remove(v)
         k.unsafe_getI64(0) == 1
         v.unsafe_getI64(0) == 1
-    d1 = Set.createEmpty()
+    d1 = Set()
     test: ok, errorsCoordinates
         !d1.add(k)
         !d1.add(v)
@@ -205,8 +176,8 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         d1.add("123")
         d3.add("123")
-    d1 = Set.createEmpty()
-    d3 = Set.createEmpty()
+    d1 = Set()
+    d3 = Set()
     test: ok, errorsCoordinates
         k.unsafe_getI64(0) == 1
         v.unsafe_getI64(0) == 1
@@ -262,8 +233,8 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testSet_Part1(write ok Int, write errorsCoordinates List)
-    const ed Set = Set.createEmpty()
-    var d Set = Set.createEmpty()
+    const ed Set = Set()
+    var d Set = Set()
     var s String = "123".clone()
     test: ok, errorsCoordinates
         ed.length~() == 0
@@ -364,7 +335,7 @@ def testSet_Part1(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testSet_Part2(write ok Int, write errorsCoordinates List)
-    var d Set = Set.createEmpty()
+    var d Set = Set()
     var allOk Bool = true
     try
         parse _, _ = d
@@ -465,7 +436,7 @@ def testSet_Part2(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testSet_Part3(write ok Int, write errorsCoordinates List)
-    var d Set = Set.createEmpty()
+    var d Set = Set()
     var a Array = []
     for :(index Int = 0) index < 200; index++
         a += [Int.getRandom()]
@@ -547,7 +518,7 @@ def testSet_Part3(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testSet_Part4(write ok Int, write errorsCoordinates List)
-    var d Set = Set.createEmpty()
+    var d Set = Set()
     var allOk Bool = false
     try
         for :(index Int = 0) index < 200; index++
@@ -636,3 +607,14 @@ def testSet_Part4(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         allOk
         d.length~() == 0
+
+#noinline
+def testSet_Dump(write ok Int, write errorsCoordinates List)
+    var d Set = Set()
+    test: ok, errorsCoordinates
+        d.dump(0) == "Type: STD::Set = []\n"
+        d.dump(1) == "  Type: STD::Set = []\n"
+    d.add(12)
+    test: ok, errorsCoordinates
+        d.dump(0) == "Type: STD::Set = [\n  Type: STD::Int = 12\n]\n"
+        d.dump(1) == "  Type: STD::Set = [\n    Type: STD::Int = 12\n  ]\n"

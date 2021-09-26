@@ -10,14 +10,14 @@ export primitive PipelineOut
 export primitive PipelineIn
 
 #alwaysinline
-export def createPipeline() Pipeline
+export def Pipeline() Pipeline
     llvm
         %##nreg##pipeline i64## = call i64 @shar__create__pipeline()
         %##nreg##pipeline## = insertvalue [2 x i64] [i64 ##tnum##STD::Pipeline##, i64 0], i64 %##reg##pipeline i64##, 1
         ret [2 x i64] %##reg##pipeline##
 
 #alwaysinline
-export def getPipelineOut(pipeline Pipeline) PipelineOut
+export def PipelineOut(pipeline Pipeline) PipelineOut
     llvm
         %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
         call void @shar__pipeline__use__counter__inc(i64 %##reg##pipeline##)
@@ -25,7 +25,7 @@ export def getPipelineOut(pipeline Pipeline) PipelineOut
         ret [2 x i64] %##reg##result##
 
 #alwaysinline
-export def getPipelineIn(pipeline Pipeline) PipelineIn
+export def PipelineIn(pipeline Pipeline) PipelineIn
     llvm
         %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
         call void @shar__pipeline__use__counter__inc(i64 %##reg##pipeline##)
@@ -181,6 +181,18 @@ def clone(pipeline PipelineOut) PipelineOut
 #override(STD) alwaysinline nothrow
 def clone(pipeline PipelineIn) PipelineIn
     return pipeline
+
+#override(STD) nothrow
+def dump(pipeline Pipeline, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Pipeline\n"
+
+#override(STD) nothrow
+def dump(pipeline PipelineIn, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::PipelineIn\n"
+
+#override(STD) nothrow
+def dump(pipeline PipelineOut, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::PipelineOut\n"
 
 attach Pipeline to Push
     #alwaysinline

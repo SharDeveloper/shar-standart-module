@@ -9,20 +9,32 @@ export group Map: AArray, KeyTypeNumber
 //@A type that is a member of the "STD::Map" group.
 export primitive Map
 
+//@The function creates an empty associative array of the "STD::Map" type.
+#alwaysinline nothrow
+export def Map() Map
+    return Map.createEmpty()
+
 #override(STD)
 def shar__rc_free(map Map)
     const counter Int = map.unsafe_map_getCounter()
     if counter > 1
         map.unsafe_map_setCounter(counter - 1)
     elif counter == 1
-        const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
-        for :(index Int = 0) index < hashPartsCount; index++
-            const node MapNode = map.unsafe_map_getNodeByIndex(index)
-            const nodeCounter Int = node.unsafe_mapNode_getCounter()
-            if nodeCounter > 1
-                node.unsafe_mapNode_setCounter(nodeCounter - 1)
-            elif nodeCounter == 1
-                node.unsafe_mapNode_free(map.keyTypeNumber~(), map.valueTypeNumber~())
+        const keyTypeNumber Int = map.keyTypeNumber~()
+        const valueTypeNumber Int = map.valueTypeNumber~()
+        const slotsCount Int = map.unsafe_map_slotsCount()
+        for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
+            const slotAddress Int = map.unsafe_map_slotAddress(slotIndex)
+            const slotLength Int = slotAddress.unsafe_getI64(0)
+            if slotLength != 0
+                unsafe_object(keyTypeNumber, slotAddress.unsafe_getI64(1))
+                unsafe_object(valueTypeNumber, slotAddress.unsafe_getI64(2))
+                if slotLength != 1
+                    const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+                    for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 2; keyIndex += 2
+                        unsafe_object(keyTypeNumber, otherKeysAndValues.unsafe_getI64(keyIndex))
+                        unsafe_object(valueTypeNumber, otherKeysAndValues.unsafe_getI64(keyIndex + 1))
+                    otherKeysAndValues.unsafe_free()
         map.unsafe_free()
 
 #override(STD) alwaysinline
@@ -34,12 +46,20 @@ def shar__rc_use(map Map)
 #override(STD)
 def shar__to_const(map Map)
     if map.unsafe_map_getCounter() != 0
-        const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
-        for :(index Int = 0) index < hashPartsCount; index++
-            const node MapNode = map.unsafe_map_getNodeByIndex(index)
-            if node.unsafe_mapNode_getCounter() != 0
-                node.unsafe_mapNode_toConst(map.keyTypeNumber~(), map.valueTypeNumber~())
         map.unsafe_map_setCounter(0)
+        const keyTypeNumber Int = map.keyTypeNumber~()
+        const valueTypeNumber Int = map.valueTypeNumber~()
+        const slotsCount Int = map.unsafe_map_slotsCount()
+        for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
+            const slotAddress Int = map.unsafe_map_slotAddress(slotIndex)
+            const slotLength Int = slotAddress.unsafe_getI64(0)
+            if slotLength != 0
+                unsafe_object(keyTypeNumber, slotAddress.unsafe_getI64(1)).shar__to_const()
+                unsafe_object(valueTypeNumber, slotAddress.unsafe_getI64(2)).shar__to_const()
+                const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+                for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 2; keyIndex += 2
+                    unsafe_object(keyTypeNumber, otherKeysAndValues.unsafe_getI64(keyIndex)).shar__to_const()
+                    unsafe_object(valueTypeNumber, otherKeysAndValues.unsafe_getI64(keyIndex + 1)).shar__to_const()
 
 #override(STD) alwaysinline nothrow
 def use?(map Map) Bool
@@ -49,26 +69,57 @@ def use?(map Map) Bool
 def constant?(map Map) Bool
     return map.unsafe_map_getCounter() == 0
 
+#alwaysinline nothrow
+def unsafe_map_slotsCount(map $Any) Int
+    return map.unsafe_getI64(4)
+
+#alwaysinline nothrow
+def unsafe_map_slotAddress(map, index $Any) Int
+    return map.unsafe_offsetI64(4 * index + 5)
+
 #override(STD) nothrow
 def clone(map Map) Map
-    const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
-    for :(index Int = 0) index < hashPartsCount; index++
-        const node MapNode = map.unsafe_map_getNodeByIndex(index)
-        const nodeCounter Int = node.unsafe_mapNode_getCounter()
-        if nodeCounter != 0
-            node.unsafe_mapNode_setCounter(nodeCounter + 1)
-    const mapSizeInI8 Int = hashPartsCount * 9 + 32
-    var result $Any = unsafe_malloc(mapSizeInI8)
-    unsafe_memcpyI8(result, map, mapSizeInI8)
-    result.unsafe_setI64(0, (result.unsafe_getI64(0) & -281474976710656) | 1)
-    result.unsafe_setType(Map.typeNumber~())
+    const slotsCount Int = map.unsafe_map_slotsCount()
+    const memSizeI64 Int = 5 + 4 * slotsCount
+    const result Map = unsafe_object(Map.typeNumber~(), unsafe_malloc(memSizeI64 * 8))
+    unsafe_memcpyI64(result, map, memSizeI64)
+    result.unsafe_map_setCounter(1)
+    const keyTypeNumber Int = result.keyTypeNumber~()
+    const valueTypeNumber Int = result.valueTypeNumber~()
+    for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
+        const resultSlotAddress Int = result.unsafe_map_slotAddress(slotIndex)
+        const slotLength Int = resultSlotAddress.unsafe_getI64(0)
+        if slotLength != 0
+            unsafe_use_object(keyTypeNumber, resultSlotAddress.unsafe_getI64(1))
+            unsafe_use_object(valueTypeNumber, resultSlotAddress.unsafe_getI64(2))
+            if slotLength != 1
+                const otherKeysAndValues Int = resultSlotAddress.unsafe_getI64(3)
+                const otherKVMemSizeI64 Int = (slotLength - 1) * 2
+                for :(keyIndex Int = 0) keyIndex < otherKVMemSizeI64; keyIndex += 2
+                    unsafe_use_object(keyTypeNumber, otherKeysAndValues.unsafe_getI64(keyIndex))
+                    unsafe_use_object(valueTypeNumber, otherKeysAndValues.unsafe_getI64(keyIndex + 1))
+                const newOtherKV Int = unsafe_malloc(otherKVMemSizeI64 * 8)
+                unsafe_memcpyI64(newOtherKV, otherKeysAndValues, otherKVMemSizeI64)
+                resultSlotAddress.unsafe_setI64(3, newOtherKV)
+    return result
+
+#override(STD)
+def dump(map Map, level Int) String
+    const levelSpaces String = "  ".repeatPart(level)
+    var result String = levelSpaces + "Type: STD::Map = ["
+    if !map.empty?()
+        result += "\n"
+        parse key, value = map
+            result += levelSpaces + "  key:\n" + key.dump(level + 2) + levelSpaces + "  value:\n" + value.dump(level + 2)
+        result += levelSpaces
+    result += "]\n"
     return result
 
 attach Map to Empty
     #alwaysinline nothrow
     def createEmpty(noread type Map) Map
         llvm
-            ret [2 x i64] [i64 ##tnum##STD::Map##, i64 ptrtoint ([4 x i64]* ##llvmconst##>private unnamed_addr constant [4 x i64] zeroinitializer, align 8<## to i64)]
+            ret [2 x i64] [i64 ##tnum##STD::Map##, i64 ptrtoint ([5 x i64]* ##llvmconst##>private unnamed_addr constant [5 x i64] zeroinitializer, align 8<## to i64)]
 
 attach Map to Long
     #alwaysinline nothrow
@@ -78,220 +129,257 @@ attach Map to Long
 attach Map to Shar__sugar__getItem
     //@If the search occurs in an array and the type of the key to be found does not match the type of the existing keys, the function returns an error with the code "enum::STD::error_invalidType".
     def shar__sugar__getItem(map Map, key ${Equal, Hashable}) $Any
+        if map.empty?()
+            return nothing
         const keyTypeNumberInMap Int = map.keyTypeNumber~()
         inthrow
-            if keyTypeNumberInMap == Nothing.typeNumber~()
-                return nothing
-        if keyTypeNumberInMap != key.typeNumber~()
-            throw(enum::error_invalidType, "Invalid type.")
-        const hash Int = key.getShortRandomizedHash()
-        const lowHashPart Int = hash & 0xff
-        const highHashPart Int = (hash >> 8) & 0xffff
-        var unneeded1 Int = 0
-        var unneeded2 Int = 0
-        var unneeded3 Int = 0
-        var keysEqualError List = {}
-        const result $Any = map.unsafe_map_getNodeByHash(lowHashPart, unneeded1, unneeded2)->unsafe_mapNode_getValueByHash(highHashPart, key, map.valueTypeNumber~(), unneeded1, unneeded2, unneeded3, keysEqualError)
-        result.shar__rc_use()
-        inthrow
-            if !keysEqualError.empty?()
-                throw(keysEqualError[0], keysEqualError[1])
+            if keyTypeNumberInMap != key.typeNumber~()
+                throw(enum::error_invalidType, "Invalid type.")
+        const slotAddress Int = map.unsafe_map_slotAddress(key.getShortRandomizedHash() & (map.unsafe_map_slotsCount() - 1))
+        const slotLength Int = slotAddress.unsafe_getI64(0)
+        var result $Any = nothing
+        if slotLength != 0
+            if unsafe_equal(keyTypeNumberInMap, slotAddress.unsafe_getI64(1), keyTypeNumberInMap, key)
+                result = unsafe_object(map.valueTypeNumber~(), slotAddress.unsafe_getI64(2))
+                result.shar__rc_use()
+            else
+                const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+                for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 2; keyIndex += 2
+                    if unsafe_equal(keyTypeNumberInMap, otherKeysAndValues.unsafe_getI64(keyIndex), keyTypeNumberInMap, key)
+                        result = unsafe_object(map.valueTypeNumber~(), otherKeysAndValues.unsafe_getI64(keyIndex + 1))
+                        result.shar__rc_use()
+                        end keyIndex
         return result
 
 attach Map to Put
     //@If the search occurs in an array and the type of the key to be found does not correspond to the type of existing keys, or the type value differs from the type of existing values, the function returns an error with the code “enum::STD::error_invalidType”.
     def put(write map Map, key ${Equal, Hashable}, newValue $Any) $Any
+        if newValue.nothing?()
+            return deleteKVFromMap(map, key)
         const keyTypeNumberInMap Int = map.keyTypeNumber~()
         const valueTypeNumberInMap Int = map.valueTypeNumber~()
-        const delete Bool = newValue.nothing?()
         inthrow
-            if (keyTypeNumberInMap != key.typeNumber~() || (valueTypeNumberInMap != newValue.typeNumber~() && !delete)) && keyTypeNumberInMap != Nothing.typeNumber~()
+            if (keyTypeNumberInMap != key.typeNumber~() || valueTypeNumberInMap != newValue.typeNumber~()) && keyTypeNumberInMap != Nothing.typeNumber~()
                 throw(enum::error_invalidType, "Invalid type.")
-        const hash Int = key.getShortRandomizedHash()
-        const lowHashPart Int = hash & 0xff
-        const highHashPart Int = (hash >> 8) & 0xffff
-        var nodeIndex Int = -1
-        var nodeInsertIndex Int = -1
-        var keysIndex Int = -1
-        var keysInsertIndex Int = -1
-        var keyIndex Int = -1
-        var keysEqualError List = {}
-        var node <>MapNode = map.unsafe_map_getNodeByHash(lowHashPart, nodeIndex, nodeInsertIndex)
-        const oldValue $Any = node->unsafe_mapNode_getValueByHash(highHashPart, key, valueTypeNumberInMap, keysIndex, keysInsertIndex, keyIndex, keysEqualError)
-        inthrow
-            if !keysEqualError.empty?()
-                throw(keysEqualError[0], keysEqualError[1])
-        if delete
-            if oldValue.nothing?()
-                return nothing
-            elif map.length~() == 1
-                oldValue.shar__rc_use()
-                map = Map.createEmpty()
-                return oldValue
-        if map.use?()
-            map = map.clone()
-        if node.type?(MapNode)
-            const nodeCounter Int = node.unsafe_mapNode_getCounter()
-            if nodeCounter != 1
-                const oldNode MapNode = node
-                node = node.unsafe_mapNode_clone(keyTypeNumberInMap, valueTypeNumberInMap)
-                if nodeCounter != 0
-                    oldNode.unsafe_mapNode_setCounter(nodeCounter - 1)
-        if delete
-            node.unsafe_mapNode_deleteValue(keysIndex, keyIndex, keyTypeNumberInMap)
-            if node.nothing?()
-                map.unsafe_map_removeNode(nodeIndex)
-                map.unsafe_setI64(1, map.length~() - 1)
-                return oldValue
+        const slotsCount Int = map.unsafe_map_slotsCount()
+        const needToEnlarge Bool = map.length~() == slotsCount && slotsCount != 0x100000000
+        var result $Any = nothing
+        if needToEnlarge || map.use?()
+            const newSlotsCount Int = map.empty?().select(16, needToEnlarge.select(slotsCount * 2, slotsCount))
+            const newMap Map = unsafe_map_create(newSlotsCount, key.typeNumber~(), newValue.typeNumber~())
+            parse keyInMap, valueInMap = map
+                if keyInMap == key
+                    result = valueInMap
+                else
+                    newMap.unsafe_map_addNotExistedKV(keyInMap, valueInMap)
+            newMap.unsafe_map_addNotExistedKV(key, newValue)
+            map = newMap
         else
-            map.unsafe_setI64(2, key.typeNumber~())
-            map.unsafe_setI64(3, newValue.typeNumber~())
             key.shar__rc_use()
             newValue.shar__rc_use()
-            if node.type?(MapNode)
-                if keysIndex == -1
-                    node.unsafe_mapNode_addKVWithNewHashCode(highHashPart, keysInsertIndex, key, newValue)
-                else
-                    node.unsafe_mapNode_addKVWithExistedHashCode(keysIndex, keyIndex, key, newValue)
+            const slotAddress Int = map.unsafe_map_slotAddress(key.getShortRandomizedHash() & (map.unsafe_map_slotsCount() - 1))
+            const slotLength Int = slotAddress.unsafe_getI64(0)
+            if slotLength == 0
+                slotAddress.unsafe_setI64(0, 1)
+                slotAddress.unsafe_setI64(1, key)
+                slotAddress.unsafe_setI64(2, newValue)
             else
-                node = unsafe_mapNode_createNewNode(highHashPart, key, newValue)
-        if nodeIndex == -1
-            map.unsafe_map_addNode(lowHashPart, nodeInsertIndex, node)
+                var isEqual Bool = false
+                try
+                    isEqual = unsafe_equal(keyTypeNumberInMap, slotAddress.unsafe_getI64(1), keyTypeNumberInMap, key)
+                catch id, message
+                    key.shar__rc_free()
+                    newValue.shar__rc_free()
+                    throw(id, message)
+                if isEqual
+                    unsafe_object(keyTypeNumberInMap, slotAddress.unsafe_getI64(1))
+                    result = unsafe_object(valueTypeNumberInMap, slotAddress.unsafe_getI64(2))
+                    slotAddress.unsafe_setI64(1, key)
+                    slotAddress.unsafe_setI64(2, newValue)
+                elif slotLength > 1
+                    const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+                    for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 2; keyIndex += 2
+                        try
+                            isEqual = unsafe_equal(keyTypeNumberInMap, otherKeysAndValues.unsafe_getI64(keyIndex), keyTypeNumberInMap, key)
+                        catch id, message
+                            key.shar__rc_free()
+                            newValue.shar__rc_free()
+                            throw(id, message)
+                        if isEqual
+                            unsafe_object(keyTypeNumberInMap, otherKeysAndValues.unsafe_getI64(keyIndex))
+                            result = unsafe_object(valueTypeNumberInMap, otherKeysAndValues.unsafe_getI64(keyIndex + 1))
+                            otherKeysAndValues.unsafe_setI64(keyIndex, key)
+                            otherKeysAndValues.unsafe_setI64(keyIndex + 1, newValue)
+                            end keyIndex
+                if result.nothing?()
+                    slotAddress.unsafe_setI64(0, slotLength + 1)
+                    if slotLength == 1
+                        slotAddress.unsafe_setI64(3, unsafe_malloc(16))
+                    else
+                        var otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+                        otherKeysAndValues.unsafe_realloc(slotLength * 16)
+                        slotAddress.unsafe_setI64(3, otherKeysAndValues)
+                    const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+                    const lastKeyIndex Int = (slotLength - 1) * 2
+                    otherKeysAndValues.unsafe_setI64(lastKeyIndex, key)
+                    otherKeysAndValues.unsafe_setI64(lastKeyIndex + 1, newValue)
+            if result.nothing?()
+                map.unsafe_setI64(1, map.unsafe_getI64(1) + 1)
+        return result
+
+#alwaysinline nothrow
+def unsafe_map_create(slotsCount, keyTypeNumber, valueTypeNumber Int) Map
+    const result Map = unsafe_object(Map.typeNumber~(), unsafe_malloc(slotsCount * 32 + 40))
+    result.unsafe_setI64(0, 1)
+    result.unsafe_setI64(1, 0)
+    result.unsafe_setI64(2, keyTypeNumber)
+    result.unsafe_setI64(3, valueTypeNumber)
+    result.unsafe_setI64(4, slotsCount)
+    result.unsafe_offsetI64(5).unsafe_memsetI64(0, slotsCount * 4)
+    return result
+
+#nothrow
+def unsafe_map_addNotExistedKV(map, key, value $Any)
+    key.shar__rc_use()
+    value.shar__rc_use()
+    const slotAddress Int = map.unsafe_map_slotAddress(key.getShortRandomizedHash() & (map.unsafe_map_slotsCount() - 1))
+    const slotLength Int = slotAddress.unsafe_getI64(0)
+    if slotLength == 0
+        slotAddress.unsafe_setI64(0, 1)
+        slotAddress.unsafe_setI64(1, key)
+        slotAddress.unsafe_setI64(2, value)
+    else
+        slotAddress.unsafe_setI64(0, slotLength + 1)
+        if slotLength == 1
+            slotAddress.unsafe_setI64(3, unsafe_malloc(16))
         else
-            map.unsafe_setI64(nodeIndex + 4, node)
-        if delete
-            map.unsafe_setI64(1, map.length~() - 1)
-        elif oldValue.nothing?()
-            map.unsafe_setI64(1, map.length~() + 1)
-        return oldValue
+            var otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+            otherKeysAndValues.unsafe_realloc(slotLength * 16)
+            slotAddress.unsafe_setI64(3, otherKeysAndValues)
+        const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+        const lastKeyIndex Int = (slotLength - 1) * 2
+        otherKeysAndValues.unsafe_setI64(lastKeyIndex, key)
+        otherKeysAndValues.unsafe_setI64(lastKeyIndex + 1, value)
+    map.unsafe_setI64(1, map.unsafe_getI64(1) + 1)
+
+#noinline
+def deleteKVFromMap(write map Map, key ${Equal, Hashable}) $Any
+    if map.empty?()
+        return nothing
+    const keyTypeNumberInMap Int = map.keyTypeNumber~()
+    const valueTypeNumberInMap Int = map.valueTypeNumber~()
+    inthrow
+        if keyTypeNumberInMap != key.typeNumber~()
+            throw(enum::error_invalidType, "Invalid type.")
+    var result $Any = nothing
+    const slotsCount Int = map.unsafe_map_slotsCount()
+    const slotAddress Int = map.unsafe_map_slotAddress(key.getShortRandomizedHash() & (slotsCount - 1))
+    const slotLength Int = slotAddress.unsafe_getI64(0)
+    var resultKeyIndex Int = -1
+    if slotLength != 0
+        if unsafe_equal(keyTypeNumberInMap, slotAddress.unsafe_getI64(1), keyTypeNumberInMap, key)
+            resultKeyIndex = 0
+        elif slotLength != 1
+            const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+            for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 2; keyIndex += 2
+                if unsafe_equal(keyTypeNumberInMap, otherKeysAndValues.unsafe_getI64(keyIndex), keyTypeNumberInMap, key)
+                    resultKeyIndex = keyIndex + 2
+                    end keyIndex
+    if resultKeyIndex != -1
+        if map.length~() == 1
+            result = unsafe_object(valueTypeNumberInMap, slotAddress.unsafe_getI64(2))
+            result.shar__rc_use()
+            map = Map()
+        elif !map.use?()
+            map.unsafe_setI64(1, map.unsafe_getI64(1) - 1)
+            slotAddress.unsafe_setI64(0, slotLength - 1)
+            if resultKeyIndex == 0
+                unsafe_object(keyTypeNumberInMap, slotAddress.unsafe_getI64(1))
+                result = unsafe_object(valueTypeNumberInMap, slotAddress.unsafe_getI64(2))
+            if slotLength != 1
+                var otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+                const lastKeyIndex Int = (slotLength - 2) * 2
+                if resultKeyIndex == 0
+                    slotAddress.unsafe_setI64(1, otherKeysAndValues.unsafe_getI64(lastKeyIndex))
+                    slotAddress.unsafe_setI64(2, otherKeysAndValues.unsafe_getI64(lastKeyIndex + 1))
+                else
+                    resultKeyIndex -= 2
+                    unsafe_object(keyTypeNumberInMap, otherKeysAndValues.unsafe_getI64(resultKeyIndex))
+                    result = unsafe_object(valueTypeNumberInMap, otherKeysAndValues.unsafe_getI64(resultKeyIndex + 1))
+                    if lastKeyIndex != resultKeyIndex
+                        otherKeysAndValues.unsafe_setI64(resultKeyIndex, otherKeysAndValues.unsafe_getI64(lastKeyIndex))
+                        otherKeysAndValues.unsafe_setI64(resultKeyIndex + 1, otherKeysAndValues.unsafe_getI64(lastKeyIndex + 1))
+                if lastKeyIndex == 0
+                    otherKeysAndValues.unsafe_free()
+                else
+                    otherKeysAndValues.unsafe_realloc(lastKeyIndex * 8)
+                    slotAddress.unsafe_setI64(3, otherKeysAndValues)
+        else
+            const newMap Map = unsafe_map_create(map.unsafe_map_slotsCount(), keyTypeNumberInMap, valueTypeNumberInMap)
+            parse keyInMap, valueInMap = map
+                if keyInMap == key
+                    result = valueInMap
+                else
+                    newMap.unsafe_map_addNotExistedKV(keyInMap, valueInMap)
+            map = newMap
+    return result
 
 #alwaysinline nothrow
 def unsafe_map_getCounter(map $Any) Int
-    return map.unsafe_getI64(0) & 0xffffffffffff
+    return map.unsafe_getI64(0)
 
 #alwaysinline nothrow
 def unsafe_map_setCounter(map, newCounter $Any)
-    map.unsafe_setI64(0, (map.unsafe_getI64(0) & -281474976710656) | (newCounter & 0xffffffffffff))
-
-#alwaysinline nothrow
-def unsafe_map_getHashPartsCount(map $Any) Int
-    return map.unsafe_getI16(3)
-
-#alwaysinline nothrow
-def unsafe_map_getNodeByIndex(map, index $Any) MapNode
-    var result $Any = map.unsafe_getI64(index + 4)
-    result.unsafe_setType(MapNode.typeNumber~())
-    return result
-
-#alwaysinline unsafewrite nothrow
-def unsafe_map_getNodeByHash(map, hashPart, write nodeIndex, write nodeInsertIndex $Any) <>MapNode
-    const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
-    const nodes Int = map.unsafe_offsetI64(4)
-    const hashParts Int = nodes.unsafe_offsetI64(hashPartsCount)
-    if hashPartsCount.inRange?(1, 256)
-        var leftIndex Int = 0
-        var rightEdge Int = hashPartsCount
-        for :(loop)
-            const length Int = rightEdge - leftIndex
-            if length == 0
-                nodeInsertIndex = leftIndex
-                end loop
-            const centerIndex Int = (length >> 1) + leftIndex
-            const centerHashPart Int = hashParts.unsafe_getI8(centerIndex)
-            if centerHashPart == hashPart
-                nodeIndex = centerIndex
-                var result $Any = nodes.unsafe_getI64(centerIndex)
-                result.unsafe_setType(MapNode.typeNumber~())
-                return result
-            if centerHashPart < hashPart
-                leftIndex = centerIndex + 1
-            else
-                rightEdge = centerIndex
-    elif hashPartsCount == 256
-        nodeIndex = hashPart
-        var result $Any = nodes.unsafe_getI64(hashPart)
-        result.unsafe_setType(MapNode.typeNumber~())
-        return result
-    else
-        nodeInsertIndex = 0
-    return nothing
-
-#inline unsafewrite nothrow
-def unsafe_map_removeNode(write map, nodeIndex $Any)
-    const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
-    const nodes Int = map.unsafe_offsetI64(4)
-    const hashParts Int = nodes.unsafe_offsetI64(hashPartsCount)
-    const countOfMovedHashParts Int = hashPartsCount - 1 - nodeIndex
-    const countOfMovedNodesAndMovedHashPartsInI8 Int = countOfMovedHashParts * 8 + hashPartsCount - 1
-    unsafe_memmoveI8(hashParts.unsafe_offsetI8(nodeIndex), hashParts.unsafe_offsetI8(nodeIndex + 1), countOfMovedHashParts)
-    map.unsafe_setI16(3, hashPartsCount - 1)
-    unsafe_memmoveI8(nodes.unsafe_offsetI64(nodeIndex), nodes.unsafe_offsetI64(nodeIndex + 1), countOfMovedNodesAndMovedHashPartsInI8)
-    map.unsafe_realloc(hashPartsCount * 9 + 23)
-
-#inline unsafewrite nothrow
-def unsafe_map_addNode(write map, hashPart, nodeInsertIndex, node $Any)
-    const hashPartsCount Int = map.unsafe_map_getHashPartsCount()
-    map.unsafe_realloc(hashPartsCount * 9 + 41)
-    const oldNodesInNewMap Int = map.unsafe_offsetI64(4)
-    const oldHashPartsInNewMap Int = oldNodesInNewMap.unsafe_offsetI64(hashPartsCount)
-    const countOfMovedHashPartsInEnd Int = hashPartsCount - nodeInsertIndex
-    const countOfMovedNodesAndHashPartsInBeginInI8 Int = countOfMovedHashPartsInEnd * 8 + nodeInsertIndex
-    unsafe_memmoveI8(oldHashPartsInNewMap.unsafe_offsetI8(nodeInsertIndex + 9), oldHashPartsInNewMap.unsafe_offsetI8(nodeInsertIndex), countOfMovedHashPartsInEnd)
-    map.unsafe_setI16(3, map.unsafe_getI16(3) + 1)
-    unsafe_memmoveI8(oldNodesInNewMap.unsafe_offsetI64(nodeInsertIndex + 1), oldNodesInNewMap.unsafe_offsetI64(nodeInsertIndex), countOfMovedNodesAndHashPartsInBeginInI8)
-    oldNodesInNewMap.unsafe_setI64(nodeInsertIndex, node)
-    oldHashPartsInNewMap.unsafe_setI8(nodeInsertIndex + 8, hashPart)
+    map.unsafe_setI64(0, newCounter)
 
 attach Map to Iterable
     #alwaysinline nothrow
-    def parse__init(map Map) $Any
-        return 0
+    def parse__init(map Map) Array
+        var slotIndex Int = 0
+        const slotsCount Int = map.unsafe_map_slotsCount()
+        for :(loop) slotIndex < slotsCount; slotIndex++
+            if map.unsafe_map_slotAddress(slotIndex).unsafe_getI64(0) != 0
+                end loop
+        return [slotIndex, 0]
 
     #alwaysinline nothrow
-    def parse__predicate(map Map, index $Any) Bool
-        const currenNodeIndex Int = index & 0x1ff
-        return currenNodeIndex < map.unsafe_map_getHashPartsCount()
+    def parse__predicate(map Map, index Array) Bool
+        return index[0] < map.unsafe_map_slotsCount()
 
     #alwaysinline unsafewrite nothrow
-    def parse__next(map Map, write index $Any)
-        var nodeIndex Int = index & 0x1ff
-        var arrayIndex Int = (index >> 9) & 0xffff
-        var keyIndex Int = (index >> 25) + 1
-        const node MapNode = map.unsafe_map_getNodeByIndex(nodeIndex)
-        const array Int = node.unsafe_getI64(1 + arrayIndex)
-        const keysCount Int = array.unsafe_getI64(0)
-        if keyIndex == keysCount
-            keyIndex = 0
-            arrayIndex++
-            const arrayCount Int = node.unsafe_mapNode_getHashPartsCount()
-            if arrayIndex == arrayCount
-                arrayIndex = 0
-                nodeIndex++
-        index = (((keyIndex << 16) | arrayIndex) << 9) | nodeIndex
+    def parse__next(map Map, write index Array)
+        const slotsCount Int = map.unsafe_map_slotsCount()
+        const currentSlotIndex Int = index[0]
+        const currentSlotLength Int = map.unsafe_map_slotAddress(currentSlotIndex).unsafe_getI64(0)
+        const keyIndex Int = index[1] + 1
+        if keyIndex < currentSlotLength
+            index.put(1, keyIndex)
+            return
+        var slotIndex Int = currentSlotIndex + 1
+        for :(loop) slotIndex < slotsCount; slotIndex++
+            const slotLength Int = map.unsafe_map_slotAddress(slotIndex).unsafe_getI64(0)
+            if slotLength != 0
+                end loop
+        index.put(0, slotIndex)
+        index.put(1, 0)
 
     #alwaysinline nothrow
-    def parse__get__key(map Map, index $Any) $Any
-        const nodeIndex Int = index & 0x1ff
-        const arrayIndex Int = (index >> 9) & 0xffff
-        const keyIndex Int = index >> 25
-        const node MapNode = map.unsafe_map_getNodeByIndex(nodeIndex)
-        const array Int = node.unsafe_getI64(1 + arrayIndex)
-        var key $Any = array.unsafe_getI64(2 * keyIndex + 1)
-        key.unsafe_setType(map.keyTypeNumber~())
-        key.shar__rc_use()
-        return key
+    def parse__get__key(map Map, index Array) $Any
+        const slotAddress Int = map.unsafe_map_slotAddress(index[0])
+        const keyIndex Int = index[1]
+        const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+        const result $Any = unsafe_object(map.keyTypeNumber~(), (keyIndex == 0).select(slotAddress.unsafe_getI64(1), otherKeysAndValues.unsafe_getI64((keyIndex - 1) * 2)))
+        result.shar__rc_use()
+        return result
 
     #alwaysinline nothrow
-    def parse__get__item(map Map, index $Any) $Any
-        const nodeIndex Int = index & 0x1ff
-        const arrayIndex Int = (index >> 9) & 0xffff
-        const keyIndex Int = index >> 25
-        const node MapNode = map.unsafe_map_getNodeByIndex(nodeIndex)
-        const array Int = node.unsafe_getI64(1 + arrayIndex)
-        var value $Any = array.unsafe_getI64(2 * (keyIndex + 1))
-        value.unsafe_setType(map.valueTypeNumber~())
-        value.shar__rc_use()
-        return value
+    def parse__get__item(map Map, index Array) $Any
+        const slotAddress Int = map.unsafe_map_slotAddress(index[0])
+        const keyIndex Int = index[1]
+        const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
+        const result $Any = unsafe_object(map.valueTypeNumber~(), (keyIndex == 0).select(slotAddress.unsafe_getI64(2), otherKeysAndValues.unsafe_getI64(keyIndex * 2 - 1)))
+        result.shar__rc_use()
+        return result
 
 attach Map to AArray
 

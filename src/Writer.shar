@@ -1,0 +1,9 @@
+module STD
+
+//@A group for writing data in parts.
+//@If an object of a type that is a member of the "STD::Writer" group is freed, then all buffers (if any) for that object must be written.
+export group Writer
+    //@The function writes data somewhere.
+    write(write This, $BinarySerializable)
+    //@If a buffer is used to write data, then this function writes data from the buffer.
+    flush(write This)
