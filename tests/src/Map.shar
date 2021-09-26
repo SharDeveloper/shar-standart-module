@@ -49,7 +49,7 @@ def map_toBad(int Int) TestMap_BadInt
     return unsafe_object(TestMap_BadInt.typeNumber~(), int)
 
 def unsafe_map_getCounter(map $Any) Int
-    return map.unsafe_getI64(0) & 0xffffffffffff
+    return map.unsafe_getI64(0)
 
 def testMap(write ok Int, write errorsCoordinates List)
     testMap_MemoryManagement(ok, errorsCoordinates)
@@ -142,7 +142,7 @@ def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         unsafe_map_getCounter(d1) == 1
         unsafe_map_getCounter(d2) == 1
-        unsafe_map_getCounter(d3) == 3
+        unsafe_map_getCounter(d3) == 5
         unsafe_map_getCounter(d4) == 1
         unsafe_map_getCounter(d5) == 1
         k.unsafe_getI64(0) == 0
@@ -170,7 +170,7 @@ def testMap_MemoryManagement(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         unsafe_map_getCounter(d1) == 0
         unsafe_map_getCounter(d2) == 0
-        unsafe_map_getCounter(d3) == 3
+        unsafe_map_getCounter(d3) == 5
         unsafe_map_getCounter(d4) == 1
         unsafe_map_getCounter(d5) == 1
         d1.use?()
@@ -595,6 +595,8 @@ def testMap_Part4(write ok Int, write errorsCoordinates List)
                 end index
     catch
         allOk = false
+    test: ok, errorsCoordinates
+        allOk
     allOk = false
     var count Int = 0
     try
@@ -608,8 +610,6 @@ def testMap_Part4(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         allOk
         count == 200
-    test: ok, errorsCoordinates
-        allOk
         d.length~() == 200
     allOk = false
     try

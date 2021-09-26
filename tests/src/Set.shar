@@ -49,7 +49,7 @@ def set_toBad(int Int) TestSet_BadInt
     return unsafe_object(TestSet_BadInt.typeNumber~(), int)
 
 def unsafe_set_getCounter(set $Any) Int
-    return set.unsafe_getI64(0) & 0xffffffffffff
+    return set.unsafe_getI64(0)
 
 def testSet(write ok Int, write errorsCoordinates List)
     testSet_MemoryManagement(ok, errorsCoordinates)
