@@ -7,6 +7,8 @@ def unsafe_list_getCounter(list $Any) Int
 def testList(write ok Int, write errorsCoordinates List)
     testList_MemoryManagement(ok, errorsCoordinates)
     testList_Equal(ok, errorsCoordinates)
+    testList_GetFromAToLast(ok, errorsCoordinates)
+    testList_GetFromFirstToA(ok, errorsCoordinates)
     testList_GetRange(ok, errorsCoordinates)
     testList_GetItem(ok, errorsCoordinates)
     testList_Add(ok, errorsCoordinates)
@@ -166,6 +168,54 @@ def testList_Equal(write ok Int, write errorsCoordinates List)
         {1, 2, 3, 4, 5} != {1, 2, 3, 4}
         {1.0, 2.0, 3.0, 4.0} != {1, 2, 3, 4}
         {1, 2, 3, 4} != {1.0, 2.0, 3.0, 4.0}
+
+#noinline
+def testList_GetFromAToLast(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        {}[0:] == {}
+        {1}[1:] == {}
+        {1}[0:] == {1}
+        {1, 2}[2:] == {}
+        {1, 2}[1:] == {2}
+        {1, 2}[0:] == {1, 2}
+        {}[-9223372036854775808:] : error_outOfRange
+        {}[9223372036854775807:] : error_outOfRange
+        {}[-1:] : error_outOfRange
+        {}[1:] : error_outOfRange
+        {}[2:] : error_outOfRange
+        {1, 2, 3}[0:] == {1, 2, 3}
+        {1, 2, 3}[1:] == {2, 3}
+        {1, 2, 3}[2:] == {3}
+        {1, 2, 3}[3:] == {}
+        {1, 2, 3}[-9223372036854775808:] : error_outOfRange
+        {1, 2, 3}[9223372036854775807:] : error_outOfRange
+        {1, 2, 3}[-1:] : error_outOfRange
+        {1, 2, 3}[4:] : error_outOfRange
+        {1, 2, 3}[5:] : error_outOfRange
+
+#noinline
+def testList_GetFromFirstToA(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        {}[:0] == {}
+        {1}[:1] == {1}
+        {1}[:0] == {}
+        {1, 2}[:2] == {1, 2}
+        {1, 2}[:1] == {1}
+        {1, 2}[:0] == {}
+        {}[:-9223372036854775808] : error_outOfRange
+        {}[:9223372036854775807] : error_outOfRange
+        {}[:-1] : error_outOfRange
+        {}[:1] : error_outOfRange
+        {}[:2] : error_outOfRange
+        {1, 2, 3}[:0] == {}
+        {1, 2, 3}[:1] == {1}
+        {1, 2, 3}[:2] == {1, 2}
+        {1, 2, 3}[:3] == {1, 2, 3}
+        {1, 2, 3}[:-9223372036854775808] : error_outOfRange
+        {1, 2, 3}[:9223372036854775807] : error_outOfRange
+        {1, 2, 3}[:-1] : error_outOfRange
+        {1, 2, 3}[:4] : error_outOfRange
+        {1, 2, 3}[:5] : error_outOfRange
 
 #noinline
 def testList_GetRange(write ok Int, write errorsCoordinates List)

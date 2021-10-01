@@ -40,6 +40,16 @@ attach ArrayGroupMember to Shar__sugar__greatOrEqual
     def shar__sugar__greatOrEqual(agm1, agm2 ArrayGroupMember) Bool
         return agm1.agmToArray() >= agm2.agmToArray()
 
+attach ArrayGroupMember to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(agm ArrayGroupMember, a Int) ArrayGroupMember
+        return agm.agmToArray()[a:].arrayToAGM()
+
+attach ArrayGroupMember to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(agm ArrayGroupMember, a Int) ArrayGroupMember
+        return agm.agmToArray()[:a].arrayToAGM()
+
 attach ArrayGroupMember to Shar__sugar__getRange
     def shar__sugar__getRange(agm ArrayGroupMember, from, to $Any) ArrayGroupMember
         return agm.agmToArray()[from:to].arrayToAGM()
@@ -165,6 +175,8 @@ def testArray(write ok Int, write errorsCoordinates List)
     testArray_MemoryManagement(ok, errorsCoordinates)
     testArray_Equal(ok, errorsCoordinates)
     testArray_Ordered(ok, errorsCoordinates)
+    testArray_GetFromAToLast(ok, errorsCoordinates)
+    testArray_GetFromFirstToA(ok, errorsCoordinates)
     testArray_GetRange(ok, errorsCoordinates)
     testArray_GetItem(ok, errorsCoordinates)
     testArray_Add(ok, errorsCoordinates)
@@ -445,6 +457,59 @@ def testArray_Ordered(write ok Int, write errorsCoordinates List)
         compare([0, 1, 2, 4], [0, 1, 2, 3, 5]) == enum::ord_great
 
 #noinline
+def testArray_GetFromAToLast(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [][0:] == []
+        [][0:].itemTypeNumber~() == Nothing.typeNumber~()
+        [1][1:] == []
+        [1][0:] == [1]
+        [1][1:].itemTypeNumber~() == Nothing.typeNumber~()
+        [1, 2][2:] == []
+        [1, 2][1:] == [2]
+        [1, 2][0:] == [1, 2]
+        [1, 2][2:].itemTypeNumber~() == Nothing.typeNumber~()
+        [][-9223372036854775808:] : error_outOfRange
+        [][9223372036854775807:] : error_outOfRange
+        [][-1:] : error_outOfRange
+        [][1:] : error_outOfRange
+        [][2:] : error_outOfRange
+        [1, 2, 3][0:] == [1, 2, 3]
+        [1, 2, 3][1:] == [2, 3]
+        [1, 2, 3][2:] == [3]
+        [1, 2, 3][3:] == []
+        [1, 2, 3][-9223372036854775808:] : error_outOfRange
+        [1, 2, 3][9223372036854775807:] : error_outOfRange
+        [1, 2, 3][-1:] : error_outOfRange
+        [1, 2, 3][4:] : error_outOfRange
+        [1, 2, 3][5:] : error_outOfRange
+
+#noinline
+def testArray_GetFromFirstToA(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [][:0] == []
+        [][:0].itemTypeNumber~() == Nothing.typeNumber~()
+        [1][:1] == [1]
+        [1][:0] == []
+        [1][:0].itemTypeNumber~() == Nothing.typeNumber~()
+        [1, 2][:2] == [1, 2]
+        [1, 2][:1] == [1]
+        [1, 2][:0] == []
+        [1, 2][:0].itemTypeNumber~() == Nothing.typeNumber~()
+        [][:-9223372036854775808] : error_outOfRange
+        [][:9223372036854775807] : error_outOfRange
+        [][:-1] : error_outOfRange
+        [][:1] : error_outOfRange
+        [][:2] : error_outOfRange
+        [1, 2, 3][:0] == []
+        [1, 2, 3][:1] == [1]
+        [1, 2, 3][:2] == [1, 2]
+        [1, 2, 3][:3] == [1, 2, 3]
+        [1, 2, 3][:-9223372036854775808] : error_outOfRange
+        [1, 2, 3][:9223372036854775807] : error_outOfRange
+        [1, 2, 3][:-1] : error_outOfRange
+        [1, 2, 3][:4] : error_outOfRange
+        [1, 2, 3][:5] : error_outOfRange
+
 def testArray_GetRange(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         [][0:0] == []

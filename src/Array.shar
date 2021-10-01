@@ -108,6 +108,16 @@ attach Array to Shar__sugar__greatOrEqual
     def shar__sugar__greatOrEqual(array1, array2 Array) Bool
         return array1.compare(array2) != enum::ord_less
 
+attach Array to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(array Array, a Int) Array
+        return array[a : array.length~()]
+
+attach Array to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(array Array, a Int) Array
+        return array[0 : a]
+
 attach Array to Shar__sugar__getRange
     #alwaysinline
     def shar__sugar__getRange(array Array, from, to Int) Array

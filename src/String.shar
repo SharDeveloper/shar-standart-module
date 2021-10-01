@@ -174,6 +174,16 @@ attach String to Shar__sugar__greatOrEqual
     def shar__sugar__greatOrEqual(string1, string2 String) Bool
         return string1.compare(string2) != enum::ord_less
 
+attach String to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(string String, a Int) String
+        return string[a : string.length~()]
+
+attach String to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(string String, a Int) String
+        return string[0 : a]
+
 attach String to Shar__sugar__getRange
     #alwaysinline
     def shar__sugar__getRange(string String, from, to Int) String

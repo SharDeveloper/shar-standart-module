@@ -171,6 +171,16 @@ attach Bytes to Shar__sugar__greatOrEqual
     def shar__sugar__greatOrEqual(bytes1, bytes2 Bytes) Bool
         return bytes1.compare(bytes2) != enum::ord_less
 
+attach Bytes to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(bytes Bytes, a Int) Bytes
+        return bytes[a : bytes.length~()]
+
+attach Bytes to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(bytes Bytes, a Int) Bytes
+        return bytes[0 : a]
+
 attach Bytes to Shar__sugar__getRange
     #alwaysinline
     def shar__sugar__getRange(bytes Bytes, from, to Int) Bytes

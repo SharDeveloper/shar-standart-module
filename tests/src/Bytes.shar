@@ -8,6 +8,8 @@ def testBytes(write ok Int, write errorsCoordinates List)
     testBytes_MemoryManagement(ok, errorsCoordinates)
     testBytes_Equal(ok, errorsCoordinates)
     testBytes_Ordered(ok, errorsCoordinates)
+    testBytes_GetFromAToLast(ok, errorsCoordinates)
+    testBytes_GetFromFirstToA(ok, errorsCoordinates)
     testBytes_GetRange(ok, errorsCoordinates)
     testBytes_GetItem(ok, errorsCoordinates)
     testBytes_Add(ok, errorsCoordinates)
@@ -398,6 +400,54 @@ def testBytes_Ordered(write ok Int, write errorsCoordinates List)
         compare([1, 2, 3, 4, 5, 6, 7, 9, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1].repackTo(Bytes), [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1].repackTo(Bytes)) == enum::ord_great
         compare([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 9, 1, 2, 3, 4, 5, 6, 7, 8, 1].repackTo(Bytes), [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1].repackTo(Bytes)) == enum::ord_great
         compare([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 2].repackTo(Bytes), [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1].repackTo(Bytes)) == enum::ord_great
+
+#noinline
+def testBytes_GetFromAToLast(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].repackTo(Bytes)[0:] == [].repackTo(Bytes)
+        [1].repackTo(Bytes)[1:] == [].repackTo(Bytes)
+        [1].repackTo(Bytes)[0:] == [1].repackTo(Bytes)
+        [1, 2].repackTo(Bytes)[2:] == [].repackTo(Bytes)
+        [1, 2].repackTo(Bytes)[1:] == [2].repackTo(Bytes)
+        [1, 2].repackTo(Bytes)[0:] == [1, 2].repackTo(Bytes)
+        [].repackTo(Bytes)[-9223372036854775808:] : error_outOfRange
+        [].repackTo(Bytes)[9223372036854775807:] : error_outOfRange
+        [].repackTo(Bytes)[-1:] : error_outOfRange
+        [].repackTo(Bytes)[1:] : error_outOfRange
+        [].repackTo(Bytes)[2:] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[0:] == [1, 2, 3].repackTo(Bytes)
+        [1, 2, 3].repackTo(Bytes)[1:] == [2, 3].repackTo(Bytes)
+        [1, 2, 3].repackTo(Bytes)[2:] == [3].repackTo(Bytes)
+        [1, 2, 3].repackTo(Bytes)[3:] == [].repackTo(Bytes)
+        [1, 2, 3].repackTo(Bytes)[-9223372036854775808:] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[9223372036854775807:] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[-1:] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[4:] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[5:] : error_outOfRange
+
+#noinline
+def testBytes_GetFromFirstToA(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].repackTo(Bytes)[:0] == [].repackTo(Bytes)
+        [1].repackTo(Bytes)[:1] == [1].repackTo(Bytes)
+        [1].repackTo(Bytes)[:0] == [].repackTo(Bytes)
+        [1, 2].repackTo(Bytes)[:2] == [1, 2].repackTo(Bytes)
+        [1, 2].repackTo(Bytes)[:1] == [1].repackTo(Bytes)
+        [1, 2].repackTo(Bytes)[:0] == [].repackTo(Bytes)
+        [].repackTo(Bytes)[:-9223372036854775808] : error_outOfRange
+        [].repackTo(Bytes)[:9223372036854775807] : error_outOfRange
+        [].repackTo(Bytes)[:-1] : error_outOfRange
+        [].repackTo(Bytes)[:1] : error_outOfRange
+        [].repackTo(Bytes)[:2] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[:0] == [].repackTo(Bytes)
+        [1, 2, 3].repackTo(Bytes)[:1] == [1].repackTo(Bytes)
+        [1, 2, 3].repackTo(Bytes)[:2] == [1, 2].repackTo(Bytes)
+        [1, 2, 3].repackTo(Bytes)[:3] == [1, 2, 3].repackTo(Bytes)
+        [1, 2, 3].repackTo(Bytes)[:-9223372036854775808] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[:9223372036854775807] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[:-1] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[:4] : error_outOfRange
+        [1, 2, 3].repackTo(Bytes)[:5] : error_outOfRange
 
 #noinline
 def testBytes_GetRange(write ok Int, write errorsCoordinates List)

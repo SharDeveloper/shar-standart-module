@@ -68,6 +68,16 @@ attach List to Shar__sugar__notEqual
     def shar__sugar__notEqual(list1, list2 List) Bool
         return !(list1 == list2)
 
+attach List to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(list List, a Int) List
+        return list[a : list.length~()]
+
+attach List to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(list List, a Int) List
+        return list[0 : a]
+
 attach List to Shar__sugar__getRange
     #alwaysinline
     def shar__sugar__getRange(list List, from, to Int) List

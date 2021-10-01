@@ -12,6 +12,16 @@ attach Container to Shar__sugar__notEqual
     def shar__sugar__notEqual(container1, container2 Container) Bool
         return container1.toList() != container2.toList()
 
+attach Container to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(container Container, a Int) Container
+        return Container.fromList(container.toList()[a:])
+
+attach Container to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(container Container, a Int) Container
+        return Container.fromList(container.toList()[:a])
+
 attach Container to Shar__sugar__getRange
     def shar__sugar__getRange(container Container, from, to $Any) Container
         return Container.fromList(container.toList()[from : to])
