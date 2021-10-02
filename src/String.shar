@@ -429,19 +429,31 @@ attach String to String
 
     #alwaysinline nothrow
     def saveToUTF8File(string, fileName String) Bool
-        var utf8String Bytes = Bytes()
-        parse _, char = string
+        const file <>File = openFile(fileName, enum::fmode_write)
+        if file.nothing?()
+            return false
+        var buffer Bytes = unsafe_bytes_createDummy(min(const::fileBlockSize, string.length~() * 2 + 3))
+        var position Int = 0
+        parse charIndex, char = string
             const charAsInt Int = char.charToInt()
             if charAsInt < 0x80
-                utf8String.addItem(charAsInt)
+                buffer.setItem(position, charAsInt)
             elif charAsInt > 0x7f && charAsInt < 0x800
-                utf8String.addItem((charAsInt >> 6) | 192)
-                utf8String.addItem((charAsInt & 63) | 128)
+                buffer.setItem(position, (charAsInt >> 6) | 192)
+                position++
+                buffer.setItem(position, (charAsInt & 63) | 128)
             elif charAsInt > 0x7ff
-                utf8String.addItem((charAsInt >> 12) | 192)
-                utf8String.addItem(((charAsInt >> 6) & 63) | 128)
-                utf8String.addItem((charAsInt & 63) | 128)
-        return saveToFile(fileName, utf8String)
+                buffer.setItem(position, (charAsInt >> 12) | 192)
+                position++
+                buffer.setItem(position, ((charAsInt >> 6) & 63) | 128)
+                position++
+                buffer.setItem(position, (charAsInt & 63) | 128)
+            position++
+            if buffer.length~() - position < 3 || charIndex == string.length~() - 1
+                if writeDataToFile(file, position, buffer) != position
+                    return false
+                position = 0
+        return true
 
 #override(STD) alwaysinline
 def copy(write destination String, destinationPosition Int, source String, sourcePosition, length Int)
