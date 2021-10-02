@@ -68,6 +68,26 @@ attach List to Shar__sugar__notEqual
     def shar__sugar__notEqual(list1, list2 List) Bool
         return !(list1 == list2)
 
+#override(STD) alwaysinline
+def partsEqual?(list1 List, from1 Int, list2 List, from2, length Int) Bool
+    const list1Length Int = list1.length~()
+    const list2Length Int = list2.length~()
+    var result Bool = {
+        from1 >= 0 && from1 <= list1Length &&
+        from2 >= 0 && from2 <= list2Length &&
+        length >= 0 && length <= (list1Length - from1).min(list2Length - from2)
+    }
+    if result
+        for :(offset Int = 0) offset < length; offset++
+            const item1TypeNumber Int = list1.unsafe_getI64((from1 + offset + 1) * 2)
+            const item1Value Int = list1.unsafe_getI64((from1 + offset + 1) * 2 + 1)
+            const item2TypeNumber Int = list2.unsafe_getI64((from2 + offset + 1) * 2)
+            const item2Value Int = list2.unsafe_getI64((from2 + offset + 1) * 2 + 1)
+            result = item1TypeNumber == item2TypeNumber && item1TypeNumber.unsafe_inEqualGroup?() && unsafe_equal(item1TypeNumber, item1Value, item2TypeNumber, item2Value)
+            if !result
+                end offset
+    return result
+
 attach List to Shar__sugar__getFromAToLast
     #alwaysinline
     def shar__sugar__getFromAToLast(list List, a Int) List

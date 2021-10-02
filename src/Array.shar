@@ -627,19 +627,28 @@ def swapBlocks(write array This, left, right, count Int)
 def partsEqual?(array1 Array, from1 Int, array2 Array, from2, length Int) Bool
     const array1Length Int = array1.length~()
     const array2Length Int = array2.length~()
+    const item1TypeNumber Int = array1.itemTypeNumber~()
+    const item2TypeNumber Int = array2.itemTypeNumber~()
     var result Bool = {
-            from1 >= 0 && from1 <= array1Length &&
-            from2 >= 0 && from2 <= array2Length &&
-            length >= 0 && length <= (array1Length - from1).min(array2Length - from2) &&
-            array1.itemTypeNumber~() == array2.itemTypeNumber~() &&
+        from1 >= 0 && from1 <= array1Length &&
+        from2 >= 0 && from2 <= array2Length &&
+        length >= 0 && length <= (array1Length - from1).min(array2Length - from2) &&
+        (
             (
-                array1.itemTypeNumber~() == Nothing.typeNumber~() ||
-                array2.itemTypeInEqual?()
+                item1TypeNumber == item2TypeNumber &&
+                (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber~())
+            ) || (
+                item1TypeNumber == Nothing.typeNumber~() && item2TypeNumber.unsafe_inEqualGroup?()
+            ) || (
+                item2TypeNumber == Nothing.typeNumber~() && item1TypeNumber.unsafe_inEqualGroup?()
             )
-        }
+        )
+    }
     if result
         for :(offset Int = 0) offset < length; offset++
-            result = array1[from1 + offset] == array2[from2 + offset]
+            const item1Value Int = array1.unsafe_getI64(from1 + offset + 3)
+            const item2Value Int = array2.unsafe_getI64(from2 + offset + 3)
+            result = unsafe_equal(item1TypeNumber, item1Value, item1TypeNumber, item2Value)
             if !result
                 end offset
     return result
