@@ -444,6 +444,14 @@ export def currentTime() Time
         %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Time##, i64 0], i64 %##reg##time##, 1
         ret [2 x i64] %##reg##result##
 
+//@The function returns the current time. (UTC)
+#alwaysinline nothrow
+export def currentUTCTime() Time
+    llvm
+        %##nreg##time## = call i64 @shar__get__current__utc__time()
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Time##, i64 0], i64 %##reg##time##, 1
+        ret [2 x i64] %##reg##result##
+
 //@The function returns the number of seconds elapsed from 0 hours, 0 minutes, 0 seconds, January 1, 1970 to the specified time.
 #alwaysinline nothrow
 export def timeToInt(time Time) Int
