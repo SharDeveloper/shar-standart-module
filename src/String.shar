@@ -438,12 +438,12 @@ attach String to String
             const charAsInt Int = char.charToInt()
             if charAsInt < 0x80
                 buffer.setItem(position, charAsInt)
-            elif charAsInt > 0x7f && charAsInt < 0x800
+            elif charAsInt < 0x800
                 buffer.setItem(position, (charAsInt >> 6) | 192)
                 position++
                 buffer.setItem(position, (charAsInt & 63) | 128)
-            elif charAsInt > 0x7ff
-                buffer.setItem(position, (charAsInt >> 12) | 192)
+            else
+                buffer.setItem(position, (charAsInt >> 12) | 224)
                 position++
                 buffer.setItem(position, ((charAsInt >> 6) & 63) | 128)
                 position++
@@ -487,11 +487,11 @@ attach String to BinarySerializable
             const charAsInt Int = char.charToInt()
             if charAsInt < 0x80
                 utf8String.addItem(charAsInt)
-            elif charAsInt > 0x7f && charAsInt < 0x800
+            elif charAsInt < 0x800
                 utf8String.addItem((charAsInt >> 6) | 192)
                 utf8String.addItem((charAsInt & 63) | 128)
-            elif charAsInt > 0x7ff
-                utf8String.addItem((charAsInt >> 12) | 192)
+            else
+                utf8String.addItem((charAsInt >> 12) | 224)
                 utf8String.addItem(((charAsInt >> 6) & 63) | 128)
                 utf8String.addItem((charAsInt & 63) | 128)
         serialize(utf8String, bytes)
