@@ -203,7 +203,7 @@ attach String to Shar__sugar__getItem
         inthrow
             if !index.inRange?(0, string.length~())
                 throw(enum::error_outOfRange, "Out of range.")
-        return string.unsafe_getI16(index + 8).unsafe_int_intToChar()
+        return unsafe_object(Char.typeNumber~(), string.unsafe_getI16(index + 8))
 
 attach String to Shar__sugar__add
     #inline nothrow
@@ -424,7 +424,7 @@ attach String to String
                     newChar |= charPart ^ 128
                 else
                     throw(enum::error_invalidCharacter, "Invalid character.")
-            result.addItem(newChar.unsafe_int_intToChar())
+            result.addItem(unsafe_object(Char.typeNumber~(), newChar))
         return result
 
     #alwaysinline nothrow
@@ -543,7 +543,7 @@ attach String to BinarySerializable
                     newChar |= charPart ^ 128
                 else
                     throw(enum::error_invalidCharacter, "Invalid character.")
-            result.addItem(newChar.unsafe_int_intToChar())
+            result.addItem(unsafe_object(Char.typeNumber~(), newChar))
         position = currentPosition
         return result
 
@@ -637,7 +637,7 @@ def countPartFromAtoB(string, part String, a, b Int) Int
     var result Int = 0
     const edge Int = b - partLength + 1
     if edge > 0
-        const firstChar Char = part.unsafe_getI16(8).unsafe_int_intToChar()
+        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
         for :(index Int = a) index < edge
             const indexOfFirstChar <>Int = string.lookFromAtoB(firstChar, index, edge)
             if indexOfFirstChar.nothing?()
@@ -761,7 +761,7 @@ def lookNPartFromAtoB(string, part String, n, a, b Int) <>Int
     const edge Int = b - partLength + 1
     if edge > 0
         var mutN Int = n
-        const firstChar Char = part.unsafe_getI16(8).unsafe_int_intToChar()
+        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
         for :(index Int = a) index < edge
             const indexOfFirstChar <>Int = string.lookFromAtoB(firstChar, index, edge)
             if indexOfFirstChar.nothing?()
@@ -901,7 +901,7 @@ def lookAllPartsFromAtoB(string, part String, a, b Int) Array
     var result Array = []
     const edge Int = b - partLength + 1
     if edge > 0
-        const firstChar Char = part.unsafe_getI16(8).unsafe_int_intToChar()
+        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
         for :(index Int = a) index < edge
             const indexOfFirstChar <>Int = string.lookFromAtoB(firstChar, index, edge)
             if indexOfFirstChar.nothing?()
@@ -1015,7 +1015,7 @@ def lookBackNPartFromAtoB(string, part String, n, a, b Int) <>Int
     const firstEdge Int = b - partLength + 1
     if firstEdge > 0
         var mutN Int = n
-        const firstChar Char = part.unsafe_getI16(8).unsafe_int_intToChar()
+        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
         for :(edge Int = firstEdge) edge > a
             const indexOfFirstChar <>Int = string.lookBackFromAtoB(firstChar, a, edge)
             if indexOfFirstChar.nothing?()

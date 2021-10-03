@@ -329,7 +329,7 @@ attach Char to Hashable
 
     #alwaysinline nothrow
     def getRandomizedHash(character Char) Int
-        return (character ^ (const::staticRandomNumber & 0xffff).unsafe_int_intToChar()).charToInt()
+        return charToInt(character) ^ const::staticRandomNumber
 
 attach Char to BinarySerializable
     #alwaysinline nothrow
@@ -351,7 +351,7 @@ attach Char to BinarySerializable
                 throw(enum::error_outOfRange, "Out of range.")
         const resultAsInt Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI16(0)
         position += 2
-        return resultAsInt.unsafe_int_intToChar()
+        return unsafe_object(Char.typeNumber~(), resultAsInt)
 
 attach Char to Multithreaded
     #alwaysinline nothrow
