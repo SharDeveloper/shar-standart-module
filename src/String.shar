@@ -1345,3 +1345,85 @@ def unsafe_string_simdReverseAndSwapParts(part1, part2 $Any)
         store <16 x i16> %##reg##reversed part1##, <16 x i16>* %##reg##part2 pointer##, align 2
         store <16 x i16> %##reg##reversed part2##, <16 x i16>* %##reg##part1 pointer##, align 2
         ret [2 x i64] zeroinitializer
+
+#this(String)
+export def toLower(string This) This
+    var result This = This.createEmpty()
+    parse _, oldChar = string
+        var newChar Int = charToInt(oldChar)
+        if oldChar < '\0080'
+            if oldChar >= 'A' && oldChar <= 'Z'
+                newChar |= 32
+        else
+            const upperChar <>Int = const::upperToLowerMap[oldChar]
+            if upperChar.type?(Int)
+                newChar = upperChar
+        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
+        const char1 Char = unsafe_object(Char.typeNumber~(), newChar >> 16)
+        result.addItem(char0)
+        if char1 != '\0000'
+            result.addItem(char1)
+    return result
+
+#override(STD) inline nothrow
+def toLower(string String) String
+    var result String = ""
+    parse _, oldChar = string
+        var newChar Int = charToInt(oldChar)
+        if oldChar < '\0080'
+            if oldChar >= 'A' && oldChar <= 'Z'
+                newChar |= 32
+        else
+            const upperChar <>Int = const::upperToLowerMap[oldChar]
+            if upperChar.type?(Int)
+                newChar = upperChar
+        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
+        const char1 Char = unsafe_object(Char.typeNumber~(), newChar >> 16)
+        result.addItem(char0)
+        if char1 != '\0000'
+            result.addItem(char1)
+    return result
+
+#this(String)
+export def toUpper(string This) This
+    var result This = This.createEmpty()
+    parse _, oldChar = string
+        var newChar Int = charToInt(oldChar)
+        if oldChar < '\0080'
+            if oldChar >= 'a' && oldChar <= 'z'
+                newChar ^= 32
+        else
+            const lowerChar <>Int = const::lowerToUpperMap[oldChar]
+            if lowerChar.type?(Int)
+                newChar = lowerChar
+        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
+        const char1 Char = unsafe_object(Char.typeNumber~(), (newChar >> 16) & 0xffff)
+        const char2 Char = unsafe_object(Char.typeNumber~(), newChar >> 32)
+        result.addItem(char0)
+        if char1 != '\0000'
+            result.addItem(char1)
+        if char2 != '\0000'
+            result.addItem(char2)
+    return result
+
+#override(STD) inline nothrow
+def toUpper(string String) String
+    var result String = ""
+    parse _, oldChar = string
+        var newChar Int = charToInt(oldChar)
+        if oldChar < '\0080'
+            if oldChar >= 'a' && oldChar <= 'z'
+                newChar ^= 32
+        else
+            const lowerChar <>Int = const::lowerToUpperMap[oldChar]
+            if lowerChar.type?(Int)
+                newChar = lowerChar
+        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
+        const char1 Char = unsafe_object(Char.typeNumber~(), (newChar >> 16) & 0xffff)
+        const char2 Char = unsafe_object(Char.typeNumber~(), newChar >> 32)
+        result.addItem(char0)
+        if char1 != '\0000'
+            result.addItem(char1)
+        if char2 != '\0000'
+            result.addItem(char2)
+    return result
