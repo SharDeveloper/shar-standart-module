@@ -442,6 +442,76 @@ def quicksort(write array This, beginIndex, endEdge Int, rise Bool, randomNumber
         if bigRangeLeftIndex == -1
             end mainLoop
 
+#override(STD)
+def quicksort(write array Array, beginIndex, endEdge Int, rise Bool, randomNumber Int)
+    const itemTypeNumber Int = array.itemTypeNumber~()
+    var leftIndex Int = beginIndex
+    var rightEdge Int = endEdge
+    for :(mainLoop)
+        const rangeLength Int = rightEdge - leftIndex
+        var smallRangeLeftIndex Int = -1
+        var smallRangeRightEdge Int = -1
+        var smallRangeLength Int = -1
+        var bigRangeLeftIndex Int = -1
+        var bigRangeRightEdge Int = -1
+        if rangeLength > 16
+            const length25p Int = rangeLength >> 2
+            const length75p Int = (length25p << 1) + length25p
+            var randomOffset Int = (randomNumber & (rangeLength - 1))
+            if randomOffset < length25p
+                randomOffset += length25p
+            elif randomOffset > length75p
+                randomOffset -= length25p
+            nothrow
+                array.swap(leftIndex, leftIndex + randomOffset)
+            var currentIndex Int = leftIndex
+            var oppositeIndex Int = rightEdge - 1
+            var direction Int = -1
+            var cmpModifier Bool = rise
+            for :(loop)
+                if cmpModifier.select{
+                    (unsafe_lessOrEqual(itemTypeNumber, array.unsafe_getI64(oppositeIndex + 3), itemTypeNumber, array.unsafe_getI64(currentIndex + 3)),
+                    unsafe_lessOrEqual(itemTypeNumber, array.unsafe_getI64(currentIndex + 3), itemTypeNumber, array.unsafe_getI64(oppositeIndex + 3)))
+                }
+                    nothrow
+                        array.swap(currentIndex, oppositeIndex)
+                        exchange(currentIndex, oppositeIndex)
+                        direction = !direction
+                        cmpModifier = !cmpModifier
+                if (currentIndex - oppositeIndex).inRange?(-1, 2)
+                    end loop
+                oppositeIndex += direction
+            const leftRangeLength Int = currentIndex - leftIndex
+            const rightRangeLength Int = rightEdge - currentIndex - 1
+            if leftRangeLength < rightRangeLength
+                smallRangeLeftIndex = leftIndex
+                smallRangeRightEdge = currentIndex
+                smallRangeLength = leftRangeLength
+                bigRangeLeftIndex = currentIndex + 1
+                bigRangeRightEdge = rightEdge
+            else
+                smallRangeLeftIndex = currentIndex + 1
+                smallRangeRightEdge = rightEdge
+                smallRangeLength = rightRangeLength
+                bigRangeLeftIndex = leftIndex
+                bigRangeRightEdge = currentIndex
+            leftIndex = bigRangeLeftIndex
+            rightEdge = bigRangeRightEdge
+        else
+            smallRangeLeftIndex = leftIndex
+            smallRangeRightEdge = rightEdge
+            smallRangeLength = rangeLength
+        if smallRangeLength > 16
+            array.quicksort(smallRangeLeftIndex, smallRangeRightEdge, rise, randomNumber)
+        elif smallRangeLength > 2
+            array.heapSort(smallRangeLeftIndex, smallRangeRightEdge, smallRangeLength, rise)
+        elif smallRangeLength == 2
+            if unsafe_less(itemTypeNumber, array.unsafe_getI64(smallRangeLeftIndex + 4), itemTypeNumber, array.unsafe_getI64(smallRangeLeftIndex + 3)) == rise
+                nothrow
+                    array.swap(smallRangeLeftIndex, smallRangeLeftIndex + 1)
+        if bigRangeLeftIndex == -1
+            end mainLoop
+
 #this(Array)
 def heapSort(write array This, beginIndex, endEdge, count Int, rise Bool)
     for :(currentIndex Int = (count >> 1) + beginIndex - 1) currentIndex >= beginIndex; currentIndex--
@@ -458,14 +528,36 @@ def toHeap(write array This, currentIndex, beginIndex, endEdge Int, rise Bool)
         const leftIndex Int = 2 * mutCurrentIndex - beginIndex + 1
         const rightIndex Int = leftIndex + 1
         if rightIndex < endEdge
-            if  array[largestIndex] < array[rightIndex] == rise
+            if array[largestIndex] < array[rightIndex] == rise
                 largestIndex = rightIndex
-            if  array[largestIndex] < array[leftIndex] == rise
+            if array[largestIndex] < array[leftIndex] == rise
                 largestIndex = leftIndex
         elif leftIndex < endEdge && (array[largestIndex] < array[leftIndex] == rise)
             largestIndex = leftIndex
         if largestIndex != mutCurrentIndex
             array.swap(mutCurrentIndex, largestIndex)
+            mutCurrentIndex = largestIndex
+        else
+            end loop
+
+#override(STD)
+def toHeap(write array Array, currentIndex, beginIndex, endEdge Int, rise Bool)
+    const itemTypeNumber Int = array.itemTypeNumber~()
+    var mutCurrentIndex Int = currentIndex
+    for :(loop)
+        var largestIndex Int = mutCurrentIndex
+        const leftIndex Int = 2 * mutCurrentIndex - beginIndex + 1
+        const rightIndex Int = leftIndex + 1
+        if rightIndex < endEdge
+            if unsafe_less(itemTypeNumber, array.unsafe_getI64(largestIndex + 3), itemTypeNumber, array.unsafe_getI64(rightIndex + 3)) == rise
+                largestIndex = rightIndex
+            if unsafe_less(itemTypeNumber, array.unsafe_getI64(largestIndex + 3), itemTypeNumber, array.unsafe_getI64(leftIndex + 3)) == rise
+                largestIndex = leftIndex
+        elif leftIndex < endEdge && (unsafe_less(itemTypeNumber, array.unsafe_getI64(largestIndex + 3), itemTypeNumber, array.unsafe_getI64(leftIndex + 3)) == rise)
+            largestIndex = leftIndex
+        if largestIndex != mutCurrentIndex
+            nothrow
+                array.swap(mutCurrentIndex, largestIndex)
             mutCurrentIndex = largestIndex
         else
             end loop

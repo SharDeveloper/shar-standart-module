@@ -517,6 +517,34 @@ def unsafe_equal(typeNumber1, value1, typeNumber2, value2 $Any) Bool
         ret [2 x i64] %##reg##result##
 
 #alwaysinline
+def unsafe_less(typeNumber1, value1, typeNumber2, value2 $Any) Bool
+    llvm
+        %##nreg##type number 1## = extractvalue [2 x i64] %0, 1
+        %##nreg##value 1## = extractvalue [2 x i64] %1, 1
+        %##nreg##half object 1## = insertvalue [2 x i64] undef, i64 %##reg##type number 1##, 0
+        %##nreg##object 1## = insertvalue [2 x i64] %##reg##half object 1##, i64 %##reg##value 1##, 1
+        %##nreg##type number 2## = extractvalue [2 x i64] %2, 1
+        %##nreg##value 2## = extractvalue [2 x i64] %3, 1
+        %##nreg##half object 2## = insertvalue [2 x i64] undef, i64 %##reg##type number 2##, 0
+        %##nreg##object 2## = insertvalue [2 x i64] %##reg##half object 2##, i64 %##reg##value 2##, 1
+        %##nreg##result## = call [2 x i64] ##func##STD::shar__sugar__less##([2 x i64] %##reg##object 1##, [2 x i64] %##reg##object 2##)
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline
+def unsafe_lessOrEqual(typeNumber1, value1, typeNumber2, value2 $Any) Bool
+    llvm
+        %##nreg##type number 1## = extractvalue [2 x i64] %0, 1
+        %##nreg##value 1## = extractvalue [2 x i64] %1, 1
+        %##nreg##half object 1## = insertvalue [2 x i64] undef, i64 %##reg##type number 1##, 0
+        %##nreg##object 1## = insertvalue [2 x i64] %##reg##half object 1##, i64 %##reg##value 1##, 1
+        %##nreg##type number 2## = extractvalue [2 x i64] %2, 1
+        %##nreg##value 2## = extractvalue [2 x i64] %3, 1
+        %##nreg##half object 2## = insertvalue [2 x i64] undef, i64 %##reg##type number 2##, 0
+        %##nreg##object 2## = insertvalue [2 x i64] %##reg##half object 2##, i64 %##reg##value 2##, 1
+        %##nreg##result## = call [2 x i64] ##func##STD::shar__sugar__lessOrEqual##([2 x i64] %##reg##object 1##, [2 x i64] %##reg##object 2##)
+        ret [2 x i64] %##reg##result##
+
+#alwaysinline
 def unsafe_inEqualGroup?(typeNumber $Any) Bool
     llvm
         %##nreg##type number## = extractvalue [2 x i64] %0, 1
