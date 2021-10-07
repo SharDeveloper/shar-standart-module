@@ -394,7 +394,8 @@ def quicksort(write array This, beginIndex, endEdge Int, rise Bool, randomNumber
                 randomOffset += length25p
             elif randomOffset > length75p
                 randomOffset -= length25p
-            array.swap(leftIndex, leftIndex + randomOffset)
+            nothrow
+                array.swap(leftIndex, leftIndex + randomOffset)
             const currentItem $Any = array[leftIndex]
             var currentIndex Int = leftIndex
             var oppositeIndex Int = rightEdge - 1
@@ -403,10 +404,11 @@ def quicksort(write array This, beginIndex, endEdge Int, rise Bool, randomNumber
             for :(loop)
                 const oppositeItem $Any = array[oppositeIndex]
                 if cmpModifier.select(oppositeItem <= currentItem, currentItem <= oppositeItem)
-                    array.swap(currentIndex, oppositeIndex)
-                    exchange(currentIndex, oppositeIndex)
-                    direction = !direction
-                    cmpModifier = !cmpModifier
+                    nothrow
+                        array.swap(currentIndex, oppositeIndex)
+                        exchange(currentIndex, oppositeIndex)
+                        direction = !direction
+                        cmpModifier = !cmpModifier
                 if (currentIndex - oppositeIndex).inRange?(-1, 2)
                     end loop
                 oppositeIndex += direction
@@ -438,7 +440,8 @@ def quicksort(write array This, beginIndex, endEdge Int, rise Bool, randomNumber
             const firstItem $Any = array[smallRangeLeftIndex]
             const secondItem $Any = array[smallRangeLeftIndex + 1]
             if (secondItem < firstItem) == rise
-                array.swap(smallRangeLeftIndex, smallRangeLeftIndex + 1)
+                nothrow
+                    array.swap(smallRangeLeftIndex, smallRangeLeftIndex + 1)
         if bigRangeLeftIndex == -1
             end mainLoop
 
@@ -517,7 +520,8 @@ def heapSort(write array This, beginIndex, endEdge, count Int, rise Bool)
     for :(currentIndex Int = (count >> 1) + beginIndex - 1) currentIndex >= beginIndex; currentIndex--
         array.toHeap(currentIndex, beginIndex, endEdge, rise)
     for :(currentEdge Int = endEdge - 1) currentEdge >= beginIndex; currentEdge--
-        array.swap(beginIndex, currentEdge)
+        nothrow
+            array.swap(beginIndex, currentEdge)
         array.toHeap(beginIndex, beginIndex, currentEdge, rise)
 
 #this(Array)
@@ -535,7 +539,8 @@ def toHeap(write array This, currentIndex, beginIndex, endEdge Int, rise Bool)
         elif leftIndex < endEdge && (array[largestIndex] < array[leftIndex] == rise)
             largestIndex = leftIndex
         if largestIndex != mutCurrentIndex
-            array.swap(mutCurrentIndex, largestIndex)
+            nothrow
+                array.swap(mutCurrentIndex, largestIndex)
             mutCurrentIndex = largestIndex
         else
             end loop
@@ -609,11 +614,13 @@ def insertionSort(write array This, beginIndex, endEdge Int, rise Bool)
     if rise
         for :(sortedPartEndIndex Int = beginIndex + 1) sortedPartEndIndex < endEdge; sortedPartEndIndex++
             for :(currentIndex Int = sortedPartEndIndex) currentIndex > beginIndex && (array[currentIndex] < array[currentIndex - 1]); currentIndex--
-                array.swap(currentIndex, currentIndex - 1)
+                nothrow
+                    array.swap(currentIndex, currentIndex - 1)
     else
         for :(sortedPartEndIndex Int = beginIndex + 1) sortedPartEndIndex < endEdge; sortedPartEndIndex++
             for :(currentIndex Int = sortedPartEndIndex) currentIndex > beginIndex && (array[currentIndex - 1] < array[currentIndex]); currentIndex--
-                array.swap(currentIndex, currentIndex - 1)
+                nothrow
+                    array.swap(currentIndex, currentIndex - 1)
 
 #this(Array)
 def mergeBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int, rise Bool)
@@ -621,9 +628,9 @@ def mergeBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int, ri
     var mutLeftEndRightBegin Int = leftEndRightBegin
     var mutRightEnd Int = rightEnd
     for :(mainLoop)
-        var roLeftBegin Int = mutLeftBegin
-        var roLeftEndRightBegin Int = mutLeftEndRightBegin
-        var roRightEnd Int = mutRightEnd
+        const roLeftBegin Int = mutLeftBegin
+        const roLeftEndRightBegin Int = mutLeftEndRightBegin
+        const roRightEnd Int = mutRightEnd
         if roLeftEndRightBegin - roLeftBegin == 1
             var binarySearchLeft Int = roLeftEndRightBegin
             var binarySearchRight Int = roRightEnd
@@ -639,7 +646,8 @@ def mergeBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int, ri
                     end loop
             binarySearchLeft--
             for :(index Int = roLeftBegin) index < binarySearchLeft; index++
-                array.swap(index, index + 1)
+                nothrow
+                    array.swap(index, index + 1)
         elif roRightEnd - roLeftEndRightBegin == 1
             var binarySearchLeft Int = roLeftBegin
             var binarySearchRight Int = roLeftEndRightBegin
@@ -654,7 +662,8 @@ def mergeBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int, ri
                 if binarySearchLeft >= binarySearchRight
                     end loop
             for :(index Int = roLeftEndRightBegin) index > binarySearchLeft; index--
-                array.swap(index, index - 1)
+                nothrow
+                    array.swap(index, index - 1)
         else
             const blocksCenter Int = (roLeftBegin + roRightEnd) >> 1
             const centerPlusRightBegin Int = blocksCenter + roLeftEndRightBegin
@@ -698,17 +707,18 @@ def mergeBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int, ri
 
 #this(Array) alwaysinline
 def rotateBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int)
-    var leftSize Int = leftEndRightBegin - leftBegin
-    var rightSize Int = rightEnd - leftEndRightBegin
-    for leftSize != rightSize
-        const swapLeft Int = leftEndRightBegin - leftSize
-        if leftSize > rightSize
-            array.swapBlocks(swapLeft, leftEndRightBegin, rightSize)
-            leftSize -= rightSize
-        else
-            array.swapBlocks(swapLeft, swapLeft + rightSize, leftSize)
-            rightSize -= leftSize
-    array.swapBlocks(leftEndRightBegin - leftSize, leftEndRightBegin, leftSize)
+    nothrow
+        var leftSize Int = leftEndRightBegin - leftBegin
+        var rightSize Int = rightEnd - leftEndRightBegin
+        for leftSize != rightSize
+            const swapLeft Int = leftEndRightBegin - leftSize
+            if leftSize > rightSize
+                array.swapBlocks(swapLeft, leftEndRightBegin, rightSize)
+                leftSize -= rightSize
+            else
+                array.swapBlocks(swapLeft, swapLeft + rightSize, leftSize)
+                rightSize -= leftSize
+        array.swapBlocks(leftEndRightBegin - leftSize, leftEndRightBegin, leftSize)
 
 #this(Array) alwaysinline
 def swapBlocks(write array This, left, right, count Int)
