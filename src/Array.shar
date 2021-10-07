@@ -622,6 +622,20 @@ def insertionSort(write array This, beginIndex, endEdge Int, rise Bool)
                 nothrow
                     array.swap(currentIndex, currentIndex - 1)
 
+#override(STD) alwaysinline
+def insertionSort(write array Array, beginIndex, endEdge Int, rise Bool)
+    const itemTypeNumber Int = array.itemTypeNumber~()
+    if rise
+        for :(sortedPartEndIndex Int = beginIndex + 1) sortedPartEndIndex < endEdge; sortedPartEndIndex++
+            for :(currentIndex Int = sortedPartEndIndex) currentIndex > beginIndex && (unsafe_less(itemTypeNumber, array.unsafe_getI64(currentIndex + 3), itemTypeNumber, array.unsafe_getI64(currentIndex + 2))); currentIndex--
+                nothrow
+                    array.swap(currentIndex, currentIndex - 1)
+    else
+        for :(sortedPartEndIndex Int = beginIndex + 1) sortedPartEndIndex < endEdge; sortedPartEndIndex++
+            for :(currentIndex Int = sortedPartEndIndex) currentIndex > beginIndex && (unsafe_less(itemTypeNumber, array.unsafe_getI64(currentIndex + 2), itemTypeNumber, array.unsafe_getI64(currentIndex + 3))); currentIndex--
+                nothrow
+                    array.swap(currentIndex, currentIndex - 1)
+
 #this(Array)
 def mergeBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int, rise Bool)
     var mutLeftBegin Int = leftBegin
@@ -681,6 +695,94 @@ def mergeBlocks(write array This, leftBegin, leftEndRightBegin, rightEnd Int, ri
                 const centerItem $Any = array[centerIndex]
                 const item $Any = array[tmp - centerIndex]
                 if rise.select(item < centerItem, centerItem < item)
+                    binarySearchRight = centerIndex
+                else
+                    binarySearchLeft = centerIndex + 1
+                if binarySearchLeft >= binarySearchRight
+                    end loop
+            const centerBlockBegin Int = binarySearchLeft
+            const centerBlockEnd Int = centerPlusRightBegin - centerBlockBegin
+            if centerBlockBegin < roLeftEndRightBegin && roLeftEndRightBegin < centerBlockEnd
+                array.rotateBlocks(centerBlockBegin, roLeftEndRightBegin, centerBlockEnd)
+            const mergeFirst Bool = roLeftBegin < centerBlockBegin && centerBlockBegin < blocksCenter
+            if mergeFirst
+                mutLeftEndRightBegin = centerBlockBegin
+                mutRightEnd = blocksCenter
+            const mergeSecond Bool = blocksCenter < centerBlockEnd && centerBlockEnd < roRightEnd
+            if mergeSecond
+                if mergeFirst
+                    array.mergeBlocks(blocksCenter, centerBlockEnd, roRightEnd, rise)
+                else
+                    mutLeftBegin = blocksCenter
+                    mutLeftEndRightBegin = centerBlockEnd
+            if mergeFirst | mergeSecond
+                next mainLoop
+        end mainLoop
+
+#override(STD)
+def mergeBlocks(write array Array, leftBegin, leftEndRightBegin, rightEnd Int, rise Bool)
+    const itemTypeNumber Int = array.itemTypeNumber~()
+    var mutLeftBegin Int = leftBegin
+    var mutLeftEndRightBegin Int = leftEndRightBegin
+    var mutRightEnd Int = rightEnd
+    for :(mainLoop)
+        const roLeftBegin Int = mutLeftBegin
+        const roLeftEndRightBegin Int = mutLeftEndRightBegin
+        const roRightEnd Int = mutRightEnd
+        if roLeftEndRightBegin - roLeftBegin == 1
+            var binarySearchLeft Int = roLeftEndRightBegin
+            var binarySearchRight Int = roRightEnd
+            for :(loop)
+                const centerIndex Int = (binarySearchLeft + binarySearchRight) >> 1
+                if rise.select{
+                    (unsafe_less(itemTypeNumber, array.unsafe_getI64(centerIndex + 3), itemTypeNumber, array.unsafe_getI64(roLeftBegin + 3)),
+                    unsafe_less(itemTypeNumber, array.unsafe_getI64(roLeftBegin + 3), itemTypeNumber, array.unsafe_getI64(centerIndex + 3)))
+                }
+                    binarySearchLeft = centerIndex + 1
+                else
+                    binarySearchRight = centerIndex
+                if binarySearchLeft >= binarySearchRight
+                    end loop
+            binarySearchLeft--
+            for :(index Int = roLeftBegin) index < binarySearchLeft; index++
+                nothrow
+                    array.swap(index, index + 1)
+        elif roRightEnd - roLeftEndRightBegin == 1
+            var binarySearchLeft Int = roLeftBegin
+            var binarySearchRight Int = roLeftEndRightBegin
+            for :(loop)
+                const centerIndex Int = (binarySearchLeft + binarySearchRight) >> 1
+                if rise.select{
+                    (unsafe_less(itemTypeNumber, array.unsafe_getI64(roLeftEndRightBegin + 3), itemTypeNumber, array.unsafe_getI64(centerIndex + 3)),
+                    unsafe_less(itemTypeNumber, array.unsafe_getI64(centerIndex + 3), itemTypeNumber, array.unsafe_getI64(roLeftEndRightBegin + 3)))
+                }
+                    binarySearchRight = centerIndex
+                else
+                    binarySearchLeft = centerIndex + 1
+                if binarySearchLeft >= binarySearchRight
+                    end loop
+            for :(index Int = roLeftEndRightBegin) index > binarySearchLeft; index--
+                nothrow
+                    array.swap(index, index - 1)
+        else
+            const blocksCenter Int = (roLeftBegin + roRightEnd) >> 1
+            const centerPlusRightBegin Int = blocksCenter + roLeftEndRightBegin
+            var binarySearchLeft Int = 0
+            var binarySearchRight Int = 0
+            if roLeftEndRightBegin > blocksCenter
+                binarySearchLeft = centerPlusRightBegin - roRightEnd
+                binarySearchRight = blocksCenter
+            else
+                binarySearchLeft = roLeftBegin
+                binarySearchRight = roLeftEndRightBegin
+            const tmp Int = centerPlusRightBegin - 1
+            for :(loop)
+                const centerIndex Int = (binarySearchLeft + binarySearchRight) >> 1
+                const itemIndex Int = tmp - centerIndex
+                if rise.select{
+                    (unsafe_less(itemTypeNumber, array.unsafe_getI64(itemIndex + 3), itemTypeNumber, array.unsafe_getI64(centerIndex + 3)),
+                    unsafe_less(itemTypeNumber, array.unsafe_getI64(centerIndex + 3), itemTypeNumber, array.unsafe_getI64(itemIndex + 3)))
+                }
                     binarySearchRight = centerIndex
                 else
                     binarySearchLeft = centerIndex + 1
