@@ -373,27 +373,6 @@ attach Array to ItemTypeNumber
     def itemTypeNumber~(array Array) Int
         return array.unsafe_getI64(2)
 
-//@The function finds out if the type of array items is a member of the "STD::Independent" group.
-#this(Array) alwaysinline
-export def itemTypeIndependent?(array This) Bool
-    if array.empty?()
-        return false
-    return array[0].inGroups?(Independent)
-
-//@The function finds out if the type of array items is a member of the "STD::Equal" group.
-#this(Array) alwaysinline
-export def itemTypeInEqual?(array This) Bool
-    if array.empty?()
-        return false
-    return array[0].inGroups?(Equal)
-
-//@The function finds out if the type of array items is a member of the "STD::Ordered" group.
-#this(Array) alwaysinline
-export def itemTypeInOrdered?(array This) Bool
-    if array.empty?()
-        return false
-    return array[0].inGroups?(Ordered)
-
 #override(STD)
 def quicksort(write array Array, beginIndex, endEdge Int, rise Bool, randomNumber Int)
     const itemTypeNumber Int = array.itemTypeNumber~()
