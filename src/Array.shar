@@ -68,18 +68,66 @@ def dump(array Array, level Int) String
 attach Array to Equal
 
 attach Array to Shar__sugar__equal
+    //@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "enum::STD::error_invalidType" code.
+    //@If at least one array is not empty and the type of its items is not a member of the "STD::Equal" group, the function returns an error with the "enum::STD::error_invalidType" code.
     #alwaysinline
     def shar__sugar__equal(array1, array2 Array) Bool
-        return array1.length~() == array2.length~() && array1.partsEqual?(0, array2, 0, array1.length~())
+        const item1TypeNumber Int = array1.itemTypeNumber~()
+        const item2TypeNumber Int = array2.itemTypeNumber~()
+        if {
+            !(
+                (
+                    item1TypeNumber == item2TypeNumber &&
+                    (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber~())
+                ) || (
+                    item1TypeNumber == Nothing.typeNumber~() && item2TypeNumber.unsafe_inEqualGroup?()
+                ) || (
+                    item2TypeNumber == Nothing.typeNumber~() && item1TypeNumber.unsafe_inEqualGroup?()
+                )
+            )
+        }
+            throw(enum::error_invalidType, "Invalid type.")
+        var result Bool = array1.length~() == array2.length~()
+        if result
+            for :(index Int = 0) index < array1.length~(); index++
+                const item1Value Int = array1.unsafe_getI64(index + 3)
+                const item2Value Int = array2.unsafe_getI64(index + 3)
+                result = unsafe_equal(item1TypeNumber, item1Value, item1TypeNumber, item2Value)
+                if !result
+                    end index
+        return result
 
 attach Array to Shar__sugar__notEqual
+    //@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "enum::STD::error_invalidType" code.
+    //@If at least one array is not empty and the type of its items is not a member of the "STD::Equal" group, the function returns an error with the "enum::STD::error_invalidType" code.
     #alwaysinline
     def shar__sugar__notEqual(array1, array2 Array) Bool
         return !(array1 == array2)
 
 attach Array to Ordered
+    //@Comparison occurs from the beginning of the array to the end. The comparison is carried out until the result is clear.
+    //@If array "a" is empty, and array "b" is not empty, then array "a" is less than array "b".
+    //@If array "a" has zero or more items equal to the same number of items in array "b", and the next item of array "a" is less than the next item of array "b", then array "a" is less than array "b".
+    //@If array "a" is equal to the beginning of array "b", but at the same time array "b" contains more items than array "a", then array "a" is less than array "b".
+    //@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "enum::STD::error_invalidType" code.
+    //@If at least one array is not empty and the type of its items is not a member of the "STD::Ordered" group, the function returns an error with the "enum::STD::error_invalidType" code.
     #alwaysinline
     def compare(array1, array2 Array) Int
+        const item1TypeNumber Int = array1.itemTypeNumber~()
+        const item2TypeNumber Int = array2.itemTypeNumber~()
+        if {
+            !(
+                (
+                    item1TypeNumber == item2TypeNumber &&
+                    (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber~())
+                ) || (
+                    item1TypeNumber == Nothing.typeNumber~() && item2TypeNumber.unsafe_inEqualGroup?()
+                ) || (
+                    item2TypeNumber == Nothing.typeNumber~() && item1TypeNumber.unsafe_inEqualGroup?()
+                )
+            )
+        }
+            throw(enum::error_invalidType, "Invalid type.")
         const generalLength Int = array1.length~().min(array2.length~())
         if generalLength != 0
             for :(index Int = 0) index < generalLength; index++
@@ -89,21 +137,25 @@ attach Array to Ordered
         return array1.length~().compare(array2.length~())
 
 attach Array to Shar__sugar__less
+    //@This function is a special case of the "STD::compare" function and has the same behavior.
     #alwaysinline
     def shar__sugar__less(array1, array2 Array) Bool
         return array1.compare(array2) == enum::ord_less
 
 attach Array to Shar__sugar__great
+    //@This function is a special case of the "STD::compare" function and has the same behavior.
     #alwaysinline
     def shar__sugar__great(array1, array2 Array) Bool
         return array1.compare(array2) == enum::ord_great
 
 attach Array to Shar__sugar__lessOrEqual
+    //@This function is a special case of the "STD::compare" function and has the same behavior.
     #alwaysinline
     def shar__sugar__lessOrEqual(array1, array2 Array) Bool
         return array1.compare(array2) != enum::ord_great
 
 attach Array to Shar__sugar__greatOrEqual
+    //@This function is a special case of the "STD::compare" function and has the same behavior.
     #alwaysinline
     def shar__sugar__greatOrEqual(array1, array2 Array) Bool
         return array1.compare(array2) != enum::ord_less
@@ -527,26 +579,32 @@ def mergeBlocks(write array Array, leftBegin, leftEndRightBegin, rightEnd Int, r
                 next mainLoop
         end mainLoop
 
+//@Comparison occurs from the beginning of the array to the end. The comparison is carried out until the result is clear.
+//@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "enum::STD::error_invalidType" code.
+//@If at least one array is not empty and the type of its items is not a member of the "STD::Equal" group, the function returns an error with the "enum::STD::error_invalidType" code.
 #override(STD) alwaysinline
 def partsEqual?(array1 Array, from1 Int, array2 Array, from2, length Int) Bool
-    const array1Length Int = array1.length~()
-    const array2Length Int = array2.length~()
     const item1TypeNumber Int = array1.itemTypeNumber~()
     const item2TypeNumber Int = array2.itemTypeNumber~()
+    if {
+            !(
+                (
+                    item1TypeNumber == item2TypeNumber &&
+                    (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber~())
+                ) || (
+                    item1TypeNumber == Nothing.typeNumber~() && item2TypeNumber.unsafe_inEqualGroup?()
+                ) || (
+                    item2TypeNumber == Nothing.typeNumber~() && item1TypeNumber.unsafe_inEqualGroup?()
+                )
+            )
+        }
+        throw(enum::error_invalidType, "Invalid type.")
+    const array1Length Int = array1.length~()
+    const array2Length Int = array2.length~()
     var result Bool = {
         from1 >= 0 && from1 <= array1Length &&
         from2 >= 0 && from2 <= array2Length &&
-        length >= 0 && length <= (array1Length - from1).min(array2Length - from2) &&
-        (
-            (
-                item1TypeNumber == item2TypeNumber &&
-                (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber~())
-            ) || (
-                item1TypeNumber == Nothing.typeNumber~() && item2TypeNumber.unsafe_inEqualGroup?()
-            ) || (
-                item2TypeNumber == Nothing.typeNumber~() && item1TypeNumber.unsafe_inEqualGroup?()
-            )
-        )
+        length >= 0 && length <= (array1Length - from1).min(array2Length - from2)
     }
     if result
         for :(offset Int = 0) offset < length; offset++

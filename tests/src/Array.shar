@@ -339,12 +339,23 @@ def testArray_Equal(write ok Int, write errorsCoordinates List)
         [1, 2] != [1, 2, 3]
         [1, 2, 3, 4] == [1, 2, 3, 4]
         [1, 2, 3, 4, 5] != [1, 2, 3, 4]
-        [1.0, 2.0, 3.0, 4.0] != [1, 2, 3, 4]
-        [1, 2, 3, 4] != [1.0, 2.0, 3.0, 4.0]
+        [1.0, 2.0, 3.0, 4.0] == [1, 2, 3, 4] : error_invalidType
+        [1.0, 2.0, 3.0, 4.0] != [1, 2, 3, 4] : error_invalidType
+        [1, 2, 3, 4] == [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1, 2, 3, 4] != [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1] == [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1] != [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1.0] == [1, 2] : error_invalidType
+        [1.0] != [1, 2] : error_invalidType
         [1.0, 2.3, (0.0/0.0)] != [1.0, 2.1, (0.0/0.0)]
         [1.0, 2.3, (0.0/0.0)] != [1.0, 2.3, (0.0/0.0)] : error_compareWithNaN
-        [1.0, 2.3, (0.0/0.0)] != [NotEqType.fromList({})]
-        [NotEqType.fromList({})] != [NotEqType.fromList({})]
+        [1.0, 2.3, (0.0/0.0)] != [NotEqType_Array.fromList({})] : error_invalidType
+        [NotEqType_Array.fromList({})] == [NotEqType_Array.fromList({})] : error_invalidType
+        [NotEqType_Array.fromList({})] != [NotEqType_Array.fromList({})] : error_invalidType
+        [NotEqType_Array.fromList({})] == [] : error_invalidType
+        [NotEqType_Array.fromList({})] != [] : error_invalidType
+        [] == [NotEqType_Array.fromList({})] : error_invalidType
+        [] != [NotEqType_Array.fromList({})] : error_invalidType
 
 #noinline
 def testArray_PartsEqual?(write ok Int, write errorsCoordinates List)
@@ -378,10 +389,10 @@ def testArray_PartsEqual?(write ok Int, write errorsCoordinates List)
         [1, 2, 3, 4, 5, 6].partsEqual?(1, [1, 2, 3, 4, 5, 6], 1, 5)
         [1, 2, 3, 4, 5, 6].partsEqual?(1, [], 0, 0)
         [].partsEqual?(0, [1, 2, 3, 4, 5, 6], 1, 0)
-        ![1, 2, 3, 4, 5, 6].partsEqual?(1, [1.0], 0, 0)
-        ![1.0].partsEqual?(0, [1, 2, 3, 4, 5, 6], 1, 0)
-        ![1.0].partsEqual?(0, [1], 0, 1)
-        ![1.0].partsEqual?(0, [1, 2], 0, 1)
+        ![1, 2, 3, 4, 5, 6].partsEqual?(1, [1.0], 0, 0) : error_invalidType
+        ![1.0].partsEqual?(0, [1, 2, 3, 4, 5, 6], 1, 0) : error_invalidType
+        ![1.0].partsEqual?(0, [1], 0, 1) : error_invalidType
+        ![1.0].partsEqual?(0, [1, 2], 0, 1) : error_invalidType
         [1, 2, 3, 4, 5, 6].partsEqual?(1, [2, 3, 4], 0, 3)
         [1, 2, 3, 4, 5, 6].partsEqual?(0, [1, 2, 3, 4, 5, 6], 0, 6)
         [1, 2, 3, 4, 5, 6].partsEqual?(1, [1, 2, 3, 4, 5, 6], 1, 5)
@@ -439,6 +450,18 @@ def testArray_Ordered(write ok Int, write errorsCoordinates List)
         !([0, 1, 2, 4] <= [0, 1, 2, 3])
         !([0, 1, 2, 4] <= [0, 1, 2, 3, 5])
         [1] <= [1.0] : error_invalidType
+        [1, 2, 3, 4] < [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1, 2, 3, 4] <= [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1] < [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1] <= [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1.0] < [1, 2] : error_invalidType
+        [1.0] <= [1, 2] : error_invalidType
+        [NotEqType_Array.fromList({})] < [NotEqType_Array.fromList({})] : error_invalidType
+        [NotEqType_Array.fromList({})] <= [NotEqType_Array.fromList({})] : error_invalidType
+        [NotEqType_Array.fromList({})] < [] : error_invalidType
+        [NotEqType_Array.fromList({})] <= [] : error_invalidType
+        [] < [NotEqType_Array.fromList({})] : error_invalidType
+        [] <= [NotEqType_Array.fromList({})] : error_invalidType
         [1] > []
         [1] > [0, 2]
         [1, 2] > [0, 2]
@@ -485,6 +508,18 @@ def testArray_Ordered(write ok Int, write errorsCoordinates List)
         !([0, 1, 2, 3] >= [0, 1, 2, 4])
         !([0, 1, 2, 3, 5] >= [0, 1, 2, 4])
         [1] > [1.0] : error_invalidType
+        [1, 2, 3, 4] > [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1, 2, 3, 4] >= [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1] > [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1] >= [1.0, 2.0, 3.0, 4.0] : error_invalidType
+        [1.0] > [1, 2] : error_invalidType
+        [1.0] >= [1, 2] : error_invalidType
+        [NotEqType_Array.fromList({})] > [NotEqType_Array.fromList({})] : error_invalidType
+        [NotEqType_Array.fromList({})] >= [NotEqType_Array.fromList({})] : error_invalidType
+        [NotEqType_Array.fromList({})] > [] : error_invalidType
+        [NotEqType_Array.fromList({})] >= [] : error_invalidType
+        [] > [NotEqType_Array.fromList({})] : error_invalidType
+        [] >= [NotEqType_Array.fromList({})] : error_invalidType
         compare([], [1]) == enum::ord_less
         compare([], []) == enum::ord_equal
         compare([1, 2, 3], [1, 2, 3]) == enum::ord_equal
@@ -500,6 +535,12 @@ def testArray_Ordered(write ok Int, write errorsCoordinates List)
         compare([0, 2], [0, 1]) == enum::ord_great
         compare([0, 1, 2, 4], [0, 1, 2, 3]) == enum::ord_great
         compare([0, 1, 2, 4], [0, 1, 2, 3, 5]) == enum::ord_great
+        compare([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0]) : error_invalidType
+        compare([1], [1.0, 2.0, 3.0, 4.0]) : error_invalidType
+        compare([1.0], [1, 2]) : error_invalidType
+        compare([NotEqType_Array.fromList({})], [NotEqType_Array.fromList({})]) : error_invalidType
+        compare([NotEqType_Array.fromList({})], []) : error_invalidType
+        compare([], [NotEqType_Array.fromList({})]) : error_invalidType
 
 #noinline
 def testArray_GetFromAToLast(write ok Int, write errorsCoordinates List)
