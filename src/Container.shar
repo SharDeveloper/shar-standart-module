@@ -1246,3 +1246,286 @@ export def reverse$(container This) This
 #this(Container) alwaysinline
 export def reverse(write container This)
     container.reversePart(0, container.length~())
+
+//@The function returns a sorted container of the items of the container given as the first argument.
+//@Sorting is performed in ascending order if the argument "rise" is equal to "true", otherwise the sorting is performed in descending order.
+//@If the container is empty, then the function returns its first argument.
+//@If the container items are not members of the group "STD::Ordered" then the function returns an error with the code "enum::STD::error_invalidType".
+#this(Container, ItemTypeNumber)
+export def sort$(container This, rise Bool) This
+    var result This = container
+    result.sort(rise)
+    return result
+
+//@The function sorts the container given as the first argument.
+//@Sorting is performed in ascending order if the argument "rise" is equal to "true", otherwise the sorting is performed in descending order.
+//@If the container is empty, no sorting occurs.
+//@If the container items are not members of the group "STD::Ordered" then the function returns an error with the code "enum::STD::error_invalidType".
+#this(Container, ItemTypeNumber)
+export def sort(write container This, rise Bool)
+    if container.empty?()
+        return
+    inthrow
+        if !unsafe_inOrderedGroup?(container.itemTypeNumber~())
+            throw(enum::error_invalidType, "Invalid type.")
+    return container.quicksort(0, container.length~(), rise, const::staticRandomNumber)
+
+#this(Container, ItemTypeNumber)
+def quicksort(write container This, beginIndex, endEdge Int, rise Bool, randomNumber Int)
+    var leftIndex Int = beginIndex
+    var rightEdge Int = endEdge
+    for :(mainLoop)
+        const rangeLength Int = rightEdge - leftIndex
+        var smallRangeLeftIndex Int = -1
+        var smallRangeRightEdge Int = -1
+        var smallRangeLength Int = -1
+        var bigRangeLeftIndex Int = -1
+        var bigRangeRightEdge Int = -1
+        if rangeLength > 16
+            const length25p Int = rangeLength >> 2
+            const length75p Int = (length25p << 1) + length25p
+            var randomOffset Int = (randomNumber & (rangeLength - 1))
+            if randomOffset < length25p
+                randomOffset += length25p
+            elif randomOffset > length75p
+                randomOffset -= length25p
+            nothrow
+                container.swap(leftIndex, leftIndex + randomOffset)
+            const currentItem $Any = container[leftIndex]
+            var currentIndex Int = leftIndex
+            var oppositeIndex Int = rightEdge - 1
+            var direction Int = -1
+            var cmpModifier Bool = rise
+            for :(loop)
+                const oppositeItem $Any = container[oppositeIndex]
+                if cmpModifier.select(oppositeItem <= currentItem, currentItem <= oppositeItem)
+                    nothrow
+                        container.swap(currentIndex, oppositeIndex)
+                        exchange(currentIndex, oppositeIndex)
+                        direction = !direction
+                        cmpModifier = !cmpModifier
+                if (currentIndex - oppositeIndex).inRange?(-1, 2)
+                    end loop
+                oppositeIndex += direction
+            const leftRangeLength Int = currentIndex - leftIndex
+            const rightRangeLength Int = rightEdge - currentIndex - 1
+            if leftRangeLength < rightRangeLength
+                smallRangeLeftIndex = leftIndex
+                smallRangeRightEdge = currentIndex
+                smallRangeLength = leftRangeLength
+                bigRangeLeftIndex = currentIndex + 1
+                bigRangeRightEdge = rightEdge
+            else
+                smallRangeLeftIndex = currentIndex + 1
+                smallRangeRightEdge = rightEdge
+                smallRangeLength = rightRangeLength
+                bigRangeLeftIndex = leftIndex
+                bigRangeRightEdge = currentIndex
+            leftIndex = bigRangeLeftIndex
+            rightEdge = bigRangeRightEdge
+        else
+            smallRangeLeftIndex = leftIndex
+            smallRangeRightEdge = rightEdge
+            smallRangeLength = rangeLength
+        if smallRangeLength > 16
+            container.quicksort(smallRangeLeftIndex, smallRangeRightEdge, rise, randomNumber)
+        elif smallRangeLength > 2
+            container.heapSort(smallRangeLeftIndex, smallRangeRightEdge, smallRangeLength, rise)
+        elif smallRangeLength == 2
+            const firstItem $Any = container[smallRangeLeftIndex]
+            const secondItem $Any = container[smallRangeLeftIndex + 1]
+            if (secondItem < firstItem) == rise
+                nothrow
+                    container.swap(smallRangeLeftIndex, smallRangeLeftIndex + 1)
+        if bigRangeLeftIndex == -1
+            end mainLoop
+
+#this(Container, ItemTypeNumber)
+def heapSort(write container This, beginIndex, endEdge, count Int, rise Bool)
+    for :(currentIndex Int = (count >> 1) + beginIndex - 1) currentIndex >= beginIndex; currentIndex--
+        container.toHeap(currentIndex, beginIndex, endEdge, rise)
+    for :(currentEdge Int = endEdge - 1) currentEdge >= beginIndex; currentEdge--
+        nothrow
+            container.swap(beginIndex, currentEdge)
+        container.toHeap(beginIndex, beginIndex, currentEdge, rise)
+
+#this(Container, ItemTypeNumber)
+def toHeap(write container This, currentIndex, beginIndex, endEdge Int, rise Bool)
+    var mutCurrentIndex Int = currentIndex
+    for :(loop)
+        var largestIndex Int = mutCurrentIndex
+        const leftIndex Int = 2 * mutCurrentIndex - beginIndex + 1
+        const rightIndex Int = leftIndex + 1
+        if rightIndex < endEdge
+            if container[largestIndex] < container[rightIndex] == rise
+                largestIndex = rightIndex
+            if container[largestIndex] < container[leftIndex] == rise
+                largestIndex = leftIndex
+        elif leftIndex < endEdge && (container[largestIndex] < container[leftIndex] == rise)
+            largestIndex = leftIndex
+        if largestIndex != mutCurrentIndex
+            nothrow
+                container.swap(mutCurrentIndex, largestIndex)
+            mutCurrentIndex = largestIndex
+        else
+            end loop
+
+//@The function returns a sorted container of the items of the container given as the first argument.
+//@Sorting is performed in ascending order if the argument "rise" is equal to "true", otherwise the sorting is performed in descending order.
+//@The sorting is stable.
+//@If the container is empty, then the function returns its first argument.
+//@If the container items are not members of the group "STD::Ordered" then the function returns an error with the code "enum::STD::error_invalidType".
+#this(Container, ItemTypeNumber)
+export def stableSort$(container This, rise Bool) This
+    var result This = container
+    result.stableSort(rise)
+    return result
+
+//@The function sorts the container given as the first argument.
+//@Sorting is performed in ascending order if the argument "rise" is equal to "true", otherwise the sorting is performed in descending order.
+//@The sorting is stable.
+//@If the container is empty, no sorting occurs.
+//@If the container items are not members of the group "STD::Ordered" then the function returns an error with the code "enum::STD::error_invalidType".
+#this(Container, ItemTypeNumber)
+export def stableSort(write container This, rise Bool)
+    const length Int = container.length~()
+    if length == 0
+        return
+    inthrow
+        if !unsafe_inOrderedGroup?(container.itemTypeNumber~())
+            throw(enum::error_invalidType, "Invalid type.")
+    var blockSize Int = 16
+    var blockBeginIndex Int = 0
+    var blockEnd Int = blockSize
+    for blockEnd <= length
+        container.insertionSort(blockBeginIndex, blockEnd, rise)
+        blockBeginIndex = blockEnd
+        blockEnd += blockSize
+    container.insertionSort(blockBeginIndex, length, rise)
+    for blockSize < length
+        blockBeginIndex = 0
+        blockEnd = blockSize * 2
+        for blockEnd <= length
+            container.mergeBlocks(blockBeginIndex, blockBeginIndex + blockSize, blockEnd, rise)
+            blockBeginIndex = blockEnd
+            blockEnd += blockSize * 2
+        const lastBlockBeginIndex Int = blockBeginIndex + blockSize
+        if lastBlockBeginIndex < length
+            container.mergeBlocks(blockBeginIndex, lastBlockBeginIndex, length, rise)
+        blockSize *= 2
+
+#this(Container, ItemTypeNumber) alwaysinline
+def insertionSort(write container This, beginIndex, endEdge Int, rise Bool)
+    if rise
+        for :(sortedPartEndIndex Int = beginIndex + 1) sortedPartEndIndex < endEdge; sortedPartEndIndex++
+            for :(currentIndex Int = sortedPartEndIndex) currentIndex > beginIndex && (container[currentIndex] < container[currentIndex - 1]); currentIndex--
+                nothrow
+                    container.swap(currentIndex, currentIndex - 1)
+    else
+        for :(sortedPartEndIndex Int = beginIndex + 1) sortedPartEndIndex < endEdge; sortedPartEndIndex++
+            for :(currentIndex Int = sortedPartEndIndex) currentIndex > beginIndex && (container[currentIndex - 1] < container[currentIndex]); currentIndex--
+                nothrow
+                    container.swap(currentIndex, currentIndex - 1)
+
+#this(Container, ItemTypeNumber)
+def mergeBlocks(write container This, leftBegin, leftEndRightBegin, rightEnd Int, rise Bool)
+    var mutLeftBegin Int = leftBegin
+    var mutLeftEndRightBegin Int = leftEndRightBegin
+    var mutRightEnd Int = rightEnd
+    for :(mainLoop)
+        const roLeftBegin Int = mutLeftBegin
+        const roLeftEndRightBegin Int = mutLeftEndRightBegin
+        const roRightEnd Int = mutRightEnd
+        if roLeftEndRightBegin - roLeftBegin == 1
+            var binarySearchLeft Int = roLeftEndRightBegin
+            var binarySearchRight Int = roRightEnd
+            const firstLeftItem $Any = container[roLeftBegin]
+            for :(loop)
+                const centerIndex Int = (binarySearchLeft + binarySearchRight) >> 1
+                const centerItem $Any = container[centerIndex]
+                if rise.select(centerItem < firstLeftItem, firstLeftItem < centerItem)
+                    binarySearchLeft = centerIndex + 1
+                else
+                    binarySearchRight = centerIndex
+                if binarySearchLeft >= binarySearchRight
+                    end loop
+            binarySearchLeft--
+            for :(index Int = roLeftBegin) index < binarySearchLeft; index++
+                nothrow
+                    container.swap(index, index + 1)
+        elif roRightEnd - roLeftEndRightBegin == 1
+            var binarySearchLeft Int = roLeftBegin
+            var binarySearchRight Int = roLeftEndRightBegin
+            const firstRightItem $Any = container[roLeftEndRightBegin]
+            for :(loop)
+                const centerIndex Int = (binarySearchLeft + binarySearchRight) >> 1
+                const centerItem $Any = container[centerIndex]
+                if rise.select(firstRightItem < centerItem, centerItem < firstRightItem)
+                    binarySearchRight = centerIndex
+                else
+                    binarySearchLeft = centerIndex + 1
+                if binarySearchLeft >= binarySearchRight
+                    end loop
+            for :(index Int = roLeftEndRightBegin) index > binarySearchLeft; index--
+                nothrow
+                    container.swap(index, index - 1)
+        else
+            const blocksCenter Int = (roLeftBegin + roRightEnd) >> 1
+            const centerPlusRightBegin Int = blocksCenter + roLeftEndRightBegin
+            var binarySearchLeft Int = 0
+            var binarySearchRight Int = 0
+            if roLeftEndRightBegin > blocksCenter
+                binarySearchLeft = centerPlusRightBegin - roRightEnd
+                binarySearchRight = blocksCenter
+            else
+                binarySearchLeft = roLeftBegin
+                binarySearchRight = roLeftEndRightBegin
+            const tmp Int = centerPlusRightBegin - 1
+            for :(loop)
+                const centerIndex Int = (binarySearchLeft + binarySearchRight) >> 1
+                const centerItem $Any = container[centerIndex]
+                const item $Any = container[tmp - centerIndex]
+                if rise.select(item < centerItem, centerItem < item)
+                    binarySearchRight = centerIndex
+                else
+                    binarySearchLeft = centerIndex + 1
+                if binarySearchLeft >= binarySearchRight
+                    end loop
+            const centerBlockBegin Int = binarySearchLeft
+            const centerBlockEnd Int = centerPlusRightBegin - centerBlockBegin
+            if centerBlockBegin < roLeftEndRightBegin && roLeftEndRightBegin < centerBlockEnd
+                container.rotateBlocks(centerBlockBegin, roLeftEndRightBegin, centerBlockEnd)
+            const mergeFirst Bool = roLeftBegin < centerBlockBegin && centerBlockBegin < blocksCenter
+            if mergeFirst
+                mutLeftEndRightBegin = centerBlockBegin
+                mutRightEnd = blocksCenter
+            const mergeSecond Bool = blocksCenter < centerBlockEnd && centerBlockEnd < roRightEnd
+            if mergeSecond
+                if mergeFirst
+                    container.mergeBlocks(blocksCenter, centerBlockEnd, roRightEnd, rise)
+                else
+                    mutLeftBegin = blocksCenter
+                    mutLeftEndRightBegin = centerBlockEnd
+            if mergeFirst | mergeSecond
+                next mainLoop
+        end mainLoop
+
+#this(Container, ItemTypeNumber) alwaysinline
+def rotateBlocks(write container This, leftBegin, leftEndRightBegin, rightEnd Int)
+    nothrow
+        var leftSize Int = leftEndRightBegin - leftBegin
+        var rightSize Int = rightEnd - leftEndRightBegin
+        for leftSize != rightSize
+            const swapLeft Int = leftEndRightBegin - leftSize
+            if leftSize > rightSize
+                container.swapBlocks(swapLeft, leftEndRightBegin, rightSize)
+                leftSize -= rightSize
+            else
+                container.swapBlocks(swapLeft, swapLeft + rightSize, leftSize)
+                rightSize -= leftSize
+        container.swapBlocks(leftEndRightBegin - leftSize, leftEndRightBegin, leftSize)
+
+#this(Container, ItemTypeNumber) alwaysinline
+def swapBlocks(write container This, left, right, count Int)
+    for :(offset Int = 0) offset < count; offset++
+        container.swap(left + offset, right + offset)
