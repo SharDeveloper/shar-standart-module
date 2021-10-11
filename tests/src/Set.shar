@@ -37,7 +37,7 @@ attach TestSet_BadInt to Hashable
 
 attach TestSet_BadInt to StringWriter
     #inline nothrow
-    def toString(int TestSet_BadInt) $String
+    def toString(int TestSet_BadInt) String
         return int.set_toGood().toString()
 
 #alwaysinline nothrow

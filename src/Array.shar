@@ -1,19 +1,10 @@
 module STD
 
-//@A type that is a member of the "STD::Array" group.
-export primitive Array
-
-//@Members of the "STD::Array" group are types whose objects contain zero or more objects (called "items") of the same type grouped into one object.
+//@"STD::Array" is a type whose objects contain zero or more objects (called "items") of the same type grouped into one object.
 //@The type of the array items can be any type.
 //@If the array is empty, then it is considered that the type of its items is "STD::Nothing".
 //@If the array is not empty, then the item type cannot be "STD::Nothing".
-//@If the array is empty, or the type of an array item can be compared by more or less, then this array can be compared by more or less with another array whose item types are the same as the current array, or if the second array is empty.
-//@If array "a" is empty, and array "b" is not empty, then array "a" is less than array "b".
-//@If array "a" has zero or more items equal to the same number of items in array "b", and the next item of array "a" is less than the next item of array "b", then array "a" is less than array "b".
-//@If array "a" is equal to the beginning of array "b", but at the same time array "b" contains more items than array "a", then array "a" is less than array "b".
-//@When comparing two arrays for more, less, equal, the comparison occurs from the beginning of the array to the end. Comparison takes place until the result is clear.
-//@Functions "STD::shar__sugar__less", "STD::shar__sugar__great", "STD::shar__sugar__lessOrEqual", "STD::shar__sugar__greatOrEqual", "STD::shar__sugar__add", "STD::shar__sugar__addSet" return an error with code "enum::STD::error_invalidType" if the arrays passed as arguments to these functions are not empty and have different types of items.
-export group Array: Container, Ordered, ItemTypeNumber
+export primitive Array
 
 #override(STD)
 def shar__rc_free(array Array)
@@ -237,7 +228,6 @@ attach Array to Shar__sugar__addSet
             array.unsafe_array_setItemInDummy(startArrayLength + index, item)
 
 attach Array to StringWriter
-    //@The function returns an object of type "STD::String".
     def toString(array Array) String
         var result String = ""
         if array.empty?()
@@ -245,7 +235,7 @@ attach Array to StringWriter
         else
             result = "["
             parse _, item = array
-                result += item.toString().repackTo(String)
+                result += item.toString()
                 result += ", "
             result.delete(result.length~() - 1, 1)
             result.unsafe_setI16(result.length~() + 7, ']')
@@ -383,7 +373,26 @@ attach Array to ItemTypeNumber
     def itemTypeNumber~(array Array) Int
         return array.unsafe_getI64(2)
 
-attach Array to Array
+//@The function finds out if the type of array items is a member of the "STD::Independent" group.
+#this(Array) alwaysinline
+export def itemTypeIndependent?(array This) Bool
+    if array.empty?()
+        return false
+    return array[0].inGroups?(Independent)
+
+//@The function finds out if the type of array items is a member of the "STD::Equal" group.
+#this(Array) alwaysinline
+export def itemTypeInEqual?(array This) Bool
+    if array.empty?()
+        return false
+    return array[0].inGroups?(Equal)
+
+//@The function finds out if the type of array items is a member of the "STD::Ordered" group.
+#this(Array) alwaysinline
+export def itemTypeInOrdered?(array This) Bool
+    if array.empty?()
+        return false
+    return array[0].inGroups?(Ordered)
 
 #override(STD)
 def quicksort(write array Array, beginIndex, endEdge Int, rise Bool, randomNumber Int)

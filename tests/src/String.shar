@@ -1,133 +1,5 @@
 module Main
 
-type TestStr
-
-attach TestStr to Equal
-
-attach TestStr to Shar__sugar__equal
-    def shar__sugar__equal(string1, string2 TestStr) Bool
-        return string1.toStr() == string2.toStr()
-
-attach TestStr to Shar__sugar__notEqual
-    def shar__sugar__notEqual(string1, string2 TestStr) Bool
-        return string1.toStr() != string2.toStr()
-
-attach TestStr to Shar__sugar__getFromAToLast
-    #alwaysinline
-    def shar__sugar__getFromAToLast(string TestStr, a Int) TestStr
-        return (string.toStr()[a:]).fromStr()
-
-attach TestStr to Shar__sugar__getFromFirstToA
-    #alwaysinline
-    def shar__sugar__getFromFirstToA(string TestStr, a Int) TestStr
-        return (string.toStr()[:a]).fromStr()
-
-attach TestStr to Shar__sugar__getRange
-    def shar__sugar__getRange(string TestStr, from, to Int) TestStr
-        return (string.toStr()[from : to]).fromStr()
-
-attach TestStr to Shar__sugar__getItem
-    def shar__sugar__getItem(string TestStr, index Int) Char
-        return string.toStr()[index]
-
-attach TestStr to Shar__sugar__add
-    def shar__sugar__add(string, addedTestStr TestStr) TestStr
-        return (string.toStr() + addedTestStr.toStr()).fromStr()
-
-attach TestStr to Shar__sugar__addSet
-    def shar__sugar__addSet(write string, addedTestStr TestStr)
-        string = string + addedTestStr
-
-attach TestStr to StringWriter
-    def toString(string TestStr) $String
-        return string.toStr()
-
-attach TestStr to Hashable
-    def getHash(string TestStr) Int
-        return string.toStr().getHash()
-
-    def getRandomizedHash(string TestStr) Int
-        return string.toStr().getRandomizedHash()
-
-attach TestStr to Long
-    def length~(string TestStr) Int
-        return string.toStr().length~()
-
-attach TestStr to Empty
-    def createEmpty(noread type TestStr) TestStr
-        return ("").fromStr()
-
-attach TestStr to Put
-    def put(write string TestStr, index Int, newItem Char) Char
-        var str String = string.toStr()
-        const result Char = str.put(index, newItem)
-        string = str.fromStr()
-        return result
-
-attach TestStr to Iterable
-    #alwaysinline nothrow
-    def parse__init(string TestStr) Int
-        return 0
-
-    #alwaysinline nothrow
-    def parse__predicate(string TestStr, index Int) Bool
-        return index != string.length~()
-
-    #alwaysinline unsafewrite nothrow
-    def parse__next(string TestStr, write index Int)
-        index++
-
-    #alwaysinline nothrow
-    def parse__get__key(string TestStr, index Int) Int
-        return index
-
-    #alwaysinline nothrow
-    def parse__get__item(string TestStr, index Int) Char
-        return string[index]
-
-attach TestStr to Container
-    def addItem(write string TestStr, newItem Char)
-        string = string.addItem$(newItem)
-
-    def addItem$(string TestStr, newItem Char) TestStr
-        return (string.toStr().addItem$(newItem)).fromStr()
-
-attach TestStr to Ordered
-    def compare(string1, string2 TestStr) Int
-        return string1.toStr().compare(string2.toStr())
-
-attach TestStr to Shar__sugar__less
-    def shar__sugar__less(string1, string2 TestStr) Bool
-        return string1.toStr() < string2.toStr()
-
-attach TestStr to Shar__sugar__great
-    def shar__sugar__great(string1, string2 TestStr) Bool
-        return string1.toStr() > string2.toStr()
-
-attach TestStr to Shar__sugar__lessOrEqual
-    def shar__sugar__lessOrEqual(string1, string2 TestStr) Bool
-        return string1.toStr() <= string2.toStr()
-
-attach TestStr to Shar__sugar__greatOrEqual
-    def shar__sugar__greatOrEqual(string1, string2 TestStr) Bool
-        return string1.toStr() >= string2.toStr()
-
-def toStr(string TestStr) String
-    return string.typeGetItem(0)
-
-def fromStr(string String) TestStr
-    return TestStr.fromList({string})
-
-attach TestStr to String
-    def loadFromUTF8File(noread type TestStr, fileName String) <>TestStr
-        const result <>String = String.loadFromUTF8File(fileName)
-        if result.nothing?()
-            return nothing
-        return result.fromStr()
-
-    def saveToUTF8File(string TestStr, fileName String) Bool
-        return string.toStr().saveToUTF8File(fileName)
-
 #inline
 def unsafe_string_getCounter(string $Any) Int
     return string.unsafe_getI64(0)
@@ -3053,12 +2925,6 @@ def testString_ToLower(write ok Int, write errorsCoordinates List)
         "a".toLower() == "a"
         "A".toLower() == "a"
         "@ABCXYZ[`abcxyz ~ЁЍЎАБВЭЮЯабвэюяёѝўßİ".toLower() == "@abcxyz[`abcxyz ~ёѝўабвэюяабвэюяёѝўßi̇"
-        "".fromStr().toLower() == "".fromStr()
-        "1".fromStr().toLower() == "1".fromStr()
-        "0".fromStr().toLower() == "0".fromStr()
-        "a".fromStr().toLower() == "a".fromStr()
-        "A".fromStr().toLower() == "a".fromStr()
-        "@ABCXYZ[`abcxyz ~ЁЍЎАБВЭЮЯабвэюяёѝўßİ".fromStr().toLower() == "@abcxyz[`abcxyz ~ёѝўабвэюяабвэюяёѝўßi̇".fromStr()
 
 #noinline
 def testString_ToUpper(write ok Int, write errorsCoordinates List)
@@ -3069,9 +2935,3 @@ def testString_ToUpper(write ok Int, write errorsCoordinates List)
         "a".toUpper() == "A"
         "A".toUpper() == "A"
         "@ABCXYZ[`abcxyz ~ЁЍЎАБВЭЮЯабвэюяёѝўßİ".toUpper() == "@ABCXYZ[`ABCXYZ ~ЁЍЎАБВЭЮЯАБВЭЮЯЁЍЎSSİ"
-        "".fromStr().toUpper() == "".fromStr()
-        "1".fromStr().toUpper() == "1".fromStr()
-        "0".fromStr().toUpper() == "0".fromStr()
-        "a".fromStr().toUpper() == "A".fromStr()
-        "A".fromStr().toUpper() == "A".fromStr()
-        "@ABCXYZ[`abcxyz ~ЁЍЎАБВЭЮЯабвэюяёѝўßİ".fromStr().toUpper() == "@ABCXYZ[`ABCXYZ ~ЁЍЎАБВЭЮЯАБВЭЮЯЁЍЎSSİ".fromStr()

@@ -292,7 +292,6 @@ attach Real to Shar__sugar__modSet
         real1 = real1 % real2
 
 attach Real to StringWriter
-    //@The function returns an object of type "STD::String".
     #nothrow
     def toString(real Real) String
         llvm
@@ -324,13 +323,12 @@ attach Real to StringWriter
             ret [2 x i64] %##reg##dummy string##
 
 attach Real to StringReader
-    def fromString(noread type Real, string $String) Real
+    def fromString(noread type Real, string String) Real
         var result Real = 0.0
-        const str String = string.repackTo(String)
         inthrow
-            if !stringCorrectForReal?(str)
+            if !stringCorrectForReal?(string)
                 throw(enum::error_readFromString, "Reading from the string caused an error.")
-        const allOk Bool = unsafe_real_fromString(result, str)
+        const allOk Bool = unsafe_real_fromString(result, string)
         inthrow
             if !allOk
                 throw(enum::error_readFromString, "Reading from the string caused an error.")

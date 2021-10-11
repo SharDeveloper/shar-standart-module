@@ -1,10 +1,7 @@
 module STD
 
-//@A type that is a member of the "STD::List" group.
+//@"STD::List" is a type whose objects contain zero or more objects (called "items") of the same or different types, grouped into one object.
 export primitive List
-
-//@Members of the "STD::List" group are types whose objects contain zero or more objects (called "items") of the same or different types, grouped into one object.
-export group List: Container
 
 #override(STD)
 def shar__rc_free(list List)
@@ -150,7 +147,6 @@ attach List to Shar__sugar__addSet
             list.unsafe_list_setItemInDummy(startListLength + offset, item)
 
 attach List to StringWriter
-    //@The function returns an object of type "STD::String".
     def toString(list List) String
         var result String = ""
         if list.empty?()
@@ -158,7 +154,7 @@ attach List to StringWriter
         else
             result = "{"
             parse _, item = list
-                result += item.toString().repackTo(String)
+                result += item.toString()
                 result += ", "
             result.delete(result.length~() - 1, 1)
             result.unsafe_setI16(result.length~() + 7, '}')
@@ -278,8 +274,6 @@ def unsafe_list_createDummy(length $Any) List
 def unsafe_list_setItemInDummy(list, index, item $Any)
     item.shar__rc_use()
     list.unsafe_set2xI64(index + 1, item)
-
-attach List to List
 
 #override(STD) alwaysinline
 def swap(write list List, position1, position2 Int)

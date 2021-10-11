@@ -224,7 +224,6 @@ attach Bytes to Shar__sugar__addSet
             copy(bytes, startBytesLength, addedBytes, 0, addedBytes.length~())
 
 attach Bytes to StringWriter
-    //@The function returns an object of type "STD::String".
     #nothrow
     def toString(bytes Bytes) String
         var result String = ""
@@ -251,7 +250,7 @@ attach Bytes to StringWriter
         return result
 
 attach Bytes to StringReader
-    def fromString(noread type Bytes, string $String) Bytes
+    def fromString(noread type Bytes, string String) Bytes
         var result Bytes = Bytes()
         var stringIsCorrect Bool = (string.length~() & 1) == 0
         if stringIsCorrect

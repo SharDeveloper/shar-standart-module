@@ -1,20 +1,11 @@
 module STD
 
-//@A type that is a member of the "STD::String" group.
-export primitive String
-
-//@Members of the "STD::String" group are types whose objects contain zero or more objects (called “items”) of type “STD::Char” grouped into one object.
+//@"STD::String" is a type whose objects contain zero or more objects (called "items") of type "STD::Char", grouped into one object.
 //@Strings can be compared for more, less, or equal.
 //@If string "a" is empty, and string "b" is not empty, then string "a" is less than string "b".
 //@If string "a" has zero or more items equal to the same number of items in string "b", and the next item of string "a" is less than the next item of string "b", then string "a" is less than string "b".
 //@If string "a" is equal to the beginning of string "b", but at the same time string "b" contains more items than string "a", then string "a" is less than string "b".
-export group String: Container, Ordered
-    //@The function loads the file as a UTF-8 string.
-    //@If the load was not successful, then the function returns "Nothing".
-    loadFromUTF8File(noread This, String) <>This
-    //@The function saves a string to a file with UTF-8 characters.
-    //@If the save was successful, then the function returns "true", otherwise "false".
-    saveToUTF8File(This, String) Bool
+export primitive String
 
 #override(STD) alwaysinline
 def shar__rc_free(string String)
@@ -232,9 +223,10 @@ attach String to StringWriter
         return string
 
 attach String to StringReader
+    //@The function returns its second argument.
     #alwaysinline
-    def fromString(noread type String, string $String) String
-        return string.repackTo(String)
+    def fromString(noread type String, string String) String
+        return string
 
 #override(STD) alwaysinline nothrow
 def print(string String)
@@ -375,85 +367,88 @@ attach String to Container
         newString.unsafe_setI16(string.length~() + 8, newChar)
         return newString
 
-attach String to String
-    #alwaysinline
-    def loadFromUTF8File(noread type, fileName String) <>String
-        const utf8String <>Bytes = loadFile(fileName)
-        if utf8String.nothing?()
-            return nothing
-        const utf8StringSizeInBytes Int = utf8String.length~()
-        var positionInUTF8String Int = 0
-        var result String = ""
-        for positionInUTF8String < utf8StringSizeInBytes
-            var newChar Int = utf8String[positionInUTF8String]
-            positionInUTF8String++
-            if newChar > 127
-                if (newChar & 224) == 192
-                    inthrow
-                        if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    var charPart Int = utf8String[positionInUTF8String]
-                    positionInUTF8String++
-                    inthrow
-                        if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    newChar ^= 192
-                    newChar <<= 6
-                    newChar |= charPart ^ 128
-                elif (newChar & 240) == 224
-                    inthrow
-                        if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    var charPart Int = utf8String[positionInUTF8String]
-                    positionInUTF8String++
-                    inthrow
-                        if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    newChar ^= 224
-                    newChar <<= 6
-                    newChar |= charPart ^ 128
-                    inthrow
-                        if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    charPart = utf8String[positionInUTF8String]
-                    positionInUTF8String++
-                    inthrow
-                        if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    newChar <<= 6
-                    newChar |= charPart ^ 128
-                else
-                    throw(enum::error_invalidCharacter, "Invalid character.")
-            result.addItem(unsafe_object(Char.typeNumber~(), newChar))
-        return result
-
-    #alwaysinline nothrow
-    def saveToUTF8File(string, fileName String) Bool
-        const file <>File = openFile(fileName, enum::fmode_write)
-        if file.nothing?()
-            return false
-        var buffer Bytes = unsafe_bytes_createDummy(min(const::fileBlockSize, string.length~() * 2 + 3))
-        var position Int = 0
-        parse charIndex, char = string
-            const charAsInt Int = char.charToInt()
-            if charAsInt < 0x80
-                buffer.setItem(position, charAsInt)
-            elif charAsInt < 0x800
-                buffer.setItem(position, (charAsInt >> 6) | 192)
-                position++
-                buffer.setItem(position, (charAsInt & 63) | 128)
+//@The function loads the file as a UTF-8 string.
+//@If the load was not successful, then the function returns "Nothing".
+#alwaysinline
+def loadFromUTF8File(noread type, fileName String) <>String
+    const utf8String <>Bytes = loadFile(fileName)
+    if utf8String.nothing?()
+        return nothing
+    const utf8StringSizeInBytes Int = utf8String.length~()
+    var positionInUTF8String Int = 0
+    var result String = ""
+    for positionInUTF8String < utf8StringSizeInBytes
+        var newChar Int = utf8String[positionInUTF8String]
+        positionInUTF8String++
+        if newChar > 127
+            if (newChar & 224) == 192
+                inthrow
+                    if positionInUTF8String == utf8StringSizeInBytes
+                        throw(enum::error_invalidCharacter, "Invalid character.")
+                var charPart Int = utf8String[positionInUTF8String]
+                positionInUTF8String++
+                inthrow
+                    if (charPart & 192) != 128
+                        throw(enum::error_invalidCharacter, "Invalid character.")
+                newChar ^= 192
+                newChar <<= 6
+                newChar |= charPart ^ 128
+            elif (newChar & 240) == 224
+                inthrow
+                    if positionInUTF8String == utf8StringSizeInBytes
+                        throw(enum::error_invalidCharacter, "Invalid character.")
+                var charPart Int = utf8String[positionInUTF8String]
+                positionInUTF8String++
+                inthrow
+                    if (charPart & 192) != 128
+                        throw(enum::error_invalidCharacter, "Invalid character.")
+                newChar ^= 224
+                newChar <<= 6
+                newChar |= charPart ^ 128
+                inthrow
+                    if positionInUTF8String == utf8StringSizeInBytes
+                        throw(enum::error_invalidCharacter, "Invalid character.")
+                charPart = utf8String[positionInUTF8String]
+                positionInUTF8String++
+                inthrow
+                    if (charPart & 192) != 128
+                        throw(enum::error_invalidCharacter, "Invalid character.")
+                newChar <<= 6
+                newChar |= charPart ^ 128
             else
-                buffer.setItem(position, (charAsInt >> 12) | 224)
-                position++
-                buffer.setItem(position, ((charAsInt >> 6) & 63) | 128)
-                position++
-                buffer.setItem(position, (charAsInt & 63) | 128)
+                throw(enum::error_invalidCharacter, "Invalid character.")
+        result.addItem(unsafe_object(Char.typeNumber~(), newChar))
+    return result
+
+//@The function saves a string to a file with UTF-8 characters.
+//@If the save was successful, then the function returns "true", otherwise "false".
+#alwaysinline nothrow
+def saveToUTF8File(string, fileName String) Bool
+    const file <>File = openFile(fileName, enum::fmode_write)
+    if file.nothing?()
+        return false
+    var buffer Bytes = unsafe_bytes_createDummy(min(const::fileBlockSize, string.length~() * 2 + 3))
+    var position Int = 0
+    parse charIndex, char = string
+        const charAsInt Int = char.charToInt()
+        if charAsInt < 0x80
+            buffer.setItem(position, charAsInt)
+        elif charAsInt < 0x800
+            buffer.setItem(position, (charAsInt >> 6) | 192)
             position++
-            if buffer.length~() - position < 3 || charIndex == string.length~() - 1
-                if writeDataToFile(file, position, buffer) != position
-                    return false
-                position = 0
-        return true
+            buffer.setItem(position, (charAsInt & 63) | 128)
+        else
+            buffer.setItem(position, (charAsInt >> 12) | 224)
+            position++
+            buffer.setItem(position, ((charAsInt >> 6) & 63) | 128)
+            position++
+            buffer.setItem(position, (charAsInt & 63) | 128)
+        position++
+        if buffer.length~() - position < 3 || charIndex == string.length~() - 1
+            if writeDataToFile(file, position, buffer) != position
+                return false
+            position = 0
+    return true
 
 #override(STD) alwaysinline
 def copy(write destination String, destinationPosition Int, source String, sourcePosition, length Int)
@@ -1346,27 +1341,8 @@ def unsafe_string_simdReverseAndSwapParts(part1, part2 $Any)
         store <16 x i16> %##reg##reversed part2##, <16 x i16>* %##reg##part1 pointer##, align 2
         ret [2 x i64] zeroinitializer
 
-#this(String)
-export def toLower(string This) This
-    var result This = This.createEmpty()
-    parse _, oldChar = string
-        var newChar Int = charToInt(oldChar)
-        if oldChar < '\0080'
-            if oldChar >= 'A' && oldChar <= 'Z'
-                newChar |= 32
-        else
-            const upperChar <>Int = const::upperToLowerMap[oldChar]
-            if upperChar.type?(Int)
-                newChar = upperChar
-        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
-        const char1 Char = unsafe_object(Char.typeNumber~(), newChar >> 16)
-        result.addItem(char0)
-        if char1 != '\0000'
-            result.addItem(char1)
-    return result
-
-#override(STD) inline nothrow
-def toLower(string String) String
+#inline nothrow
+export def toLower(string String) String
     var result String = ""
     parse _, oldChar = string
         var newChar Int = charToInt(oldChar)
@@ -1384,30 +1360,8 @@ def toLower(string String) String
             result.addItem(char1)
     return result
 
-#this(String)
-export def toUpper(string This) This
-    var result This = This.createEmpty()
-    parse _, oldChar = string
-        var newChar Int = charToInt(oldChar)
-        if oldChar < '\0080'
-            if oldChar >= 'a' && oldChar <= 'z'
-                newChar ^= 32
-        else
-            const lowerChar <>Int = const::lowerToUpperMap[oldChar]
-            if lowerChar.type?(Int)
-                newChar = lowerChar
-        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
-        const char1 Char = unsafe_object(Char.typeNumber~(), (newChar >> 16) & 0xffff)
-        const char2 Char = unsafe_object(Char.typeNumber~(), newChar >> 32)
-        result.addItem(char0)
-        if char1 != '\0000'
-            result.addItem(char1)
-        if char2 != '\0000'
-            result.addItem(char2)
-    return result
-
-#override(STD) inline nothrow
-def toUpper(string String) String
+#inline nothrow
+export def toUpper(string String) String
     var result String = ""
     parse _, oldChar = string
         var newChar Int = charToInt(oldChar)

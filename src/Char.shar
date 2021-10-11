@@ -1849,7 +1849,6 @@ attach Char to BitArray
             ret [2 x i64] %##reg##result##
 
 attach Char to StringWriter
-    //@The function returns an object of type "STD::String".
     #alwaysinline nothrow
     def toString(character Char) String
         var result String = unsafe_string_createDummy(1)
@@ -1898,7 +1897,7 @@ def printlnAsError(character Char)
 
 attach Char to StringReader
     #alwaysinline
-    def fromString(noread type Char, string $String) Char
+    def fromString(noread type Char, string String) Char
         if string.length~() == 1
             return string[0]
         throw(enum::error_readFromString, "Reading from the string caused an error.")

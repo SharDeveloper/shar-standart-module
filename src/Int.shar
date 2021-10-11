@@ -224,7 +224,6 @@ attach Int to Shar__sugar__sub
             ret [2 x i64] %##reg##result##
 
 attach Int to StringWriter
-    //@The function returns an object of type "STD::String".
     #nothrow
     def toString(int Int) String
         const isNegative Bool = int < 0
@@ -243,7 +242,7 @@ attach Int to StringWriter
         return result
 
 attach Int to StringReader
-    def fromString(noread type Int, string $String) Int
+    def fromString(noread type Int, string String) Int
         const length Int = string.length~()
         var result Int = 0
         var error Bool = length == 0
@@ -581,7 +580,7 @@ def unsafe_int_writeHexToString(int, charsAddress, countOfChars $Any)
 
 //@The function converts a string containing the hexadecimal representation of a number to a number, if the conversion was unsuccessful, the function returns an error with the "enum::STD::error_readFromString" code.
 #alwaysinline
-export def hexToInt(hex $String) Int
+export def hexToInt(hex String) Int
     var hexIsCorrect Bool = true
     inthrow
         hexIsCorrect = hex.length~().inRange?(3, 19) && hex.hasPrefix?("0x")

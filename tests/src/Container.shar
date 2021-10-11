@@ -39,7 +39,7 @@ attach Container to Shar__sugar__addSet
         container = container + addedContainer
 
 attach Container to StringWriter
-    def toString(container Container) $String
+    def toString(container Container) String
         return container.toList().toString()
 
 attach Container to Hashable

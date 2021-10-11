@@ -700,23 +700,22 @@ attach Time to StringWriter
         }
 
 attach Time to StringReader
-    def fromString(noread type Time, string $String) Time
-        const str String = string.repackTo(String)
+    def fromString(noread type Time, string String) Time
         if {
-            str.length~() > 7 &&
-            str[0] >= '0' && str[0] <= '3' &&
-            str[1] >= '0' && str[1] <= '9' &&
-            str[2] >= '.' &&
-            (str[3] == '0' || str[3] == '1') &&
-            str[4] >= '0' && str[4] <= '9' &&
-            str[5] >= '.'
+            string.length~() > 7 &&
+            string[0] >= '0' && string[0] <= '3' &&
+            string[1] >= '0' && string[1] <= '9' &&
+            string[2] >= '.' &&
+            (string[3] == '0' || string[3] == '1') &&
+            string[4] >= '0' && string[4] <= '9' &&
+            string[5] >= '.'
         }
-            const day Int = (charToInt(str[0]) - charToInt('0')) * 10 + charToInt(str[1]) - charToInt('0')
-            const month Int = (charToInt(str[3]) - charToInt('0')) * 10 + charToInt(str[4]) - charToInt('0')
+            const day Int = (charToInt(string[0]) - charToInt('0')) * 10 + charToInt(string[1]) - charToInt('0')
+            const month Int = (charToInt(string[3]) - charToInt('0')) * 10 + charToInt(string[4]) - charToInt('0')
             var year Int = 0
             var index Int = 6
             for :(loop)
-                const currentChar Char = str[index]
+                const currentChar Char = string[index]
                 if currentChar == ' '
                     index++
                     end loop
@@ -724,24 +723,24 @@ attach Time to StringReader
                 if allOk
                     year = year * 10 + charToInt(currentChar) - charToInt('0')
                     index++
-                    allOk = year <= 292277026596 && index < str.length~()
+                    allOk = year <= 292277026596 && index < string.length~()
                 if !allOk
                     year = 0
                     end loop
             if {
-                year >= 1970 && index + 8 == str.length~() &&
-                str[index] >= '0' && str[index] <= '2' &&
-                str[index + 1] >= '0' && str[index + 1] <= '9' &&
-                str[index + 2] >= ':' &&
-                str[index + 3] >= '0' && str[index + 3] <= '6' &&
-                str[index + 4] >= '0' && str[index + 4] <= '9' &&
-                str[index + 5] >= ':' &&
-                str[index + 6] >= '0' && str[index + 6] <= '6' &&
-                str[index + 7] >= '0' && str[index + 7] <= '9'
+                year >= 1970 && index + 8 == string.length~() &&
+                string[index] >= '0' && string[index] <= '2' &&
+                string[index + 1] >= '0' && string[index + 1] <= '9' &&
+                string[index + 2] >= ':' &&
+                string[index + 3] >= '0' && string[index + 3] <= '6' &&
+                string[index + 4] >= '0' && string[index + 4] <= '9' &&
+                string[index + 5] >= ':' &&
+                string[index + 6] >= '0' && string[index + 6] <= '6' &&
+                string[index + 7] >= '0' && string[index + 7] <= '9'
             }
-                const hour Int = (charToInt(str[index]) - charToInt('0')) * 10 + charToInt(str[index + 1]) - charToInt('0')
-                const minute Int = (charToInt(str[index + 3]) - charToInt('0')) * 10 + charToInt(str[index + 4]) - charToInt('0')
-                const second Int = (charToInt(str[index + 6]) - charToInt('0')) * 10 + charToInt(str[index + 7]) - charToInt('0')
+                const hour Int = (charToInt(string[index]) - charToInt('0')) * 10 + charToInt(string[index + 1]) - charToInt('0')
+                const minute Int = (charToInt(string[index + 3]) - charToInt('0')) * 10 + charToInt(string[index + 4]) - charToInt('0')
+                const second Int = (charToInt(string[index + 6]) - charToInt('0')) * 10 + charToInt(string[index + 7]) - charToInt('0')
                 try
                     return Time(year, month, day, hour, minute, second)
                 catch

@@ -89,7 +89,7 @@ export def containPartFromAtoB?(container, part This, a, b Int) Bool
 //@If in the array passed as the second argument of the function, at least one item is not of type "This", then the function returns an error with the code "enum::STD::error_invalidType".
 //@If at least one container from the array passed as the second argument to the function is empty, or the array itself is empty, the function returns an error with the code "enum::STD::error_nothingToLook".
 #this(Container) alwaysinline
-export def containAnyPart?(container This, parts $Array) Bool
+export def containAnyPart?(container This, parts Array) Bool
     var unneededVar <>This = nothing
     return container.lookAnyPart(parts, unneededVar).type?(Int)
 
@@ -98,7 +98,7 @@ export def containAnyPart?(container This, parts $Array) Bool
 //@If in the array passed as the second argument of the function, at least one item is not of type "This", then the function returns an error with the code "enum::STD::error_invalidType".
 //@If at least one container from the array passed as the second argument to the function is empty, or the array itself is empty, the function returns an error with the code "enum::STD::error_nothingToLook".
 #this(Container) alwaysinline
-export def containAnyPartFromAtoB?(container This, parts $Array, a, b Int) Bool
+export def containAnyPartFromAtoB?(container This, parts Array, a, b Int) Bool
     var unneededVar <>This = nothing
     return container.lookAnyPartFromAtoB(parts, a, b, unneededVar).type?(Int)
 
@@ -291,7 +291,7 @@ export def countPartFromAtoB(container, part This, a, b Int) Int
 //@When counting, containers from the array passed as the second argument to the function are searched from first to last.
 //@If at least one container from the array passed as the second argument to the function is empty, or the array itself is empty, the function returns an error with the code "enum::STD::error_nothingToLook".
 #this(Container) alwaysinline
-export def countAnyPart(container This, parts $Array) Int
+export def countAnyPart(container This, parts Array) Int
     return container.countAnyPartFromAtoB(parts, 0, container.length~())
 
 //@The function counts how many times the items of any container passed in the array as the second argument of the function are in the same sequence in the container passed in the first argument to the function, in the interval from the item with the index "a" to the item with the index "b" (not including item with index "b").
@@ -301,7 +301,7 @@ export def countAnyPart(container This, parts $Array) Int
 //@When counting, containers from the array passed as the second argument to the function are searched from first to last.
 //@If at least one container from the array passed as the second argument to the function is empty, or the array itself is empty, the function returns an error with the code "enum::STD::error_nothingToLook".
 #this(Container) inline
-export def countAnyPartFromAtoB(container This, parts $Array, a, b Int) Int
+export def countAnyPartFromAtoB(container This, parts Array, a, b Int) Int
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
             throw(enum::error_outOfRange, "Out of range.")
@@ -496,7 +496,7 @@ export def lookNPartFromAtoB(container, part This, n, a, b Int) <>Int
 //@If the array passed as the second argument to the function is empty, or if at least one of the array items is an empty container, then the function returns an error with the "enum::STD::error_nothingToLook" code.
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 #this(Container) alwaysinline
-export def lookAnyPart(container This, parts $Array, write resultPart <>This) <>Int
+export def lookAnyPart(container This, parts Array, write resultPart <>This) <>Int
     return container.lookAnyNPartFromAtoB(parts, 1, 0, container.length~(), resultPart)
 
 //@The function returns the index of the n-th occurrence of any container that is an item from the array passed by the second argument to the function, in the container passed by the first argument to the function. If there is no such occurrence, the function returns "Nothing".
@@ -507,7 +507,7 @@ export def lookAnyPart(container This, parts $Array, write resultPart <>This) <>
 //@If "n" is less than one, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 #this(Container) alwaysinline
-export def lookAnyNPart(container This, parts $Array, n Int, write resultPart <>This) <>Int
+export def lookAnyNPart(container This, parts Array, n Int, write resultPart <>This) <>Int
     return container.lookAnyNPartFromAtoB(parts, n, 0, container.length~(), resultPart)
 
 //@The function returns the index of the first occurrence of any container that is an item from the array passed by the second argument to the function, in which the index of all items is not less than "a" and less than "b", in the container passed by the first argument to the function. If there is no such occurrence, the function returns "Nothing".
@@ -517,7 +517,7 @@ export def lookAnyNPart(container This, parts $Array, n Int, write resultPart <>
 //@If "a" is less than 0 or more than "b", or "b" is greater than the number of items in the container, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 #this(Container) alwaysinline
-export def lookAnyPartFromAtoB(container This, parts $Array, a, b Int, write resultPart <>This) <>Int
+export def lookAnyPartFromAtoB(container This, parts Array, a, b Int, write resultPart <>This) <>Int
     return container.lookAnyNPartFromAtoB(parts, 1, a, b, resultPart)
 
 //@The function returns the index of the n-th occurrence of any container that is an item from the array passed by the second argument to the function, whose index of all items is not less than "a" and less than "b", in the container passed by the first argument to the function. If there is no such occurrence, the function returns "Nothing".
@@ -529,7 +529,7 @@ export def lookAnyPartFromAtoB(container This, parts $Array, a, b Int, write res
 //@If "n" is less than one, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 #this(Container) inline
-export def lookAnyNPartFromAtoB(container This, parts $Array, n, a, b Int, write resultPart <>This) <>Int
+export def lookAnyNPartFromAtoB(container This, parts Array, n, a, b Int, write resultPart <>This) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
             throw(enum::error_outOfRange, "Out of range.")
@@ -561,14 +561,14 @@ export def lookAnyNPartFromAtoB(container This, parts $Array, n, a, b Int, write
 //@The function returns an array with indices of items from the container passed by the first argument to the function, which (items) are equal to the second argument of the function.
 //@The indices in the resulting array are sorted in ascending order.
 #this(Container) alwaysinline
-export def lookAll(container This, item $Equal) $Array
+export def lookAll(container This, item $Equal) Array
     return container.lookAllFromAtoB(item, 0, container.length~())
 
 //@The function returns an array with indices of items from the container passed by the first argument of the function, which (items) are equal to the second argument of the function and have indices not less than "a" and less than "b".
 //@If "a" is less than 0 or more than "b", or "b" is greater than the number of items in the container, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@The indices in the resulting array are sorted in ascending order.
 #this(Container) alwaysinline
-export def lookAllFromAtoB(container This, item $Equal, a, b Int) $Array
+export def lookAllFromAtoB(container This, item $Equal, a, b Int) Array
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
             throw(enum::error_outOfRange, "Out of range.")
@@ -584,7 +584,7 @@ export def lookAllFromAtoB(container This, item $Equal, a, b Int) $Array
 //@The indices in the resulting array are sorted in ascending order.
 //@If any item from the container passed by the second function argument is not a member of the "STD::Equal" group, then it is considered that it is not in the container passed by the first function argument.
 #this(Container) alwaysinline
-export def lookAllAny(container This, items $Container) $Array
+export def lookAllAny(container This, items $Container) Array
     return container.lookAllAnyFromAtoB(items, 0, container.length~())
 
 //@The function returns an array with indices of items from the container passed by the first argument to the function, which (items) are equal to any of the items in the container passed by the second argument of the function and have indices not less than "b" and less than "a".
@@ -593,7 +593,7 @@ export def lookAllAny(container This, items $Container) $Array
 //@The indices in the resulting array are sorted in ascending order.
 //@If any item from the container passed by the second function argument is not a member of the "STD::Equal" group, then it is considered that it is not in the container passed by the first function argument.
 #this(Container) alwaysinline
-export def lookAllAnyFromAtoB(container This, items $Container, a, b Int) $Array
+export def lookAllAnyFromAtoB(container This, items $Container, a, b Int) Array
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
             throw(enum::error_outOfRange, "Out of range.")
@@ -612,7 +612,7 @@ export def lookAllAnyFromAtoB(container This, items $Container, a, b Int) $Array
 //@If the container passed as the second argument of the function is empty, then the function returns an error with the code "enum::STD::error_nothingToLook".
 //@The indices in the resulting array are sorted in ascending order.
 #this(Container) alwaysinline
-export def lookAllParts(container, part This) $Array
+export def lookAllParts(container, part This) Array
     return container.lookAllPartsFromAtoB(part, 0, container.length~())
 
 //@The function returns an array with the indices of the occurrences of the container passed by the second argument of the function, in the container passed by the first argument of the function and have indices not less than "a" and less than "b".
@@ -622,7 +622,7 @@ export def lookAllParts(container, part This) $Array
 //@If "a" is less than 0 or more than "b", or "b" is greater than the number of items in the container, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@The indices in the resulting array are sorted in ascending order.
 #this(Container) alwaysinline
-export def lookAllPartsFromAtoB(container, part This, a, b Int) $Array
+export def lookAllPartsFromAtoB(container, part This, a, b Int) Array
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
             throw(enum::error_outOfRange, "Out of range.")
@@ -646,7 +646,7 @@ export def lookAllPartsFromAtoB(container, part This, a, b Int) $Array
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 //@In the resulting list, the smaller the index, the closer to the beginning, the index and occurrence  be located.
 #this(Container) alwaysinline
-export def lookAllAnyParts(container This, parts $Array) $List
+export def lookAllAnyParts(container This, parts Array) List
     return container.lookAllAnyPartsFromAtoB(parts, 0, container.length~())
 
 //@The function finds all occurrences of containers, all items of which have an index not less than "a" and less than "b", from the array passed by the second argument of the function, in the container passed by the first argument of the function and returns a list in which each even item is the index of the occurrence and the next followed by the item is the container which is equal to the container found at the given index.
@@ -658,7 +658,7 @@ export def lookAllAnyParts(container This, parts $Array) $List
 //@If "a" is less than 0 or more than "b", or "b" is greater than the number of items in the container, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@In the resulting list, the smaller the index, the closer to the beginning, the index and occurrence  be located.
 #this(Container) inline
-export def lookAllAnyPartsFromAtoB(container This, parts $Array, a, b Int) $List
+export def lookAllAnyPartsFromAtoB(container This, parts Array, a, b Int) List
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
             throw(enum::error_outOfRange, "Out of range.")
@@ -822,7 +822,7 @@ export def lookBackNPartFromAtoB(container, part This, n, a, b Int) <>Int
 //@If the array passed as the second argument to the function is empty, or if at least one of the array items is an empty container, then the function returns an error with the "enum::STD::error_nothingToLook" code.
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 #this(Container) alwaysinline
-export def lookBackAnyPart(container This, parts $Array, write resultPart <>This) <>Int
+export def lookBackAnyPart(container This, parts Array, write resultPart <>This) <>Int
     return container.lookBackAnyNPartFromAtoB(parts, 1, 0, container.length~(), resultPart)
 
 //@The function returns the index of the n-th occurrence of any container that is an item from the array passed by the second argument to the function, in the container passed by the first argument to the function. If there is no such occurrence, the function returns "Nothing".
@@ -834,7 +834,7 @@ export def lookBackAnyPart(container This, parts $Array, write resultPart <>This
 //@If "n" is less than one, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 #this(Container) alwaysinline
-export def lookBackAnyNPart(container This, parts $Array, n Int, write resultPart <>This) <>Int
+export def lookBackAnyNPart(container This, parts Array, n Int, write resultPart <>This) <>Int
     return container.lookBackAnyNPartFromAtoB(parts, n, 0, container.length~(), resultPart)
 
 //@The function returns the index of the first occurrence of any container that is an item from the array passed by the second argument to the function, in which the index of all items is not less than "a" and less than "b", in the container passed by the first argument to the function. If there is no such occurrence, the function returns "Nothing".
@@ -845,7 +845,7 @@ export def lookBackAnyNPart(container This, parts $Array, n Int, write resultPar
 //@If "a" is less than 0 or more than "b", or "b" is greater than the number of items in the container, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 #this(Container) alwaysinline
-export def lookBackAnyPartFromAtoB(container This, parts $Array, a, b Int, write resultPart <>This) <>Int
+export def lookBackAnyPartFromAtoB(container This, parts Array, a, b Int, write resultPart <>This) <>Int
     return container.lookBackAnyNPartFromAtoB(parts, 1, a, b, resultPart)
 
 //@The function returns the index of the n-th occurrence of any container that is an item from the array passed by the second argument to the function, whose index of all items is not less than "a" and less than "b", in the container passed by the first argument to the function. If there is no such occurrence, the function returns "Nothing".
@@ -858,7 +858,7 @@ export def lookBackAnyPartFromAtoB(container This, parts $Array, a, b Int, write
 //@If "n" is less than one, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 #this(Container) inline
-export def lookBackAnyNPartFromAtoB(container This, parts $Array, n, a, b Int, write resultPart <>This) <>Int
+export def lookBackAnyNPartFromAtoB(container This, parts Array, n, a, b Int, write resultPart <>This) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
             throw(enum::error_outOfRange, "Out of range.")
@@ -1028,7 +1028,7 @@ export def replacePart(write container, oldPart, newPart This)
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 //@If two sequences from an array passed as the second argument to a function have a common origin, then when a situation arises when an index suitable for both sequences is found, it is considered that a sequence has been found whose index in the array was less.
 #this(Container) inline
-export def replaceAnyPart$(container This, oldParts $Array, newPart This) This
+export def replaceAnyPart$(container This, oldParts Array, newPart This) This
     var result This = This.createEmpty()
     var from Int = 0
     const length Int = container.length~()
@@ -1051,7 +1051,7 @@ export def replaceAnyPart$(container This, oldParts $Array, newPart This) This
 //@If at least one item of the array passed by the second function argument has a type different from the type of the first function argument, the function returns an error with the code "enum::STD::error_invalidType".
 //@If two sequences from an array passed as the second argument to a function have a common origin, then when a situation arises when an index suitable for both sequences is found, it is considered that a sequence has been found whose index in the array was less.
 #this(Container) alwaysinline
-export def replaceAnyPart(write container This, oldParts $Array, newPart This)
+export def replaceAnyPart(write container This, oldParts Array, newPart This)
     container = container.replaceAnyPart$(oldParts, newPart)
 
 //@The function divides the container passed by the first argument to the function, into parts that are placed in the array returned by the function. The second argument of the function is used as a separator.
@@ -1060,7 +1060,7 @@ export def replaceAnyPart(write container This, oldParts $Array, newPart This)
 //@If the container starts with a separator, or the container ends with a separator, or two separators go in a row, then in the resulting array such a section is added as an empty container.
 //@The closer to the beginning of the container the part is, the closer it will be to the beginning of the resulting array.
 #this(Container) inline
-export def split(container This, separator $Equal) $Array
+export def split(container This, separator $Equal) Array
     var result Array = []
     var beginIndex Int = 0
     const length Int = container.length~()
@@ -1081,7 +1081,7 @@ export def split(container This, separator $Equal) $Array
 //@If the separator is an empty container, the function returns an error with the code "enum::STD::error_nothingToLook".
 //@When looking for a separator, the items of the container passed as the first argument to the function are scanned from beginning to end.
 #this(Container) inline
-export def splitByPart(container, separator This) $Array
+export def splitByPart(container, separator This) Array
     var result Array = []
     var beginIndex Int = 0
     const containerLength Int = container.length~()
@@ -1103,7 +1103,7 @@ export def splitByPart(container, separator This) $Array
 //@If the container containing separators is empty, the function returns an error with the code "enum::STD::error_nothingToLook".
 //@If any item from the container passed by the second function argument is not a member of the "STD::Equal" group, then it is considered that it is not in the container passed by the first function argument.
 #this(Container) inline
-export def splitByAny(container This, separators $Container) $Array
+export def splitByAny(container This, separators $Container) Array
     var result Array = []
     var beginIndex Int = 0
     const length Int = container.length~()
@@ -1126,7 +1126,7 @@ export def splitByAny(container This, separators $Container) $Array
 //@When looking for a separator, the items of the container passed as the first argument to the function are scanned from beginning to end.
 //@If two separators from the array passed as the second argument to the function have a common origin, then when a situation arises when an index suitable for both separators is found, it is considered that a separator has been found whose index in the array was less.
 #this(Container) inline
-export def splitByAnyPart(container This, separators $Array) $Array
+export def splitByAnyPart(container This, separators Array) Array
     var result Array = []
     var beginIndex Int = 0
     const length Int = container.length~()

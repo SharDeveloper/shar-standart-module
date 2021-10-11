@@ -37,7 +37,7 @@ attach TestDict_BadInt to Hashable
 
 attach TestDict_BadInt to StringWriter
     #inline nothrow
-    def toString(int TestDict_BadInt) $String
+    def toString(int TestDict_BadInt) String
         return int.dict_toGood().toString()
 
 #alwaysinline nothrow
