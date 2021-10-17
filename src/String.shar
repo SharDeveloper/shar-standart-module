@@ -370,7 +370,7 @@ attach String to Container
 //@The function loads the file as a UTF-8 string.
 //@If the load was not successful, then the function returns "Nothing".
 #alwaysinline
-def loadFromUTF8File(noread type, fileName String) <>String
+export def loadFromUTF8File(noread type, fileName String) <>String
     const utf8String <>Bytes = loadFile(fileName)
     if utf8String.nothing?()
         return nothing
@@ -423,7 +423,7 @@ def loadFromUTF8File(noread type, fileName String) <>String
 //@The function saves a string to a file with UTF-8 characters.
 //@If the save was successful, then the function returns "true", otherwise "false".
 #alwaysinline nothrow
-def saveToUTF8File(string, fileName String) Bool
+export def saveToUTF8File(string, fileName String) Bool
     const file <>File = openFile(fileName, enum::fmode_write)
     if file.nothing?()
         return false
