@@ -268,3 +268,29 @@ export def activeWait(pipeline This) $Multithreaded
         if !result.nothing?()
             return result
         yield()
+
+#alwaysinline nothrow
+def unsafe_pipeline_get_items_count(pipeline $Any) Int
+    llvm
+        %##nreg##pipeline## = extractvalue [2 x i64] %0, 1
+        %##nreg##count## = call i64 @shar__get__pipeline__items__count(i64 %##reg##pipeline##)
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##count##, 1
+        ret [2 x i64] %##reg##result##
+
+attach Pipeline to Long
+    //@The function returns the number of items waiting to be transferred from one thread to another.
+    #alwaysinline nothrow
+    def length~(pipeline Pipeline) Int
+        return unsafe_pipeline_get_items_count(pipeline)
+
+attach PipelineIn to Long
+    //@The function returns the number of items waiting to be transferred from one thread to another.
+    #alwaysinline nothrow
+    def length~(pipeline PipelineIn) Int
+        return unsafe_pipeline_get_items_count(pipeline)
+
+attach PipelineOut to Long
+    //@The function returns the number of items waiting to be transferred from one thread to another.
+    #alwaysinline nothrow
+    def length~(pipeline PipelineOut) Int
+        return unsafe_pipeline_get_items_count(pipeline)
