@@ -192,24 +192,25 @@ export def move(write container This, from, to, length Int)
         var mutFrom Int = from
         var mutTo Int = to
         var mutLength Int = length
-        for :(loop)
-            var overlapSize Int = mutLength - (mutTo - mutFrom).abs()
-            if overlapSize > 0
-                if mutFrom < mutTo
-                    mutTo = mutFrom
-                    mutFrom += mutLength
+        nothrow
+            for :(loop)
+                var overlapSize Int = mutLength - (mutTo - mutFrom).abs()
+                if overlapSize > 0
+                    if mutFrom < mutTo
+                        mutTo = mutFrom
+                        mutFrom += mutLength
+                    else
+                        const oldFrom Int = mutFrom
+                        mutFrom = mutTo
+                        mutTo = oldFrom + overlapSize
+                    mutLength -= overlapSize
+                    overlapSize = mutLength - (mutTo - mutFrom).abs()
+                for :(offset Int = 0) offset < mutLength; offset++
+                    container.swap(mutFrom + offset, mutTo + offset)
+                if overlapSize != 0
+                    mutTo += (mutFrom < mutTo).select(!mutLength, mutLength)
                 else
-                    const oldFrom Int = mutFrom
-                    mutFrom = mutTo
-                    mutTo = oldFrom + overlapSize
-                mutLength -= overlapSize
-                overlapSize = mutLength - (mutTo - mutFrom).abs()
-            for :(offset Int = 0) offset < mutLength; offset++
-                container.swap(mutFrom + offset, mutTo + offset)
-            if overlapSize != 0
-                mutTo += (mutFrom < mutTo).select(!mutLength, mutLength)
-            else
-                end loop
+                    end loop
 
 //@The function counts how many items in the container passed by the first argument of the function are equal to the second argument of the function.
 #this(Container) alwaysinline
