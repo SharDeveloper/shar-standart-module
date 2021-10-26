@@ -1233,8 +1233,9 @@ export def reversePart(write container This, a, b Int)
             throw(enum::error_outOfRange, "Out of range.", nothing)
     const halfLength Int = (b - a) >> 1
     const lastIndex Int = b - 1
-    for :(offset Int = 0) offset < halfLength; offset++
-        container.swap(a + offset, lastIndex - offset)
+    nothrow
+        for :(offset Int = 0) offset < halfLength; offset++
+            container.swap(a + offset, lastIndex - offset)
 
 //@The function returns a container identical to the container from the first argument, but in which the items of the container are moved back to front.
 #this(Container) alwaysinline
