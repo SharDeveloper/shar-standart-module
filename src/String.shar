@@ -315,6 +315,7 @@ attach String to Long
         return string.unsafe_getI64(1)
 
 attach String to Empty
+    //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type String) String
         return ""

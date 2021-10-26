@@ -280,6 +280,7 @@ attach Array to Long
         return array.unsafe_getI64(1)
 
 attach Array to Empty
+    //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type Array) Array
         return []

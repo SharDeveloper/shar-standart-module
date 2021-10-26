@@ -7,6 +7,7 @@ export group Dict: AArray, KeyTypeNumber
 export primitive Dict
 
 //@The function creates an empty associative array of the "STD::Dict" type.
+//@The function returns a constant.
 #alwaysinline nothrow
 export def Dict() Dict
     return Dict.createEmpty()
@@ -110,6 +111,7 @@ def dump(dict Dict, level Int) String
     return result
 
 attach Dict to Empty
+    //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type Dict) Dict
         llvm

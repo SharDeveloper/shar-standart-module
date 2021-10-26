@@ -199,6 +199,7 @@ attach List to Long
         return list.unsafe_getI64(1)
 
 attach List to Empty
+    //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type List) List
         return {}
