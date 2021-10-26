@@ -125,7 +125,7 @@ export def copy(write destination This, destinationPosition Int, source This, so
                 length >= 0 && length <= (destinationLength - destinationPosition).min(sourceLength - sourcePosition)
             )
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     for :(offset Int = 0) offset < length; offset++
         destination.setItem(destinationPosition + offset, source[sourcePosition + offset])
 
@@ -151,7 +151,7 @@ export def copySelf(write container This, from, to, length Int)
                 length >= 0 && length <= containerLength - from.max(to)
             )
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if from != to
         var mutFrom Int = from
         var mutTo Int = to
@@ -187,7 +187,7 @@ export def move(write container This, from, to, length Int)
                 length >= 0 && length <= containerLength - from.max(to)
             )
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if from != to && length > 0
         var mutFrom Int = from
         var mutTo Int = to
@@ -222,7 +222,7 @@ export def count(container This, item $Equal) Int
 export def countFromAtoB(container This, item $Equal, a, b Int) Int
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result Int = 0
     for :(index Int = a) index < b; index++
         const containerItem $Any = container[index]
@@ -245,9 +245,9 @@ export def countAny(container This, items $Container) Int
 export def countAnyFromAtoB(container This, items $Container, a, b Int) Int
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if items.empty?()
-            throw(enum::error_nothingToLook, "There is nothing to count.")
+            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
     var result Int = 0
     for :(index Int = a) index < b; index++
         const containerItem $Any = container[index]
@@ -272,9 +272,9 @@ export def countPart(container, part This) Int
 export def countPartFromAtoB(container, part This, a, b Int) Int
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if part.empty?()
-            throw(enum::error_nothingToLook, "There is nothing to count.")
+            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
     var result Int = 0
     const partLength Int = part.length~()
     const edge Int = b - partLength + 1
@@ -304,7 +304,7 @@ export def countAnyPart(container This, parts Array) Int
 export def countAnyPartFromAtoB(container This, parts Array, a, b Int) Int
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result Int = 0
     var minPartLength Int = 0
     const partsCount Int = parts.length~()
@@ -314,7 +314,7 @@ export def countAnyPartFromAtoB(container This, parts Array, a, b Int) Int
             minPartLength = minPartLength.min(parts[index].length~())
     inthrow
         if minPartLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to count.")
+            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
     const edge Int = b - minPartLength + 1
     if edge > 0
         for :(containerIndex Int = a) containerIndex < edge; containerIndex++
@@ -391,7 +391,7 @@ export def lookFromAtoB(container This, item $Equal, a, b Int) <>Int
 export def lookNFromAtoB(container This, item $Equal, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var mutN Int = n
     for :(index Int = a) index < b; index++
         const containerItem $Any = container[index]
@@ -433,9 +433,9 @@ export def lookAnyFromAtoB(container This, items $Container, a, b Int) <>Int
 export def lookAnyNFromAtoB(container This, items $Container, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if items.empty?()
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     var mutN Int = n
     for :(index Int = a) index < b; index++
         const currentItem $Any = container[index]
@@ -475,9 +475,9 @@ export def lookPartFromAtoB(container, part This, a, b Int) <>Int
 export def lookNPartFromAtoB(container, part This, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if part.empty?()
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     var mutN Int = n
     const partLength Int = part.length~()
     const edge Int = b - partLength + 1
@@ -532,7 +532,7 @@ export def lookAnyPartFromAtoB(container This, parts Array, a, b Int, write resu
 export def lookAnyNPartFromAtoB(container This, parts Array, n, a, b Int, write resultPart <>This) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var minPartLength Int = 0
     const partsCount Int = parts.length~()
     if partsCount != 0
@@ -542,7 +542,7 @@ export def lookAnyNPartFromAtoB(container This, parts Array, n, a, b Int, write 
             minPartLength = minPartLength.min(part.length~())
     inthrow
         if minPartLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     var mutN Int = n
     const edge Int = b - minPartLength + 1
     if edge > 0
@@ -571,7 +571,7 @@ export def lookAll(container This, item $Equal) Array
 export def lookAllFromAtoB(container This, item $Equal, a, b Int) Array
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result Array = []
     for :(index Int = a) index < b; index++
         const containerItem $Any = container[index]
@@ -596,9 +596,9 @@ export def lookAllAny(container This, items $Container) Array
 export def lookAllAnyFromAtoB(container This, items $Container, a, b Int) Array
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if items.empty?()
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     var result Array = []
     for :(index Int = a) index < b; index++
         const containerItem $Any = container[index]
@@ -625,9 +625,9 @@ export def lookAllParts(container, part This) Array
 export def lookAllPartsFromAtoB(container, part This, a, b Int) Array
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if part.empty?()
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     var result Array = []
     const partLength Int = part.length~()
     const edge Int = b - partLength + 1
@@ -661,7 +661,7 @@ export def lookAllAnyParts(container This, parts Array) List
 export def lookAllAnyPartsFromAtoB(container This, parts Array, a, b Int) List
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var minPartLength Int = 0
     const partsCount Int = parts.length~()
     if partsCount != 0
@@ -670,7 +670,7 @@ export def lookAllAnyPartsFromAtoB(container This, parts Array, a, b Int) List
             minPartLength = minPartLength.min(parts[index].length~())
     inthrow
         if minPartLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     var result List = {}
     const edge Int = b - minPartLength + 1
     if edge > 0
@@ -710,7 +710,7 @@ export def lookBackFromAtoB(container This, item $Equal, a, b Int) <>Int
 export def lookBackNFromAtoB(container This, item $Equal, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var mutN Int = n
     for :(index Int = b - 1) index >= a; index--
         const containerItem $Any = container[index]
@@ -754,9 +754,9 @@ export def lookBackAnyFromAtoB(container This, items $Container, a, b Int) <>Int
 export def lookBackAnyNFromAtoB(container This, items $Container, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if items.empty?()
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     var mutN Int = n
     for :(index Int = b - 1) index >= a; index--
         const containerItem $Any = container[index]
@@ -800,9 +800,9 @@ export def lookBackPartFromAtoB(container, part This, a, b Int) <>Int
 export def lookBackNPartFromAtoB(container, part This, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if part.empty?()
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     var mutN Int = n
     const partLength Int = part.length~()
     const firstIndex Int = b - partLength
@@ -861,7 +861,7 @@ export def lookBackAnyPartFromAtoB(container This, parts Array, a, b Int, write 
 export def lookBackAnyNPartFromAtoB(container This, parts Array, n, a, b Int, write resultPart <>This) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var minPartLength Int = 0
     const partsCount Int = parts.length~()
     if partsCount != 0
@@ -870,7 +870,7 @@ export def lookBackAnyNPartFromAtoB(container This, parts Array, n, a, b Int, wr
             minPartLength = minPartLength.min(parts[index].length~())
     inthrow
         if minPartLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     var mutN Int = n
     const firstIndex Int = b - minPartLength
     var mutB Int = b
@@ -912,7 +912,7 @@ export def delete$(container This, from, count Int) This
             !(from >= 0 && from <= containerLength &&
             count >= 0 && count <= containerLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result This = This.createEmpty()
     for :(index Int = 0) index < from; index++
         result.addItem(container[index])
@@ -1178,7 +1178,7 @@ export def insertPart(write container This, index Int, newPart This)
 export def repeat(noread type This, item $Any, count Int) This
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result This = This.createEmpty()
     if count == 0
         return result
@@ -1199,7 +1199,7 @@ export def repeat(noread type This, item $Any, count Int) This
 export def repeatPart(part This, count Int) This
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result This = This.createEmpty()
     if count == 0
         return result
@@ -1229,7 +1229,7 @@ export def reversePart$(container This, a, b Int) This
 export def reversePart(write container This, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     const halfLength Int = (b - a) >> 1
     const lastIndex Int = b - 1
     for :(offset Int = 0) offset < halfLength; offset++
@@ -1267,7 +1267,7 @@ export def sort(write container This, rise Bool)
         return
     inthrow
         if !unsafe_inOrderedGroup?(container.itemTypeNumber~())
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
     return container.quicksort(0, container.length~(), rise, const::staticRandomNumber)
 
 #this(Container, ItemTypeNumber)
@@ -1393,7 +1393,7 @@ export def stableSort(write container This, rise Bool)
         return
     inthrow
         if !unsafe_inOrderedGroup?(container.itemTypeNumber~())
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
     var blockSize Int = 16
     var blockBeginIndex Int = 0
     var blockEnd Int = blockSize

@@ -186,7 +186,7 @@ attach Bytes to Shar__sugar__getRange
     def shar__sugar__getRange(bytes Bytes, from, to Int) Bytes
         inthrow
             if !(from >= 0 && from <= to && to <= bytes.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         var result Bytes = Bytes()
         const length Int = to - from
         if length != 0
@@ -200,7 +200,7 @@ attach Bytes to Shar__sugar__getItem
     def shar__sugar__getItem(bytes Bytes, index Int) Int
         inthrow
             if !index.inRange?(0, bytes.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         return bytes.unsafe_getI8(index + 16)
 
 attach Bytes to Shar__sugar__add
@@ -282,7 +282,7 @@ attach Bytes to StringReader
                 result.addItem(byte)
         inthrow
             if !stringIsCorrect
-                throw(enum::error_readFromString, "Reading from the string caused an error.")
+                throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
         return result
 
 attach Bytes to Hashable
@@ -337,7 +337,7 @@ attach Bytes to Put
     def put(write bytes Bytes, index, newByte Int) Int
         inthrow
             if !index.inRange?(0, bytes.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const oldByte Int = bytes.unsafe_getI8(index + 16)
         if bytes.use?()
             bytes = bytes.clone()
@@ -398,7 +398,7 @@ def copy(write destination Bytes, destinationPosition Int, source Bytes, sourceP
                 length >= 0 && length <= (destinationLength - destinationPosition).min(sourceLength - sourcePosition)
             )
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if destination.use?()
         var newBytes Bytes = unsafe_bytes_createDummy(destinationLength)
         unsafe_memcpyI8(newBytes.unsafe_offsetI64(2), destination.unsafe_offsetI64(2), destinationPosition)
@@ -422,7 +422,7 @@ attach Bytes to BinarySerializable
         inthrow
             if bytes.length~() - position < length || position < 0
                 position = startPosition
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         var result Bytes = unsafe_bytes_createDummy(length)
         unsafe_memcpyI8(result.unsafe_offsetI64(2), bytes.unsafe_offsetI8(position + 16), length)
         position += length
@@ -432,7 +432,7 @@ attach Bytes to BinarySerializable
 def swap(write bytes Bytes, position1, position2 Int)
     inthrow
         if !(position1.inRange?(0, bytes.length~()) && position2.inRange?(0, bytes.length~()))
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if bytes.use?()
         bytes = bytes.clone()
     const items Int = bytes.unsafe_offsetI64(2)
@@ -448,7 +448,7 @@ def setItem(write bytes Bytes, index, newItem Int)
 def countFromAtoB(bytes Bytes, item, a, b Int) Int
     inthrow
         if !(a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     return unsafe_bytes_countFromAtoB(bytes.unsafe_offsetI8(a + 16), item, b - a)
 
 #alwaysinline nothrow
@@ -512,9 +512,9 @@ def countPartFromAtoB(bytes, part Bytes, a, b Int) Int
     const bytesLength Int = bytes.length~()
     inthrow
         if !(a >= 0 && a <= b && b <= bytesLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to count.")
+            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
     var result Int = 0
     const edge Int = b - partLength + 1
     if edge > 0
@@ -545,7 +545,7 @@ def partsEqual?(bytes1 Bytes, from1 Int, bytes2 Bytes, from2, length Int) Bool
 def lookNFromAtoB(bytes Bytes, item, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     return unsafe_bytes_lookNFromAtoB(bytes.unsafe_offsetI8(a + 16), item, n, a, b)
 
 #alwaysinline nothrow
@@ -636,9 +636,9 @@ def lookNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
     const bytesLength Int = bytes.length~()
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= bytesLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     const edge Int = b - partLength + 1
     if edge > 0
         var mutN Int = n
@@ -660,7 +660,7 @@ def lookNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
 def lookAllFromAtoB(bytes Bytes, item, a, b Int) Array
     inthrow
         if !(a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result Array = [].clone()
     unsafe_bytes_lookAllFromAtoB(bytes.unsafe_offsetI8(a + 16), item, a, b, result)
     return result
@@ -776,9 +776,9 @@ def lookAllPartsFromAtoB(bytes, part Bytes, a, b Int) Array
     const bytesLength Int = bytes.length~()
     inthrow
         if !(a >= 0 && a <= b && b <= bytesLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to count.")
+            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
     var result Array = []
     const edge Int = b - partLength + 1
     if edge > 0
@@ -798,7 +798,7 @@ def lookAllPartsFromAtoB(bytes, part Bytes, a, b Int) Array
 def lookBackNFromAtoB(bytes Bytes, item, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     return unsafe_bytes_lookBackNFromAtoB(bytes.unsafe_offsetI8(b + 16), item, n, a, b)
 
 #alwaysinline nothrow
@@ -889,9 +889,9 @@ def lookBackNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
     const bytesLength Int = bytes.length~()
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= bytesLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     const firstEdge Int = b - partLength + 1
     if firstEdge > 0
         var mutN Int = n
@@ -918,7 +918,7 @@ def delete$(bytes Bytes, from, count Int) Bytes
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result Bytes = unsafe_bytes_createDummy(newLength)
     const resultItems Int = result.unsafe_offsetI8(16)
     const bytesItems Int = bytes.unsafe_offsetI8(16)
@@ -934,7 +934,7 @@ def delete(write bytes Bytes, from, count Int)
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if count == 0
         return
     const newLength Int = oldLength - count
@@ -1083,7 +1083,7 @@ def insert$(bytes Bytes, index, newItem Int) Bytes
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result Bytes = unsafe_bytes_createDummy(newLength)
     const resultItems Int = result.unsafe_offsetI8(16)
     const bytesItems Int = bytes.unsafe_offsetI8(16)
@@ -1098,7 +1098,7 @@ def insert(write bytes Bytes, index, newItem Int)
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if bytes.use?()
         var newBytes Bytes = unsafe_bytes_createDummy(newLength)
         const newItems Int = newBytes.unsafe_offsetI8(16)
@@ -1121,7 +1121,7 @@ def insertPart$(bytes Bytes, index Int, addedBytes Bytes) Bytes
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return bytes
     var result Bytes = unsafe_bytes_createDummy(newLength)
@@ -1140,7 +1140,7 @@ def insertPart(write bytes Bytes, index Int, addedBytes Bytes)
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return
     const addedItems Int = addedBytes.unsafe_offsetI8(16)
@@ -1163,7 +1163,7 @@ def insertPart(write bytes Bytes, index Int, addedBytes Bytes)
 def repeat(noread type Bytes, item, count Int) Bytes
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result Bytes = unsafe_bytes_createDummy(count)
     unsafe_memsetI8(result.unsafe_offsetI8(16), item, count)
     return result
@@ -1172,7 +1172,7 @@ def repeat(noread type Bytes, item, count Int) Bytes
 def repeatPart(part Bytes, count Int) Bytes
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     const partLength Int = part.length~()
     const resultLength Int = count * partLength
     var result Bytes = unsafe_bytes_createDummy(resultLength)
@@ -1191,7 +1191,7 @@ attach Bytes to Multithreaded
 def reversePart(write bytes Bytes, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var mutA Int = a
     var mutB Int = b
     if bytes.use?()

@@ -5,14 +5,14 @@ module STD
 //@The call to this function can be catch using the "try" operator. (id - error_noError)
 #cold
 export def exit()
-    throw(enum::error_noError, "")
+    throw(enum::error_noError, "", nothing)
 
 //@The function ends the program.
 //@A program closed with this function is considered to have ended with an error.
 //@The call to this function can be catch using the "try" operator. (id - error_fail)
 #cold
 export def fail()
-    throw(enum::error_fail, "")
+    throw(enum::error_fail, "", nothing)
 
 //@The function gets the command line argument by index.
 //@The argument, at index 0, is the name of the program's executable file.
@@ -22,7 +22,7 @@ export def getCMDLineArgument(index Int) String
     const result <>String = unsafe_os_getCMDLineArgument(index)
     inthrow
         if result.nothing?()
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     return result
 
 #alwaysinline nothrow

@@ -17,7 +17,7 @@ export def Time(year, month, day, hour, minute, second Int) Time
         var analyzedYear Int = 1970
         if year >= 2000
             analyzedYear = 2000
-            resultAsInt += 946684800
+            resultAsInt = 946684800
             const countOf400Years Int = (year - analyzedYear) / 400
             if countOf400Years > 0
                 analyzedYear += countOf400Years * 400
@@ -46,7 +46,7 @@ export def Time(year, month, day, hour, minute, second Int) Time
         resultAsInt += secondsInMonths[month - 1] + (yearIsLeap && month > 2).select(86400, 0)
         if day.inRange?(1, dayEdges[month - 1] + (yearIsLeap && month == 2).select(1, 0))
             return intToTime(resultAsInt + (day - 1) * 86400 + hour * 3600 + minute * 60 + second)
-    throw(enum::error_outOfRange, "Out of range.")
+    throw(enum::error_outOfRange, "Out of range.", nothing)
 
 //@The function disassembles the specified time into components.
 //@The function returns an array with 6 numbers of "Int" type, in the following order: year, month, day, hours, minutes, seconds.
@@ -745,7 +745,7 @@ attach Time to StringReader
                     return Time(year, month, day, hour, minute, second)
                 catch
                     nothing
-        throw(enum::error_readFromString, "Reading from the string caused an error.")
+        throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
 
 attach Time to Hashable
     #alwaysinline nothrow
@@ -773,7 +773,7 @@ attach Time to BinarySerializable
     def deserialize(noread type Time, bytes Bytes, write position Int) Time
         inthrow
             if bytes.length~() - position < 8 || position < 0
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const resultAsInt Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI64(0)
         position += 8
         return resultAsInt.intToTime()

@@ -251,7 +251,7 @@ attach PipelineOut to Pop
 export def wait(pipeline This, maximumTimeBetweenAttempts Int) $Multithreaded
     inthrow
         if maximumTimeBetweenAttempts < 1
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var counter Int = 0
     for
         const result <>$Multithreaded = pipeline.pop()

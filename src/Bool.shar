@@ -132,7 +132,7 @@ attach Bool to StringReader
             return true
         if string == "false"
             return false
-        throw(enum::error_readFromString, "Reading from the string caused an error.")
+        throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
 
 attach Bool to Hashable
     #alwaysinline nothrow

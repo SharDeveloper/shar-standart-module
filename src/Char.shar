@@ -1748,7 +1748,7 @@ attach Char to Shar__sugar__shl
     def shar__sugar__shl(character Char, shifts Int) Char
         inthrow
             if !shifts.inRange?(0, 16)
-                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.")
+                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.", nothing)
         return character.unsafe_char_shl(shifts)
 
 #alwaysinline nothrow
@@ -1765,7 +1765,7 @@ attach Char to Shar__sugar__shr
     def shar__sugar__shr(character Char, shifts Int) Char
         inthrow
             if !shifts.inRange?(0, 16)
-                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.")
+                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.", nothing)
         return character.unsafe_char_shr(shifts)
 
 #alwaysinline nothrow
@@ -1811,14 +1811,14 @@ attach Char to BitArray
     def getBit(character Char, index Int) Bool
         inthrow
             if !index.inRange?(0, 16)
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         return ((character >> index) & '\0001') == '\0001'
 
     #alwaysinline
     def setBit$(character Char, index Int, newBit Bool) Char
         inthrow
             if !index.inRange?(0, 16)
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const characterWithBit Char = '\0001' << index
         if newBit
             return character | characterWithBit
@@ -1829,7 +1829,7 @@ attach Char to BitArray
     def setBit(write character Char, index Int, newBit Bool)
         inthrow
             if !index.inRange?(0, 16)
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const characterWithBit Char = '\0001' << index
         if newBit
             character |= characterWithBit
@@ -1900,7 +1900,7 @@ attach Char to StringReader
     def fromString(noread type Char, string String) Char
         if string.length~() == 1
             return string[0]
-        throw(enum::error_readFromString, "Reading from the string caused an error.")
+        throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
 
 #alwaysinline nothrow
 export def charToInt(char Char) Int
@@ -1932,7 +1932,7 @@ attach Char to BinarySerializable
     def deserialize(noread type Char, bytes Bytes, write position Int) Char
         inthrow
             if bytes.length~() - position < 2 || position < 0
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const resultAsInt Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI16(0)
         position += 2
         return unsafe_object(Char.typeNumber~(), resultAsInt)

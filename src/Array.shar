@@ -77,7 +77,7 @@ attach Array to Shar__sugar__equal
                 )
             )
         }
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
         var result Bool = array1.length~() == array2.length~()
         if result
             for :(index Int = 0) index < array1.length~(); index++
@@ -118,7 +118,7 @@ attach Array to Ordered
                 )
             )
         }
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
         const generalLength Int = array1.length~().min(array2.length~())
         if generalLength != 0
             for :(index Int = 0) index < generalLength; index++
@@ -166,7 +166,7 @@ attach Array to Shar__sugar__getRange
     def shar__sugar__getRange(array Array, from, to Int) Array
         inthrow
             if !(from >= 0 && from <= to && to <= array.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const length Int = to - from
         var result Array = []
         if length != 0
@@ -180,7 +180,7 @@ attach Array to Shar__sugar__getItem
     def shar__sugar__getItem(array Array, index Int) $Any
         inthrow
             if !index.inRange?(0, array.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         return array.unsafe_array_getItem(index)
 
 #alwaysinline nothrow
@@ -198,7 +198,7 @@ attach Array to Shar__sugar__add
             return addedArray
         inthrow
             if array.itemTypeNumber~() != addedArray.itemTypeNumber~()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         var result Array = unsafe_array_createDummy(array.length~() + addedArray.length~(), array.itemTypeNumber~())
         parse index, item = array
             result.unsafe_array_setItemInDummy(index, item)
@@ -216,7 +216,7 @@ attach Array to Shar__sugar__addSet
             return
         inthrow
             if array.itemTypeNumber~() != addedArray.itemTypeNumber~()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         if array.use?()
             array = array + addedArray
             return
@@ -290,7 +290,7 @@ attach Array to Put
         const oldItem $Any = array[index]
         inthrow
             if array.itemTypeNumber~() != newItem.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         if array.use?()
             array = array.clone()
         array.unsafe_array_setItem(index, newItem)
@@ -325,7 +325,7 @@ attach Array to Container
             return
         inthrow
             if newItem.typeNumber~() != array.itemTypeNumber~()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         const oldLength Int = array.length~()
         const newLength Int = oldLength + 1
         if array.use?()
@@ -342,7 +342,7 @@ attach Array to Container
     def addItem$(array Array, newItem $Any) Array
         inthrow
             if !(array.empty?() || newItem.typeNumber~() == array.itemTypeNumber~()) || newItem.nothing?()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         var newArray Array = unsafe_array_createDummy(array.length~() + 1, newItem.typeNumber~())
         parse index, item = array
             newArray.unsafe_array_setItemInDummy(index, item)
@@ -586,7 +586,7 @@ def partsEqual?(array1 Array, from1 Int, array2 Array, from2, length Int) Bool
                 )
             )
         }
-        throw(enum::error_invalidType, "Invalid type.")
+        throw(enum::error_invalidType, "Invalid type.", nothing)
     const array1Length Int = array1.length~()
     const array2Length Int = array2.length~()
     var result Bool = {
@@ -607,7 +607,7 @@ def partsEqual?(array1 Array, from1 Int, array2 Array, from2, length Int) Bool
 def swap(write array Array, position1, position2 Int)
     inthrow
         if !(position1.inRange?(0, array.length~()) && position2.inRange?(0, array.length~()))
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if array.use?()
         array = array.clone()
     const items Int = array.unsafe_offsetI64(3)
@@ -624,7 +624,7 @@ def delete$(array Array, from, count Int) Array
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if count == 0
         return array
     if newLength == 0
@@ -644,7 +644,7 @@ def delete(write array Array, from, count Int)
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if count == 0
         return
     const newLength Int = oldLength - count
@@ -675,9 +675,9 @@ def insert$(array Array, index Int, newItem $Any) Array
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if !(array.empty?() || newItem.typeNumber~() == array.itemTypeNumber~()) || newItem.nothing?()
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
     var result Array = unsafe_array_createDummy(newLength, newItem.typeNumber~())
     for :(arrayIndex Int = 0) arrayIndex < index; arrayIndex++
         result.unsafe_array_setItemInDummy(arrayIndex, array.unsafe_array_getItem(arrayIndex))
@@ -692,9 +692,9 @@ def insert(write array Array, index Int, newItem $Any)
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if !(array.empty?() || newItem.typeNumber~() == array.itemTypeNumber~()) || newItem.nothing?()
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
     if array.use?()
         var newArray Array = unsafe_array_createDummy(newLength, newItem.typeNumber~())
         for :(arrayIndex Int = 0) arrayIndex < index; arrayIndex++
@@ -717,12 +717,12 @@ def insertPart$(array Array, index Int, addedArray Array) Array
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return array
     inthrow
         if !(oldLength == 0 || array.itemTypeNumber~() == addedArray.itemTypeNumber~())
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
     var result Array = unsafe_array_createDummy(newLength, addedArray.itemTypeNumber~())
     for :(arrayIndex Int = 0) arrayIndex < index; arrayIndex++
         result.unsafe_array_setItemInDummy(arrayIndex, array.unsafe_array_getItem(arrayIndex))
@@ -739,12 +739,12 @@ def insertPart(write array Array, index Int, addedArray Array)
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return
     inthrow
         if !(oldLength == 0 || array.itemTypeNumber~() == addedArray.itemTypeNumber~())
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
     if array.use?()
         var newArray Array = unsafe_array_createDummy(newLength, addedArray.itemTypeNumber~())
         for :(arrayIndex Int = 0) arrayIndex < index; arrayIndex++
@@ -766,11 +766,11 @@ def insertPart(write array Array, index Int, addedArray Array)
 def repeat(noread type Array, item $Any, count Int) Array
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if count == 0
         return []
     if item.nothing?()
-        throw(enum::error_invalidType, "Invalid type.")
+        throw(enum::error_invalidType, "Invalid type.", nothing)
     var result Array = unsafe_array_createDummy(count, item.typeNumber~())
     for :(index Int = 0) index < count; index++
         result.unsafe_array_setItemInDummy(index, item)
@@ -780,7 +780,7 @@ def repeat(noread type Array, item $Any, count Int) Array
 def repeatPart(part Array, count Int) Array
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     const partLength Int = part.length~()
     const resultLength Int = count * partLength
     if partLength == 0 || count == 0
@@ -795,7 +795,7 @@ def repeatPart(part Array, count Int) Array
 def reversePart(write array Array, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= array.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var mutA Int = a
     var mutB Int = b
     if array.use?()

@@ -100,7 +100,7 @@ attach List to Shar__sugar__getRange
     def shar__sugar__getRange(list List, from, to Int) List
         inthrow
             if !(from >= 0 && from <= to && to <= list.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         var result List = unsafe_list_createDummy(to - from)
         for :(index Int = from) index < to; index++
             result.unsafe_list_setItemInDummy(index - from, list[index])
@@ -111,7 +111,7 @@ attach List to Shar__sugar__getItem
     def shar__sugar__getItem(list List, index Int) $Any
         inthrow
             if !index.inRange?(0, list.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         return list.unsafe_list_getItem(index)
 
 #alwaysinline nothrow
@@ -279,7 +279,7 @@ def unsafe_list_setItemInDummy(list, index, item $Any)
 def swap(write list List, position1, position2 Int)
     inthrow
         if !(position1.inRange?(0, list.length~()) && position2.inRange?(0, list.length~()))
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if list.use?()
         list = list.clone()
     const item1Address Int = list.unsafe_offsetI64(2 * (position1 + 1))
@@ -300,7 +300,7 @@ def delete$(list List, from, count Int) List
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result List = unsafe_list_createDummy(newLength)
     for :(index Int = 0) index < from; index++
         result.unsafe_list_setItemInDummy(index, list.unsafe_list_getItem(index))
@@ -316,7 +316,7 @@ def delete(write list List, from, count Int)
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if count == 0
         return
     const newLength Int = oldLength - count
@@ -344,7 +344,7 @@ def insert$(list List, index Int, newItem $Any) List
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result List = unsafe_list_createDummy(newLength)
     for :(listIndex Int = 0) listIndex < index; listIndex++
         result.unsafe_list_setItemInDummy(listIndex, list.unsafe_list_getItem(listIndex))
@@ -359,7 +359,7 @@ def insert(write list List, index Int, newItem $Any)
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if list.use?()
         var newList List = unsafe_list_createDummy(newLength)
         for :(listIndex Int = 0) listIndex < index; listIndex++
@@ -382,7 +382,7 @@ def insertPart$(list List, index Int, addedList List) List
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return list
     var result List = unsafe_list_createDummy(newLength)
@@ -401,7 +401,7 @@ def insertPart(write list List, index Int, addedList List)
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return
     if list.use?()
@@ -425,7 +425,7 @@ def insertPart(write list List, index Int, addedList List)
 def repeat(noread type List, item $Any, count Int) List
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result List = unsafe_list_createDummy(count)
     for :(index Int = 0) index < count; index++
         result.unsafe_list_setItemInDummy(index, item)
@@ -435,7 +435,7 @@ def repeat(noread type List, item $Any, count Int) List
 def repeatPart(part List, count Int) List
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     const partLength Int = part.length~()
     const resultLength Int = count * partLength
     var result List = unsafe_list_createDummy(resultLength)
@@ -448,7 +448,7 @@ def repeatPart(part List, count Int) List
 def reversePart(write list List, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= list.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var mutA Int = a * 2
     var mutB Int = b * 2
     if list.use?()
