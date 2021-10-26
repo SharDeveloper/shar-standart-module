@@ -1381,3 +1381,8 @@ export def toUpper(string String) String
         if char2 != '\0000'
             result.addItem(char2)
     return result
+
+attach String to ItemTypeNumber
+    #alwaysinline nothrow
+    def itemTypeNumber~(string String) Int
+        return Char.typeNumber~()

@@ -49,6 +49,7 @@ def testString(write ok Int, write errorsCoordinates List)
     testString_Dump(ok, errorsCoordinates)
     testString_ToLower(ok, errorsCoordinates)
     testString_ToUpper(ok, errorsCoordinates)
+    testString_ItemTypeNumber(ok, errorsCoordinates)
 
 #noinline
 def testString_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -2935,3 +2936,11 @@ def testString_ToUpper(write ok Int, write errorsCoordinates List)
         "a".toUpper() == "A"
         "A".toUpper() == "A"
         "@ABCXYZ[`abcxyz ~ЁЍЎАБВЭЮЯабвэюяёѝўßİ".toUpper() == "@ABCXYZ[`ABCXYZ ~ЁЍЎАБВЭЮЯАБВЭЮЯЁЍЎSSİ"
+
+#noinline
+def testString_ItemTypeNumber(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        "".itemTypeNumber~() == Char.typeNumber~()
+        "0".itemTypeNumber~() == Char.typeNumber~()
+        "dfd".itemTypeNumber~() == Char.typeNumber~()
+        "01010".itemTypeNumber~() == Char.typeNumber~()
