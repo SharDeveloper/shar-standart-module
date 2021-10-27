@@ -28,119 +28,117 @@ def testTime_Any(write ok Int, write errorsCoordinates List)
 #noinline
 def testTime_Time(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        Time(2048599, 6, 28, 1, 38, 56).timeToInt() == 64585388540336
-        Time(2563656, 9, 6, 21, 43, 43).timeToInt() == 80839023745423
-        Time(4436113, 12, 16, 1, 22, 16).timeToInt() == 139928067998536
-        Time(1115545, 8, 18, 6, 10, 19).timeToInt() == 35141052636619
-        Time(5439295, 1, 25, 15, 24, 50).timeToInt() == 171585406221890
-        Time(820054, 5, 17, 13, 0, 4).timeToInt() == 25816249371604
-        Time(4668702, 2, 9, 19, 31, 14).timeToInt() == 147267841116674
-        Time(5225877, 11, 20, 19, 35, 43).timeToInt() == 164850610476943
-        Time(2004, 2, 29, 12, 18, 35).timeToInt() == 1078057115
-        Time(2004, 2, 28, 12, 18, 35).timeToInt() == 1077970715
-        Time(2003, 2, 28, 0, 18, 35).timeToInt() == 1046391515
-        Time(2333, 12, 31, 7, 18, 35).timeToInt() == 11486647115
-        Time(1976, 4, 10, 14, 28, 16).timeToInt() == 197994496
-        Time(1974, 3, 8, 7, 44, 1).timeToInt() == 131960641
-        Time(1974, 6, 20, 2, 20, 32).timeToInt() == 140926832
-        Time(1977, 1, 22, 22, 4, 56).timeToInt() == 222818696
-        Time(1979, 4, 14, 16, 6, 46).timeToInt() == 292954006
-        Time(1978, 8, 5, 3, 43, 27).timeToInt() == 271136607
-        Time(1973, 7, 19, 19, 37, 23).timeToInt() == 111958643
-        Time(1976, 10, 27, 16, 37, 38).timeToInt() == 215282258
-        Time(1980, 2, 29, 12, 18, 35).timeToInt() == 320674715
-        Time(1980, 2, 28, 12, 18, 35).timeToInt() == 320588315
-        Time(1983, 2, 28, 12, 18, 35).timeToInt() == 415282715
-        Time(1999, 12, 31, 7, 18, 35).timeToInt() == 946624715
-        Time(1970, 1, 1, 0, 0, 0).timeToInt() == 0
-        Time(1969, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1900, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(-1, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(-9223372036854775808, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(0, 12, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 0, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 13, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 9223372036854775807, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, -1, 31, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 32, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 9223372036854775807, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 0, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, -1, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, -9223372036854775808, 7, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 25, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 9223372036854775807, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, -1, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, -9223372036854775808, 18, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 0, 60, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 0, 9223372036854775807, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 0, -1, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 0, -9223372036854775808, 35).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 0, 0, 60).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 0, 0, 9223372036854775807).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 0, 0, -1).timeToInt() : error_outOfRange
-        Time(1970, 3, 12, 0, 0, -9223372036854775808).timeToInt() : error_outOfRange
-        Time(1969, 0, 0, -1, 61, 61).timeToInt() : error_outOfRange
-        Time(1970, 2, 29, 0, 0, 0).timeToInt() : error_outOfRange
-        Time(1970, 4, 31, 0, 0, 0).timeToInt() : error_outOfRange
+        Time(294247, 1, 10, 4, 0, 54, 775807).timeToInt() == 9223372036854775807
+        Time(294247, 1, 10, 4, 0, 54, 775808).timeToInt() : error_outOfRange
+        Time(294247, 1, 10, 4, 0, 55, 0).timeToInt() : error_outOfRange
+        Time(294247, 1, 10, 4, 1, 54, 0).timeToInt() : error_outOfRange
+        Time(294247, 1, 10, 5, 0, 54, 0).timeToInt() : error_outOfRange
+        Time(294247, 1, 11, 4, 0, 54, 0).timeToInt() : error_outOfRange
+        Time(294247, 2, 10, 4, 0, 54, 0).timeToInt() : error_outOfRange
+        Time(294248, 1, 10, 4, 0, 54, 0).timeToInt() : error_outOfRange
+        Time(294247, 1, 10, 4, 0, 54, 0).timeToInt() == 9223372036854000000
+        Time(2004, 2, 29, 12, 18, 35, 0).timeToInt() == 1078057115000000
+        Time(2004, 2, 29, 12, 18, 35, 1).timeToInt() == 1078057115000001
+        Time(2004, 2, 29, 12, 18, 35, 999999).timeToInt() == 1078057115999999
+        Time(2004, 2, 29, 12, 18, 35, 1000000).timeToInt() : error_outOfRange
+        Time(2004, 2, 29, 12, 18, 35, -1).timeToInt() : error_outOfRange
+        Time(2004, 2, 29, 12, 18, 35, -9223372036854775808).timeToInt() : error_outOfRange
+        Time(2003, 2, 28, 0, 18, 35, 555).timeToInt() == 1046391515000555
+        Time(2333, 12, 31, 7, 18, 35, 44466).timeToInt() == 11486647115044466
+        Time(1976, 4, 10, 14, 28, 16, 1233).timeToInt() == 197994496001233
+        Time(1974, 3, 8, 7, 44, 1, 999999).timeToInt() == 131960641999999
+        Time(1974, 6, 20, 2, 20, 32, 0).timeToInt() == 140926832000000
+        Time(1977, 1, 22, 22, 4, 56, 233).timeToInt() == 222818696000233
+        Time(1979, 4, 14, 16, 6, 46, 1515).timeToInt() == 292954006001515
+        Time(1978, 8, 5, 3, 43, 27, 66).timeToInt() == 271136607000066
+        Time(1973, 7, 19, 19, 37, 23, 72).timeToInt() == 111958643000072
+        Time(1976, 10, 27, 16, 37, 38, 88898).timeToInt() == 215282258088898
+        Time(1980, 2, 29, 12, 18, 35, 22311).timeToInt() == 320674715022311
+        Time(1980, 2, 28, 12, 18, 35, 2300).timeToInt() == 320588315002300
+        Time(1983, 2, 28, 12, 18, 35, 34).timeToInt() == 415282715000034
+        Time(1999, 12, 31, 7, 18, 35, 7194).timeToInt() == 946624715007194
+        Time(1970, 1, 1, 0, 0, 0, 0).timeToInt() == 0
+        Time(1970, 1, 1, 0, 0, 0, 999999).timeToInt() == 999999
+        Time(1969, 12, 31, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1900, 12, 31, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(-1, 12, 31, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(-9223372036854775808, 12, 31, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(0, 12, 31, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 0, 31, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 13, 31, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 9223372036854775807, 31, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, -1, 31, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 32, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 9223372036854775807, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 0, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, -1, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, -9223372036854775808, 7, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 25, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 9223372036854775807, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, -1, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, -9223372036854775808, 18, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 60, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 9223372036854775807, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, -1, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, -9223372036854775808, 35, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 0, 60, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 0, 9223372036854775807, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 0, -1, 0).timeToInt() : error_outOfRange
+        Time(1970, 3, 12, 0, 0, -9223372036854775808, 0).timeToInt() : error_outOfRange
+        Time(1969, 0, 0, -1, 61, 61, 0).timeToInt() : error_outOfRange
+        Time(1970, 2, 29, 0, 0, 0, 0).timeToInt() : error_outOfRange
+        Time(1970, 4, 31, 0, 0, 0, 0).timeToInt() : error_outOfRange
 
 #noinline
 def testTime_DisassembleTime(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        disassembleTime(intToTime(64585388540336)) == [2048599, 6, 28, 1, 38, 56]
-        disassembleTime(intToTime(80839023745423)) == [2563656, 9, 6, 21, 43, 43]
-        disassembleTime(intToTime(139928067998536)) == [4436113, 12, 16, 1, 22, 16]
-        disassembleTime(intToTime(35141052636619)) == [1115545, 8, 18, 6, 10, 19]
-        disassembleTime(intToTime(171585406221890)) == [5439295, 1, 25, 15, 24, 50]
-        disassembleTime(intToTime(25816249371604)) == [820054, 5, 17, 13, 0, 4]
-        disassembleTime(intToTime(147267841116674)) == [4668702, 2, 9, 19, 31, 14]
-        disassembleTime(intToTime(164850610476943)) == [5225877, 11, 20, 19, 35, 43]
-        disassembleTime(intToTime(1078057115)) == [2004, 2, 29, 12, 18, 35]
-        disassembleTime(intToTime(1077970715)) == [2004, 2, 28, 12, 18, 35]
-        disassembleTime(intToTime(1046391515)) == [2003, 2, 28, 0, 18, 35]
-        disassembleTime(intToTime(11486647115)) == [2333, 12, 31, 7, 18, 35]
-        disassembleTime(intToTime(197994496)) == [1976, 4, 10, 14, 28, 16]
-        disassembleTime(intToTime(131960641)) == [1974, 3, 8, 7, 44, 1]
-        disassembleTime(intToTime(140926832)) == [1974, 6, 20, 2, 20, 32]
-        disassembleTime(intToTime(222818696)) == [1977, 1, 22, 22, 4, 56]
-        disassembleTime(intToTime(292954006)) == [1979, 4, 14, 16, 6, 46]
-        disassembleTime(intToTime(271136607)) == [1978, 8, 5, 3, 43, 27]
-        disassembleTime(intToTime(111958643)) == [1973, 7, 19, 19, 37, 23]
-        disassembleTime(intToTime(215282258)) == [1976, 10, 27, 16, 37, 38]
-        disassembleTime(intToTime(320674715)) == [1980, 2, 29, 12, 18, 35]
-        disassembleTime(intToTime(320588315)) == [1980, 2, 28, 12, 18, 35]
-        disassembleTime(intToTime(415282715)) == [1983, 2, 28, 12, 18, 35]
-        disassembleTime(intToTime(946624715)) == [1999, 12, 31, 7, 18, 35]
-        disassembleTime(intToTime(0)) == [1970, 1, 1, 0, 0, 0]
-        [2048599, 6, 28, 1, 38, 56] == [year~(64585388540336.intToTime()), month~(64585388540336.intToTime()), day~(64585388540336.intToTime()), hour~(64585388540336.intToTime()), minute~(64585388540336.intToTime()), second~(64585388540336.intToTime())]
-        [2563656, 9, 6, 21, 43, 43] == [year~(80839023745423.intToTime()), month~(80839023745423.intToTime()), day~(80839023745423.intToTime()), hour~(80839023745423.intToTime()), minute~(80839023745423.intToTime()), second~(80839023745423.intToTime())]
-        [4436113, 12, 16, 1, 22, 16] == [year~(139928067998536.intToTime()), month~(139928067998536.intToTime()), day~(139928067998536.intToTime()), hour~(139928067998536.intToTime()), minute~(139928067998536.intToTime()), second~(139928067998536.intToTime())]
-        [1115545, 8, 18, 6, 10, 19] == [year~(35141052636619.intToTime()), month~(35141052636619.intToTime()), day~(35141052636619.intToTime()), hour~(35141052636619.intToTime()), minute~(35141052636619.intToTime()), second~(35141052636619.intToTime())]
-        [5439295, 1, 25, 15, 24, 50] == [year~(171585406221890.intToTime()), month~(171585406221890.intToTime()), day~(171585406221890.intToTime()), hour~(171585406221890.intToTime()), minute~(171585406221890.intToTime()), second~(171585406221890.intToTime())]
-        [820054, 5, 17, 13, 0, 4] == [year~(25816249371604.intToTime()), month~(25816249371604.intToTime()), day~(25816249371604.intToTime()), hour~(25816249371604.intToTime()), minute~(25816249371604.intToTime()), second~(25816249371604.intToTime())]
-        [4668702, 2, 9, 19, 31, 14] == [year~(147267841116674.intToTime()), month~(147267841116674.intToTime()), day~(147267841116674.intToTime()), hour~(147267841116674.intToTime()), minute~(147267841116674.intToTime()), second~(147267841116674.intToTime())]
-        [5225877, 11, 20, 19, 35, 43] == [year~(164850610476943.intToTime()), month~(164850610476943.intToTime()), day~(164850610476943.intToTime()), hour~(164850610476943.intToTime()), minute~(164850610476943.intToTime()), second~(164850610476943.intToTime())]
-        [2004, 2, 29, 12, 18, 35] == [year~(1078057115.intToTime()), month~(1078057115.intToTime()), day~(1078057115.intToTime()), hour~(1078057115.intToTime()), minute~(1078057115.intToTime()), second~(1078057115.intToTime())]
-        [2004, 2, 28, 12, 18, 35] == [year~(1077970715.intToTime()), month~(1077970715.intToTime()), day~(1077970715.intToTime()), hour~(1077970715.intToTime()), minute~(1077970715.intToTime()), second~(1077970715.intToTime())]
-        [2003, 2, 28, 0, 18, 35] == [year~(1046391515.intToTime()), month~(1046391515.intToTime()), day~(1046391515.intToTime()), hour~(1046391515.intToTime()), minute~(1046391515.intToTime()), second~(1046391515.intToTime())]
-        [2333, 12, 31, 7, 18, 35] == [year~(11486647115.intToTime()), month~(11486647115.intToTime()), day~(11486647115.intToTime()), hour~(11486647115.intToTime()), minute~(11486647115.intToTime()), second~(11486647115.intToTime())]
-        [1976, 4, 10, 14, 28, 16] == [year~(197994496.intToTime()), month~(197994496.intToTime()), day~(197994496.intToTime()), hour~(197994496.intToTime()), minute~(197994496.intToTime()), second~(197994496.intToTime())]
-        [1974, 3, 8, 7, 44, 1] == [year~(131960641.intToTime()), month~(131960641.intToTime()), day~(131960641.intToTime()), hour~(131960641.intToTime()), minute~(131960641.intToTime()), second~(131960641.intToTime())]
-        [1974, 6, 20, 2, 20, 32] == [year~(140926832.intToTime()), month~(140926832.intToTime()), day~(140926832.intToTime()), hour~(140926832.intToTime()), minute~(140926832.intToTime()), second~(140926832.intToTime())]
-        [1977, 1, 22, 22, 4, 56] == [year~(222818696.intToTime()), month~(222818696.intToTime()), day~(222818696.intToTime()), hour~(222818696.intToTime()), minute~(222818696.intToTime()), second~(222818696.intToTime())]
-        [1979, 4, 14, 16, 6, 46] == [year~(292954006.intToTime()), month~(292954006.intToTime()), day~(292954006.intToTime()), hour~(292954006.intToTime()), minute~(292954006.intToTime()), second~(292954006.intToTime())]
-        [1978, 8, 5, 3, 43, 27] == [year~(271136607.intToTime()), month~(271136607.intToTime()), day~(271136607.intToTime()), hour~(271136607.intToTime()), minute~(271136607.intToTime()), second~(271136607.intToTime())]
-        [1973, 7, 19, 19, 37, 23] == [year~(111958643.intToTime()), month~(111958643.intToTime()), day~(111958643.intToTime()), hour~(111958643.intToTime()), minute~(111958643.intToTime()), second~(111958643.intToTime())]
-        [1976, 10, 27, 16, 37, 38] == [year~(215282258.intToTime()), month~(215282258.intToTime()), day~(215282258.intToTime()), hour~(215282258.intToTime()), minute~(215282258.intToTime()), second~(215282258.intToTime())]
-        [1980, 2, 29, 12, 18, 35] == [year~(320674715.intToTime()), month~(320674715.intToTime()), day~(320674715.intToTime()), hour~(320674715.intToTime()), minute~(320674715.intToTime()), second~(320674715.intToTime())]
-        [1980, 2, 28, 12, 18, 35] == [year~(320588315.intToTime()), month~(320588315.intToTime()), day~(320588315.intToTime()), hour~(320588315.intToTime()), minute~(320588315.intToTime()), second~(320588315.intToTime())]
-        [1983, 2, 28, 12, 18, 35] == [year~(415282715.intToTime()), month~(415282715.intToTime()), day~(415282715.intToTime()), hour~(415282715.intToTime()), minute~(415282715.intToTime()), second~(415282715.intToTime())]
-        [1999, 12, 31, 7, 18, 35] == [year~(946624715.intToTime()), month~(946624715.intToTime()), day~(946624715.intToTime()), hour~(946624715.intToTime()), minute~(946624715.intToTime()), second~(946624715.intToTime())]
-        [1970, 1, 1, 0, 0, 0] == [year~(0.intToTime()), month~(0.intToTime()), day~(0.intToTime()), hour~(0.intToTime()), minute~(0.intToTime()), second~(0.intToTime())]
+        disassembleTime(intToTime(9223372036854775807)) == [294247, 1, 10, 4, 0, 54, 775807]
+        disassembleTime(intToTime(9223372036854000000)) == [294247, 1, 10, 4, 0, 54, 0]
+        disassembleTime(intToTime(1078057115000000)) == [2004, 2, 29, 12, 18, 35, 0]
+        disassembleTime(intToTime(1078057115000001)) == [2004, 2, 29, 12, 18, 35, 1]
+        disassembleTime(intToTime(1078057115999999)) == [2004, 2, 29, 12, 18, 35, 999999]
+        disassembleTime(intToTime(1046391515000555)) == [2003, 2, 28, 0, 18, 35, 555]
+        disassembleTime(intToTime(11486647115044466)) == [2333, 12, 31, 7, 18, 35, 44466]
+        disassembleTime(intToTime(197994496001233)) == [1976, 4, 10, 14, 28, 16, 1233]
+        disassembleTime(intToTime(131960641999999)) == [1974, 3, 8, 7, 44, 1, 999999]
+        disassembleTime(intToTime(140926832000000)) == [1974, 6, 20, 2, 20, 32, 0]
+        disassembleTime(intToTime(222818696000233)) == [1977, 1, 22, 22, 4, 56, 233]
+        disassembleTime(intToTime(292954006001515)) == [1979, 4, 14, 16, 6, 46, 1515]
+        disassembleTime(intToTime(271136607000066)) == [1978, 8, 5, 3, 43, 27, 66]
+        disassembleTime(intToTime(111958643000072)) == [1973, 7, 19, 19, 37, 23, 72]
+        disassembleTime(intToTime(215282258088898)) == [1976, 10, 27, 16, 37, 38, 88898]
+        disassembleTime(intToTime(320674715022311)) == [1980, 2, 29, 12, 18, 35, 22311]
+        disassembleTime(intToTime(320588315002300)) == [1980, 2, 28, 12, 18, 35, 2300]
+        disassembleTime(intToTime(415282715000034)) == [1983, 2, 28, 12, 18, 35, 34]
+        disassembleTime(intToTime(946624715007194)) == [1999, 12, 31, 7, 18, 35, 7194]
+        disassembleTime(intToTime(0)) == [1970, 1, 1, 0, 0, 0, 0]
+        disassembleTime(intToTime(999999)) == [1970, 1, 1, 0, 0, 0, 999999]
+        [294247, 1, 10, 4, 0, 54, 775807] == [year~(9223372036854775807.intToTime()), month~(9223372036854775807.intToTime()), day~(9223372036854775807.intToTime()), hour~(9223372036854775807.intToTime()), minute~(9223372036854775807.intToTime()), second~(9223372036854775807.intToTime()), microsecond~(9223372036854775807.intToTime())]
+        [294247, 1, 10, 4, 0, 54, 0] == [year~(9223372036854000000.intToTime()), month~(9223372036854000000.intToTime()), day~(9223372036854000000.intToTime()), hour~(9223372036854000000.intToTime()), minute~(9223372036854000000.intToTime()), second~(9223372036854000000.intToTime()), microsecond~(9223372036854000000.intToTime())]
+        [2004, 2, 29, 12, 18, 35, 0] == [year~(1078057115000000.intToTime()), month~(1078057115000000.intToTime()), day~(1078057115000000.intToTime()), hour~(1078057115000000.intToTime()), minute~(1078057115000000.intToTime()), second~(1078057115000000.intToTime()), microsecond~(1078057115000000.intToTime())]
+        [2004, 2, 29, 12, 18, 35, 1] == [year~(1078057115000001.intToTime()), month~(1078057115000001.intToTime()), day~(1078057115000001.intToTime()), hour~(1078057115000001.intToTime()), minute~(1078057115000001.intToTime()), second~(1078057115000001.intToTime()), microsecond~(1078057115000001.intToTime())]
+        [2004, 2, 29, 12, 18, 35, 999999] == [year~(1078057115999999.intToTime()), month~(1078057115999999.intToTime()), day~(1078057115999999.intToTime()), hour~(1078057115999999.intToTime()), minute~(1078057115999999.intToTime()), second~(1078057115999999.intToTime()), microsecond~(1078057115999999.intToTime())]
+        [2003, 2, 28, 0, 18, 35, 555] == [year~(1046391515000555.intToTime()), month~(1046391515000555.intToTime()), day~(1046391515000555.intToTime()), hour~(1046391515000555.intToTime()), minute~(1046391515000555.intToTime()), second~(1046391515000555.intToTime()), microsecond~(1046391515000555.intToTime())]
+        [2333, 12, 31, 7, 18, 35, 44466] == [year~(11486647115044466.intToTime()), month~(11486647115044466.intToTime()), day~(11486647115044466.intToTime()), hour~(11486647115044466.intToTime()), minute~(11486647115044466.intToTime()), second~(11486647115044466.intToTime()), microsecond~(11486647115044466.intToTime())]
+        [1976, 4, 10, 14, 28, 16, 1233] == [year~(197994496001233.intToTime()), month~(197994496001233.intToTime()), day~(197994496001233.intToTime()), hour~(197994496001233.intToTime()), minute~(197994496001233.intToTime()), second~(197994496001233.intToTime()), microsecond~(197994496001233.intToTime())]
+        [1974, 3, 8, 7, 44, 1, 999999] == [year~(131960641999999.intToTime()), month~(131960641999999.intToTime()), day~(131960641999999.intToTime()), hour~(131960641999999.intToTime()), minute~(131960641999999.intToTime()), second~(131960641999999.intToTime()), microsecond~(131960641999999.intToTime())]
+        [1974, 6, 20, 2, 20, 32, 0] == [year~(140926832000000.intToTime()), month~(140926832000000.intToTime()), day~(140926832000000.intToTime()), hour~(140926832000000.intToTime()), minute~(140926832000000.intToTime()), second~(140926832000000.intToTime()), microsecond~(140926832000000.intToTime())]
+        [1977, 1, 22, 22, 4, 56, 233] == [year~(222818696000233.intToTime()), month~(222818696000233.intToTime()), day~(222818696000233.intToTime()), hour~(222818696000233.intToTime()), minute~(222818696000233.intToTime()), second~(222818696000233.intToTime()), microsecond~(222818696000233.intToTime())]
+        [1979, 4, 14, 16, 6, 46, 1515] == [year~(292954006001515.intToTime()), month~(292954006001515.intToTime()), day~(292954006001515.intToTime()), hour~(292954006001515.intToTime()), minute~(292954006001515.intToTime()), second~(292954006001515.intToTime()), microsecond~(292954006001515.intToTime())]
+        [1978, 8, 5, 3, 43, 27, 66] == [year~(271136607000066.intToTime()), month~(271136607000066.intToTime()), day~(271136607000066.intToTime()), hour~(271136607000066.intToTime()), minute~(271136607000066.intToTime()), second~(271136607000066.intToTime()), microsecond~(271136607000066.intToTime())]
+        [1973, 7, 19, 19, 37, 23, 72] == [year~(111958643000072.intToTime()), month~(111958643000072.intToTime()), day~(111958643000072.intToTime()), hour~(111958643000072.intToTime()), minute~(111958643000072.intToTime()), second~(111958643000072.intToTime()), microsecond~(111958643000072.intToTime())]
+        [1976, 10, 27, 16, 37, 38, 88898] == [year~(215282258088898.intToTime()), month~(215282258088898.intToTime()), day~(215282258088898.intToTime()), hour~(215282258088898.intToTime()), minute~(215282258088898.intToTime()), second~(215282258088898.intToTime()), microsecond~(215282258088898.intToTime())]
+        [1980, 2, 29, 12, 18, 35, 22311] == [year~(320674715022311.intToTime()), month~(320674715022311.intToTime()), day~(320674715022311.intToTime()), hour~(320674715022311.intToTime()), minute~(320674715022311.intToTime()), second~(320674715022311.intToTime()), microsecond~(320674715022311.intToTime())]
+        [1980, 2, 28, 12, 18, 35, 2300] == [year~(320588315002300.intToTime()), month~(320588315002300.intToTime()), day~(320588315002300.intToTime()), hour~(320588315002300.intToTime()), minute~(320588315002300.intToTime()), second~(320588315002300.intToTime()), microsecond~(320588315002300.intToTime())]
+        [1983, 2, 28, 12, 18, 35, 34] == [year~(415282715000034.intToTime()), month~(415282715000034.intToTime()), day~(415282715000034.intToTime()), hour~(415282715000034.intToTime()), minute~(415282715000034.intToTime()), second~(415282715000034.intToTime()), microsecond~(415282715000034.intToTime())]
+        [1999, 12, 31, 7, 18, 35, 7194] == [year~(946624715007194.intToTime()), month~(946624715007194.intToTime()), day~(946624715007194.intToTime()), hour~(946624715007194.intToTime()), minute~(946624715007194.intToTime()), second~(946624715007194.intToTime()), microsecond~(946624715007194.intToTime())]
+        [1970, 1, 1, 0, 0, 0, 0] == [year~(0.intToTime()), month~(0.intToTime()), day~(0.intToTime()), hour~(0.intToTime()), minute~(0.intToTime()), second~(0.intToTime()), microsecond~(0.intToTime())]
+        [1970, 1, 1, 0, 0, 0, 999999] == [year~(999999.intToTime()), month~(999999.intToTime()), day~(999999.intToTime()), hour~(999999.intToTime()), minute~(999999.intToTime()), second~(999999.intToTime()), microsecond~(999999.intToTime())]
 
 #noinline
 def testTime_GetCurrentTime(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        currentTime().timeToInt() > 1611836686
+        currentTime().timeToInt() > 1611836686999999
 
 #noinline
 def testTime_Equal(write ok Int, write errorsCoordinates List)
@@ -205,76 +203,59 @@ def testTime_Ordered(write ok Int, write errorsCoordinates List)
 #noinline
 def testTime_StringWriter(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        143247935392873.intToTime().toString() == "14.05.4541316 04:41:13"
-        91738515201574.intToTime().toString() == "27.10.2909047 09:19:34"
-        151196001096321.intToTime().toString() == "17.07.4793180 09:25:21"
-        148136164467430.intToTime().toString() == "07.03.4696218 14:17:10"
-        26772149863128.intToTime().toString() == "28.08.850345 15:18:48"
-        95681828552341.intToTime().toString() == "12.06.3034006 04:59:01"
-        92406549063770.intToTime().toString() == "20.12.2930216 19:02:50"
-        67851522948614.intToTime().toString() == "02.03.2152099 15:30:14"
-        1078057115.intToTime().toString() == "29.02.2004 12:18:35"
-        1077970715.intToTime().toString() == "28.02.2004 12:18:35"
-        1046391515.intToTime().toString() == "28.02.2003 00:18:35"
-        11486647115.intToTime().toString() == "31.12.2333 07:18:35"
-        200999324.intToTime().toString() == "15.05.1976 09:08:44"
-        823676.intToTime().toString() == "10.01.1970 12:47:56"
-        293523555.intToTime().toString() == "21.04.1979 06:19:15"
-        144938631.intToTime().toString() == "05.08.1974 12:43:51"
-        270489404.intToTime().toString() == "28.07.1978 15:56:44"
-        167938681.intToTime().toString() == "28.04.1975 17:38:01"
-        295041621.intToTime().toString() == "08.05.1979 20:00:21"
-        300456127.intToTime().toString() == "10.07.1979 12:02:07"
-        320674715.intToTime().toString() == "29.02.1980 12:18:35"
-        320588315.intToTime().toString() == "28.02.1980 12:18:35"
-        415282715.intToTime().toString() == "28.02.1983 12:18:35"
-        946624715.intToTime().toString() == "31.12.1999 07:18:35"
+        1078057115001234.intToTime().toString() == "29.02.2004 12:18:35 (1234)"
+        1077970715000000.intToTime().toString() == "28.02.2004 12:18:35 (0)"
+        1046391515999999.intToTime().toString() == "28.02.2003 00:18:35 (999999)"
+        11486647115000001.intToTime().toString() == "31.12.2333 07:18:35 (1)"
+        9223372036854775807.intToTime().toString() == "10.01.294247 04:00:54 (775807)"
+        823676110000.intToTime().toString() == "10.01.1970 12:47:56 (110000)"
+        293523555000000.intToTime().toString() == "21.04.1979 06:19:15 (0)"
+        144938631123456.intToTime().toString() == "05.08.1974 12:43:51 (123456)"
+        270489404111111.intToTime().toString() == "28.07.1978 15:56:44 (111111)"
+        167938681222222.intToTime().toString() == "28.04.1975 17:38:01 (222222)"
+        295041621333333.intToTime().toString() == "08.05.1979 20:00:21 (333333)"
+        300456127444444.intToTime().toString() == "10.07.1979 12:02:07 (444444)"
+        320674715666666.intToTime().toString() == "29.02.1980 12:18:35 (666666)"
+        320588315777777.intToTime().toString() == "28.02.1980 12:18:35 (777777)"
+        415282715888888.intToTime().toString() == "28.02.1983 12:18:35 (888888)"
+        946624715999999.intToTime().toString() == "31.12.1999 07:18:35 (999999)"
 
 #noinline
 def testTime_StringReader(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        Time.fromString("09.05.2762120 22:47:43").timeToInt() == 87101932258063
-        Time.fromString("13.10.3696080 19:51:53").timeToInt() == 116574876762713
-        Time.fromString("22.05.4979208 11:30:13").timeToInt() == 157066472950213
-        Time.fromString("22.11.3890070 01:45:38").timeToInt() == 122696613222338
-        Time.fromString("11.12.5222970 11:35:48").timeToInt() == 164758876198548
-        Time.fromString("24.09.3033295 14:05:51").timeToInt() == 95659400613951
-        Time.fromString("17.09.3247713 06:28:08").timeToInt() == 102425778484088
-        Time.fromString("07.02.2105845 02:53:54").timeToInt() == 66391885623234
-        Time.fromString("29.02.2004 12:18:35").timeToInt() == 1078057115
-        Time.fromString("28.02.2004 12:18:35").timeToInt() == 1077970715
-        Time.fromString("28.02.2003 00:18:35").timeToInt() == 1046391515
-        Time.fromString("31.12.2333 07:18:35").timeToInt() == 11486647115
-        Time.fromString("18.07.1977 07:20:55").timeToInt() == 238058455
-        Time.fromString("08.04.1975 21:41:38").timeToInt() == 166225298
-        Time.fromString("03.05.1978 11:00:01").timeToInt() == 263041201
-        Time.fromString("12.06.1979 15:11:06").timeToInt() == 298048266
-        Time.fromString("09.10.1976 07:13:35").timeToInt() == 213693215
-        Time.fromString("21.03.1978 00:08:51").timeToInt() == 259286931
-        Time.fromString("15.12.1971 18:21:58").timeToInt() == 61669318
-        Time.fromString("26.09.1971 03:51:04").timeToInt() == 54705064
-        Time.fromString("29.02.1980 12:18:35").timeToInt() == 320674715
-        Time.fromString("28.02.1980 12:18:35").timeToInt() == 320588315
-        Time.fromString("28.02.1983 12:18:35").timeToInt() == 415282715
-        Time.fromString("31.12.1999 07:18:35").timeToInt() == 946624715
-        Time.fromString("29.02.2004 00:00:00").timeToInt() == 1078012800
-        Time.fromString("01.01.1970 00:00:00").timeToInt() == 0
-        Time.fromString("04.12.292277026596 15:30:07").timeToInt() == 9223372036854775807
-        Time.fromString("04.12.292277026596 15:30:08") : error_readFromString
-        Time.fromString("04.12.292277026597 00:30:08") : error_readFromString
-        Time.fromString("04.12.2922770265900 00:30:08") : error_readFromString
+        Time.fromString("29.02.2004 12:18:35 (1234)").timeToInt() == 1078057115001234
+        Time.fromString("28.02.2004 12:18:35 (0)").timeToInt() == 1077970715000000
+        Time.fromString("28.02.2003 00:18:35 (999999)").timeToInt() == 1046391515999999
+        Time.fromString("31.12.2333 07:18:35 (1)").timeToInt() == 11486647115000001
+        Time.fromString("10.01.294247 04:00:54 (775807)").timeToInt() == 9223372036854775807
+        Time.fromString("10.01.1970 12:47:56 (110000)").timeToInt() == 823676110000
+        Time.fromString("21.04.1979 06:19:15 (0)").timeToInt() == 293523555000000
+        Time.fromString("05.08.1974 12:43:51 (123456)").timeToInt() == 144938631123456
+        Time.fromString("28.07.1978 15:56:44 (111111)").timeToInt() == 270489404111111
+        Time.fromString("28.04.1975 17:38:01 (222222)").timeToInt() == 167938681222222
+        Time.fromString("08.05.1979 20:00:21 (333333)").timeToInt() == 295041621333333
+        Time.fromString("10.07.1979 12:02:07 (444444)").timeToInt() == 300456127444444
+        Time.fromString("29.02.1980 12:18:35 (666666)").timeToInt() == 320674715666666
+        Time.fromString("28.02.1980 12:18:35 (777777)").timeToInt() == 320588315777777
+        Time.fromString("28.02.1983 12:18:35 (888888)").timeToInt() == 415282715888888
+        Time.fromString("31.12.1999 07:18:35 (999999)").timeToInt() == 946624715999999
+        Time.fromString("10.01.294247 04:00:54 (775808)") : error_readFromString
+        Time.fromString("04.12.292277026596 15:30:08 (0)") : error_readFromString
+        Time.fromString("04.12.292277026597 00:30:08 (010)") : error_readFromString
+        Time.fromString("04.12.2922770265900 00:30:08 (120)") : error_readFromString
         Time.fromString("abddfsdf") : error_readFromString
         Time.fromString("") : error_readFromString
-        Time.fromString("31.12.1969 23:59:59") : error_readFromString
-        Time.fromString("31.12.0 23:59:59") : error_readFromString
-        Time.fromString("00.12.1970 23:59:59") : error_readFromString
-        Time.fromString("32.12.1970 23:59:59") : error_readFromString
-        Time.fromString("32.12.1970 23:59:59") : error_readFromString
-        Time.fromString("01.13.1970 23:59:59") : error_readFromString
-        Time.fromString("01.01.1970 24:59:59") : error_readFromString
-        Time.fromString("01.01.1970 23:60:59") : error_readFromString
-        Time.fromString("01.01.1970 23:00:60") : error_readFromString
-        Time.fromString("29.02.2003 00:00:00") : error_readFromString
+        Time.fromString("31.12.1979 23:59:59") : error_readFromString
+        Time.fromString("31.12.1969 23:59:59 (0)") : error_readFromString
+        Time.fromString("31.12.0 23:59:59 (12)") : error_readFromString
+        Time.fromString("00.12.1970 23:59:59 (0)") : error_readFromString
+        Time.fromString("32.12.1970 23:59:59 (0)") : error_readFromString
+        Time.fromString("32.12.1970 23:59:59 (0)") : error_readFromString
+        Time.fromString("01.13.1970 23:59:59 (0)") : error_readFromString
+        Time.fromString("01.01.1970 24:59:59 (0)") : error_readFromString
+        Time.fromString("01.01.1970 23:60:59 (0)") : error_readFromString
+        Time.fromString("01.01.1970 23:00:60 (0)") : error_readFromString
+        Time.fromString("29.02.2003 00:00:00 (0)") : error_readFromString
 
 #noinline
 def testTime_Hashable(write ok Int, write errorsCoordinates List)
