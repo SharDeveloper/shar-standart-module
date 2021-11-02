@@ -1218,16 +1218,16 @@ export def repeatPart(part This, count Int) This
 //@The function returns a container identical to the container from the first argument, but in which the items of the container are moved, with indices from "a" to "b" (not including b), back to front.
 //@If "a" is less than 0 or more than "b", or "b" is greater than the number of items in the container, then the function returns an error with the code "enum::STD::error_outOfRange".
 #this(Container) alwaysinline
-export def reversePart$(container This, a, b Int) This
+export def reverseFromAtoB$(container This, a, b Int) This
     var result This = container
-    result.reversePart(a, b)
+    result.reverseFromAtoB(a, b)
     return result
 
 //@The function moves the items of the container, with indices from "a" to "b" (not including b), back to front.
 //@If "a" is less than 0 or more than "b", or "b" is greater than the number of items in the container, then the function returns an error with the code "enum::STD::error_outOfRange".
 //@If the function returns an error, then the container remains unchanged.
 #this(Container) alwaysinline
-export def reversePart(write container This, a, b Int)
+export def reverseFromAtoB(write container This, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= container.length~())
             throw(enum::error_outOfRange, "Out of range.", nothing)
@@ -1241,13 +1241,13 @@ export def reversePart(write container This, a, b Int)
 #this(Container) alwaysinline
 export def reverse$(container This) This
     var result This = container
-    result.reversePart(0, container.length~())
+    result.reverseFromAtoB(0, container.length~())
     return result
 
 //@The function moves the items of the container back to front.
 #this(Container) alwaysinline
 export def reverse(write container This)
-    container.reversePart(0, container.length~())
+    container.reverseFromAtoB(0, container.length~())
 
 //@The function returns a sorted container of the items of the container given as the first argument.
 //@Sorting is performed in ascending order if the argument "rise" is equal to "true", otherwise the sorting is performed in descending order.

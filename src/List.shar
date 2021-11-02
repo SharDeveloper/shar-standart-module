@@ -446,7 +446,7 @@ def repeatPart(part List, count Int) List
     return result
 
 #override(STD) alwaysinline
-def reversePart(write list List, a, b Int)
+def reverseFromAtoB(write list List, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= list.length~())
             throw(enum::error_outOfRange, "Out of range.", nothing)

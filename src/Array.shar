@@ -793,7 +793,7 @@ def repeatPart(part Array, count Int) Array
     return result
 
 #override(STD) alwaysinline
-def reversePart(write array Array, a, b Int)
+def reverseFromAtoB(write array Array, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= array.length~())
             throw(enum::error_outOfRange, "Out of range.", nothing)

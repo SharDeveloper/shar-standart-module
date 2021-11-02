@@ -1304,7 +1304,7 @@ attach String to Multithreaded
         return string.constant?().select(string, string.clone())
 
 #override(STD) alwaysinline
-def reversePart(write string String, a, b Int)
+def reverseFromAtoB(write string String, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= string.length~())
             throw(enum::error_outOfRange, "Out of range.", nothing)

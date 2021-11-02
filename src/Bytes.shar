@@ -1188,7 +1188,7 @@ attach Bytes to Multithreaded
         return bytes.constant?().select(bytes, bytes.clone())
 
 #override(STD) alwaysinline
-def reversePart(write bytes Bytes, a, b Int)
+def reverseFromAtoB(write bytes Bytes, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= bytes.length~())
             throw(enum::error_outOfRange, "Out of range.", nothing)
