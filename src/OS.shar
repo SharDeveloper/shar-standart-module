@@ -510,3 +510,20 @@ export def getActiveThreadsNumber() Int
         %##nreg##result i64## = call i64 @shar__get__threads__number()
         %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
         ret [2 x i64] %##reg##result##
+
+//@The function writes the name of the directory used to store temporary files.
+#alwaysinline nothrow
+export def getTmpDirName() String
+    llvm
+        %##nreg##length pointer## = alloca i64, align 8
+        %##nreg##string pointer## = alloca i16*, align 8
+        call void @shar__get__tmp__dir__name(i64 16, i64* %##reg##length pointer##, i16** %##reg##string pointer##)
+        %##nreg##length## = load i64, i64* %##reg##length pointer##, align 8
+        %##nreg##string## = load i16*, i16** %##reg##string pointer##, align 8
+        %##nreg##string i64*## = bitcast i16* %##reg##string## to i64*
+        store i64 1, i64* %##reg##string i64*##, align 8
+        %##nreg##length in string## = getelementptr i64, i64* %##reg##string i64*##, i64 1
+        store i64 %##reg##length##, i64* %##reg##length in string##, align 8
+        %##nreg##string as i64## = ptrtoint i16* %##reg##string## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::String##, i64 0], i64 %##reg##string as i64##, 1
+        ret [2 x i64] %##reg##result##
