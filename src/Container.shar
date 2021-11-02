@@ -1531,3 +1531,16 @@ def rotateBlocks(write container This, leftBegin, leftEndRightBegin, rightEnd In
 def swapBlocks(write container This, left, right, count Int)
     for :(offset Int = 0) offset < count; offset++
         container.swap(left + offset, right + offset)
+
+//@The function takes a container of containers and joins these containers into one container, separating them with the specified separator.
+//@All nested containers must be of the same type as the separator, otherwise the function returns an error with the code "enum::error_invalidType".
+#this(Container) inline
+export def join(container $Container, separator This) This
+    const length Int = container.length~()
+    if length == 0
+        return This.createEmpty()
+    var result This = container[0]
+    for :(index Int = 1) index < length; index++
+        result += separator
+        result += container[index]
+    return result

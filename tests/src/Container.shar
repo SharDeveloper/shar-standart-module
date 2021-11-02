@@ -347,6 +347,7 @@ def testContainer(write ok Int, write errorsCoordinates List)
     testContainer_Reverse(ok, errorsCoordinates)
     testContainer_Sort(ok, errorsCoordinates)
     testContainer_StableSort(ok, errorsCoordinates)
+    testContainer_Join(ok, errorsCoordinates)
 
 #noinline
 def testContainer_Swap(write ok Int, write errorsCoordinates List)
@@ -6235,3 +6236,37 @@ def testContainer_StableSort(write ok Int, write errorsCoordinates List)
         allOk = allOk && a2[i].id_Container~() == i
     test: ok, errorsCoordinates
         allOk
+
+#noinline
+def testContainer_Join(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].join(listToContainer({})) == listToContainer({})
+        [].join(listToContainer({1})) == listToContainer({})
+        [].join(listToContainer({1, 2})) == listToContainer({})
+        [listToContainer({3})].join(listToContainer({})) == listToContainer({3})
+        [listToContainer({3})].join(listToContainer({1})) == listToContainer({3})
+        [listToContainer({3})].join(listToContainer({1, 2})) == listToContainer({3})
+        ["3"].join(listToContainer({})) : error_invalidType
+        ["3"].join(listToContainer({1})) : error_invalidType
+        ["3"].join(listToContainer({1, 2})) : error_invalidType
+        [listToContainer({3}), listToContainer({4})].join(listToContainer({})) == listToContainer({3, 4})
+        [listToContainer({3}), listToContainer({4})].join(listToContainer({1})) == listToContainer({3, 1, 4})
+        [listToContainer({3}), listToContainer({4})].join(listToContainer({1, 2})) == listToContainer({3, 1, 2, 4})
+        ["3", "4"].join(listToContainer({})) : error_invalidType
+        ["3", "4"].join(listToContainer({1})) : error_invalidType
+        ["3", "4"].join(listToContainer({1, 2})) : error_invalidType
+        [listToContainer({3}), listToContainer({4}), listToContainer({5})].join(listToContainer({})) == listToContainer({3, 4, 5})
+        [listToContainer({3}), listToContainer({4}), listToContainer({5})].join(listToContainer({1})) == listToContainer({3, 1, 4, 1, 5})
+        [listToContainer({3}), listToContainer({4}), listToContainer({5})].join(listToContainer({1, 2})) == listToContainer({3, 1, 2, 4, 1, 2, 5})
+        ["3", "4", "5"].join(listToContainer({})) : error_invalidType
+        ["3", "4", "5"].join(listToContainer({1})) : error_invalidType
+        ["3", "4", "5"].join(listToContainer({1, 2})) : error_invalidType
+        [listToContainer({})].join(listToContainer({})) == listToContainer({})
+        [listToContainer({})].join(listToContainer({1})) == listToContainer({})
+        [listToContainer({}), listToContainer({})].join(listToContainer({})) == listToContainer({})
+        [listToContainer({}), listToContainer({})].join(listToContainer({1})) == listToContainer({1})
+        [listToContainer({}), listToContainer({}), listToContainer({})].join(listToContainer({})) == listToContainer({})
+        [listToContainer({}), listToContainer({}), listToContainer({})].join(listToContainer({1, 2})) == listToContainer({1, 2, 1, 2})
+        [listToContainer({7}), listToContainer({}), listToContainer({})].join(listToContainer({1, 2})) == listToContainer({7, 1, 2, 1, 2})
+        [listToContainer({7}), listToContainer({9}), listToContainer({})].join(listToContainer({1, 2})) == listToContainer({7, 1, 2, 9, 1, 2})
+        [listToContainer({7}), listToContainer({}), listToContainer({9})].join(listToContainer({1, 2})) == listToContainer({7, 1, 2, 1, 2, 9})
