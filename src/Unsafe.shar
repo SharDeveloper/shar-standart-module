@@ -561,3 +561,12 @@ def unsafe_inOrderedGroup?(typeNumber $Any) Bool
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
         %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
         ret [2 x i64] %##reg##result##
+
+#alwaysinline
+def unsafe_inHashableGroup?(typeNumber $Any) Bool
+    llvm
+        %##nreg##type number## = extractvalue [2 x i64] %0, 1
+        %##nreg##result i1## = call i1 ##ingroups##STD::Any,STD::Hashable##(i64 %##reg##type number##)
+        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
+        ret [2 x i64] %##reg##result##
