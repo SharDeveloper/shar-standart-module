@@ -1544,3 +1544,46 @@ export def join(container $Container, separator This) This
         result += separator
         result += container[index]
     return result
+
+//@The function removes duplicates from the container.
+//@If there are several identical items, the item with the lower index remains.
+//@The item type must be a member of the "STD::Equal" group, otherwise the function returns an error with the "enum::STD::error_invalidType" code.
+#this(Container, ItemTypeNumber)
+export def uniq(write container This)
+    if container.empty?()
+        return
+    const itemTypeNumber Int = container.itemTypeNumber~()
+    if itemTypeNumber.unsafe_inOrderedGroup?()
+        container.sort(true)
+        for :(beginIndex Int = 0) beginIndex < container.length~(); beginIndex++
+            const currentItem $Any = container[beginIndex]
+            var endEdge Int = beginIndex + 1
+            for :(loop) endEdge < container.length~(); endEdge++
+                if container[endEdge] != currentItem
+                    end loop
+            const countOfItemsToDelete Int = endEdge - beginIndex - 1
+            if countOfItemsToDelete != 0
+                container.delete(beginIndex + 1, countOfItemsToDelete)
+    elif itemTypeNumber.unsafe_inEqualGroup?()
+        var unneededItemsCount Int = 0
+        const length Int = container.length~()
+        for :(firstIndex Int = 0) firstIndex < length - unneededItemsCount - 1; firstIndex++
+            const firstItem $Any = container[firstIndex]
+            for :(secondIndex Int = firstIndex + 1) secondIndex < length - unneededItemsCount; secondIndex++
+                if container[secondIndex] == firstItem
+                    container.copySelf(secondIndex + 1, secondIndex, length - unneededItemsCount - secondIndex - 1)
+                    unneededItemsCount++
+                    secondIndex--
+        if unneededItemsCount != 0
+            container.delete(length - unneededItemsCount, unneededItemsCount)
+    else
+        throw(enum::error_invalidType, "Invalid type.", nothing)
+
+//@The function returns a container identical to the container passed as an argument to the function, but without duplicate items.
+//@If there are several identical items, the item with the lower index remains.
+//@The item type must be a member of the "STD::Equal" group, otherwise the function returns an error with the "enum::STD::error_invalidType" code.
+#this(Container, ItemTypeNumber)
+export def uniq$(container This) This
+    var result This = container
+    result.uniq()
+    return result
