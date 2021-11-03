@@ -468,7 +468,7 @@ attach Int to BitArray
             ret [2 x i64] %##reg##result##
 
 #alwaysinline nothrow
-export def unsafe_int_getNumberOfDecDigits(int $Any) Int
+def unsafe_int_getNumberOfDecDigits(int $Any) Int
     llvm
         %##nreg##r1## = extractvalue [2 x i64] %0, 1
         %##nreg##r2## = insertelement <1 x i64> zeroinitializer, i64 %##reg##r1##, i32 0
@@ -538,7 +538,7 @@ export def intToHex(int Int) String
     return result
 
 #alwaysinline nothrow
-export def unsafe_int_getNumberOfHecDigits(int $Any) Int
+def unsafe_int_getNumberOfHecDigits(int $Any) Int
     llvm
         %##nreg##int## = extractvalue [2 x i64] %0, 1
         ##llvmdeclare##llvm.ctlz.i64##declare i64  @llvm.ctlz.i64(i64, i1)##
