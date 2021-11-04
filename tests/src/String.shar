@@ -50,6 +50,8 @@ def testString(write ok Int, write errorsCoordinates List)
     testString_ToLower(ok, errorsCoordinates)
     testString_ToUpper(ok, errorsCoordinates)
     testString_ItemTypeNumber(ok, errorsCoordinates)
+    testString_Sort(ok, errorsCoordinates)
+    testString_StableSort(ok, errorsCoordinates)
 
 #noinline
 def testString_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -2944,3 +2946,113 @@ def testString_ItemTypeNumber(write ok Int, write errorsCoordinates List)
         "0".itemTypeNumber~() == Char.typeNumber~()
         "dfd".itemTypeNumber~() == Char.typeNumber~()
         "01010".itemTypeNumber~() == Char.typeNumber~()
+
+#noinline
+def testString_Sort(write ok Int, write errorsCoordinates List)
+    var a1 String = ""
+    var a2 String = "1"
+    var a3 String = "12"
+    var a4 String = "123"
+    var a5 String = "213"
+    var a6 String = "213"
+    var a7 String = "-345172-922671340915-301"
+    test: ok, errorsCoordinates
+        a1.sort(true).nothing?()
+        a1 == ""
+        a1.sort(false).nothing?()
+        a1 == ""
+        a2.sort(true).nothing?()
+        a2 == "1"
+        a2.sort(false).nothing?()
+        a2 == "1"
+        a3.sort(true).nothing?()
+        a3 == "12"
+        a3.sort(false).nothing?()
+        a3 == "21"
+        a3.sort(false).nothing?()
+        a3 == "21"
+        a4.sort(true).nothing?()
+        a4 == "123"
+        a4.sort(false).nothing?()
+        a4 == "321"
+        a4.sort(false).nothing?()
+        a4 == "321"
+        a5.sort(true).nothing?()
+        a5 == "123"
+        a6.sort(false).nothing?()
+        a6 == "321"
+        a7.sort(true).nothing?()
+        a7 == "---001111222333445567799"
+    a1 = ""
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(intToChar(Int.getRandom() & 0xffff))
+    a1.sort(true)
+    var allOk Bool = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = ""
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(intToChar(Int.getRandom() & 0xffff))
+    a1.sort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+
+#noinline
+def testString_StableSort(write ok Int, write errorsCoordinates List)
+    var a1 String = ""
+    var a2 String = "1"
+    var a3 String = "12"
+    var a4 String = "123"
+    var a5 String = "213"
+    var a6 String = "213"
+    var a7 String = "-345172-922671340915-301"
+    test: ok, errorsCoordinates
+        a1.stableSort(true).nothing?()
+        a1 == ""
+        a1.stableSort(false).nothing?()
+        a1 == ""
+        a2.stableSort(true).nothing?()
+        a2 == "1"
+        a2.stableSort(false).nothing?()
+        a2 == "1"
+        a3.stableSort(true).nothing?()
+        a3 == "12"
+        a3.stableSort(false).nothing?()
+        a3 == "21"
+        a3.stableSort(false).nothing?()
+        a3 == "21"
+        a4.stableSort(true).nothing?()
+        a4 == "123"
+        a4.stableSort(false).nothing?()
+        a4 == "321"
+        a4.stableSort(false).nothing?()
+        a4 == "321"
+        a5.stableSort(true).nothing?()
+        a5 == "123"
+        a6.stableSort(false).nothing?()
+        a6 == "321"
+        a7.stableSort(true).nothing?()
+        a7 == "---001111222333445567799"
+    a1 = ""
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(intToChar(Int.getRandom() & 0xffff))
+    a1.stableSort(true)
+    var allOk Bool = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = ""
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(intToChar(Int.getRandom() & 0xffff))
+    a1.stableSort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk

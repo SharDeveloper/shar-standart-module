@@ -1387,3 +1387,82 @@ attach String to ItemTypeNumber
     #alwaysinline nothrow
     def itemTypeNumber~(string String) Int
         return Char.typeNumber~()
+
+#override(STD) nothrow
+def sort(write string String, rise Bool)
+    if string.empty?()
+        return
+    return string.quicksort(0, string.length~(), rise, const::staticRandomNumber)
+
+#override(STD)
+def quicksort(write string String, beginIndex, endEdge Int, rise Bool, randomNumber Int)
+    var leftIndex Int = beginIndex
+    var rightEdge Int = endEdge
+    for :(mainLoop)
+        const rangeLength Int = rightEdge - leftIndex
+        var smallRangeLeftIndex Int = -1
+        var smallRangeRightEdge Int = -1
+        var smallRangeLength Int = -1
+        var bigRangeLeftIndex Int = -1
+        var bigRangeRightEdge Int = -1
+        if rangeLength > 16
+            const length25p Int = rangeLength >> 2
+            const length75p Int = (length25p << 1) + length25p
+            var randomOffset Int = (randomNumber & (rangeLength - 1))
+            if randomOffset < length25p
+                randomOffset += length25p
+            elif randomOffset > length75p
+                randomOffset -= length25p
+            string.swap(leftIndex, leftIndex + randomOffset)
+            const currentChar Char = string[leftIndex]
+            var currentIndex Int = leftIndex
+            var oppositeIndex Int = rightEdge - 1
+            var direction Int = -1
+            var cmpModifier Bool = rise
+            for :(loop)
+                const oppositeChar Char = string[oppositeIndex]
+                if cmpModifier.select(oppositeChar <= currentChar, currentChar <= oppositeChar)
+                    string.swap(currentIndex, oppositeIndex)
+                    exchange(currentIndex, oppositeIndex)
+                    direction = !direction
+                    cmpModifier = !cmpModifier
+                if (currentIndex - oppositeIndex).inRange?(-1, 2)
+                    end loop
+                oppositeIndex += direction
+            const leftRangeLength Int = currentIndex - leftIndex
+            const rightRangeLength Int = rightEdge - currentIndex - 1
+            if leftRangeLength < rightRangeLength
+                smallRangeLeftIndex = leftIndex
+                smallRangeRightEdge = currentIndex
+                smallRangeLength = leftRangeLength
+                bigRangeLeftIndex = currentIndex + 1
+                bigRangeRightEdge = rightEdge
+            else
+                smallRangeLeftIndex = currentIndex + 1
+                smallRangeRightEdge = rightEdge
+                smallRangeLength = rightRangeLength
+                bigRangeLeftIndex = leftIndex
+                bigRangeRightEdge = currentIndex
+            leftIndex = bigRangeLeftIndex
+            rightEdge = bigRangeRightEdge
+        else
+            smallRangeLeftIndex = leftIndex
+            smallRangeRightEdge = rightEdge
+            smallRangeLength = rangeLength
+        if smallRangeLength > 16
+            string.quicksort(smallRangeLeftIndex, smallRangeRightEdge, rise, randomNumber)
+        elif smallRangeLength > 2
+            string.heapSort(smallRangeLeftIndex, smallRangeRightEdge, smallRangeLength, rise)
+        elif smallRangeLength == 2
+            const firstChar Char = string[smallRangeLeftIndex]
+            const secondChar Char = string[smallRangeLeftIndex + 1]
+            if (secondChar < firstChar) == rise
+                string.swap(smallRangeLeftIndex, smallRangeLeftIndex + 1)
+        if bigRangeLeftIndex == -1
+            end mainLoop
+
+#override(STD)
+def stableSort(write string String, rise Bool)
+    if string.empty?()
+        return
+    return string.quicksort(0, string.length~(), rise, const::staticRandomNumber)
