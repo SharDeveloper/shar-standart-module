@@ -486,3 +486,8 @@ def unsafe_list_simdReverseAndSwapParts(part1, part2 $Any)
         store <4 x i64> %##reg##reversed part1##, <4 x i64>* %##reg##part2 pointer##, align 8
         store <4 x i64> %##reg##reversed part2##, <4 x i64>* %##reg##part1 pointer##, align 8
         ret [2 x i64] zeroinitializer
+
+attach List to Shar__sugar__patternMatch
+    #alwaysinline
+    def shar__sugar__patternMatch(list List, index Int) $Any
+        return list[index]

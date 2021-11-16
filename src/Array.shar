@@ -830,3 +830,8 @@ def unsafe_array_simdReverseAndSwapParts(part1, part2 $Any)
         store <4 x i64> %##reg##reversed part1##, <4 x i64>* %##reg##part2 pointer##, align 8
         store <4 x i64> %##reg##reversed part2##, <4 x i64>* %##reg##part1 pointer##, align 8
         ret [2 x i64] zeroinitializer
+
+attach Array to Shar__sugar__patternMatch
+    #alwaysinline
+    def shar__sugar__patternMatch(array Array, index Int) $Any
+        return array[index]

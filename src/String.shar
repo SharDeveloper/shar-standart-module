@@ -1466,3 +1466,8 @@ def stableSort(write string String, rise Bool)
     if string.empty?()
         return
     return string.quicksort(0, string.length~(), rise, const::staticRandomNumber)
+
+attach String to Shar__sugar__patternMatch
+    #alwaysinline
+    def shar__sugar__patternMatch(string String, index Int) Char
+        return string[index]
