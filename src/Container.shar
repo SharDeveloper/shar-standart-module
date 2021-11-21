@@ -9,7 +9,7 @@ module STD
 //@Any container has its empty variant.
 //@Any container can contain any number of items, but can have a maximum number of items.
 //@Two containers are equal if the number of their items is equal, and all items with the same index have the same type, this type is a member of the "STD::Equal" group, and also these items are equal.
-//@An empty container is equal only to itself.
+//@An empty container is equal to itself.
 //@If there is an object that has a type that is a member of the "STD::Container" group, and the object satisfies the requirements of all groups of which the object's type is a member, then for any permutation of items, the object meets the requirements of all groups of which the object's type is a member.
 //@Any function that operates on objects of a type that is a member of the "STD::Container" group may not take into account any additional context of such objects.
 //@If the first argument of the "STD::shar__sugar__equal" or "STD::shar__sugar__notEqual" function is an object with a type that is a member of the "STD::Container" group, then the comparison occurs from the beginning of the array to the end. Comparison takes place until the result is clear. If the result is clear from the length of the containers, then no comparison is made.
@@ -22,7 +22,7 @@ module STD
 //@If the first argument of the "STD::shar__sugar__add" function is an object with a type that is a member of the "STD::Container" group, then this function connects the two containers from the function arguments into a new container. At the beginning of the new container are items from the container passed as the first argument to the function.
 //@If the first argument of the "STD::shar__sugar__addSet" function is an object with a type that is a member of the "STD::Container" group, then the function adds items from the second function argument to the end of the first function argument. If the function returns an error, the first argument of the function should not change its value.
 //@When iterating over a container using functions from the "STD::Iterable" group, the iterating is performed from beginning to end.
-//@Operation amount computing items, as well as access to an arbitrary item need not be costly.
+//@The operation of counting the number of items, as well as accessing an arbitrary item, should not be costly.
 export group Container: Iterable, Equal, StringWriter, Hashable, Empty, Put, Shar__sugar__getFromAToLast, Shar__sugar__getFromFirstToA, Shar__sugar__getRange, Shar__sugar__getItem, Shar__sugar__add, Shar__sugar__addSet
     //@The function adds an item (second function argument) to the end of the container (first function argument).
     //@If the function returns an error, then the container remains unchanged.
