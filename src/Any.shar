@@ -83,7 +83,7 @@ export def typeNumber~(noread a $Any) Int
 export def exchange(write a, write b $Any)
     inthrow
         if !a.type?(b)
-            throw(enum::error_invalidType, "Invalid type")
+            throw(enum::error_invalidType, "Invalid type", nothing)
     unsafe_exchange(a, b)
 
 #alwaysinline unsafewrite
@@ -103,7 +103,7 @@ export def getTypeName(typeNumber Int) String
     const result String = typeNumber.unsafe_getTypeName()
     inthrow
         if result == ""
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     return result
 
 #alwaysinline nothrow

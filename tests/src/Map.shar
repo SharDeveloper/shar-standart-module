@@ -37,7 +37,7 @@ attach TestMap_BadInt to Hashable
 
 attach TestMap_BadInt to StringWriter
     #inline nothrow
-    def toString(int TestMap_BadInt) $String
+    def toString(int TestMap_BadInt) String
         return int.map_toGood().toString()
 
 #alwaysinline nothrow

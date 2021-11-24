@@ -7,6 +7,9 @@ def unsafe_list_getCounter(list $Any) Int
 def testList(write ok Int, write errorsCoordinates List)
     testList_MemoryManagement(ok, errorsCoordinates)
     testList_Equal(ok, errorsCoordinates)
+    testList_PartsEqual?(ok, errorsCoordinates)
+    testList_GetFromAToLast(ok, errorsCoordinates)
+    testList_GetFromFirstToA(ok, errorsCoordinates)
     testList_GetRange(ok, errorsCoordinates)
     testList_GetItem(ok, errorsCoordinates)
     testList_Add(ok, errorsCoordinates)
@@ -26,7 +29,7 @@ def testList(write ok Int, write errorsCoordinates List)
     testList_InsertPart(ok, errorsCoordinates)
     testList_Repeat(ok, errorsCoordinates)
     testList_RepeatPart(ok, errorsCoordinates)
-    testList_ReversePart(ok, errorsCoordinates)
+    testList_ReverseFromAtoB(ok, errorsCoordinates)
     testList_Dump(ok, errorsCoordinates)
 
 #noinline
@@ -166,6 +169,88 @@ def testList_Equal(write ok Int, write errorsCoordinates List)
         {1, 2, 3, 4, 5} != {1, 2, 3, 4}
         {1.0, 2.0, 3.0, 4.0} != {1, 2, 3, 4}
         {1, 2, 3, 4} != {1.0, 2.0, 3.0, 4.0}
+
+#noinline
+def testList_PartsEqual?(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        {}.partsEqual?(0, {}, 0, 0)
+        !{}.partsEqual?(1, {}, 0, 0)
+        !{}.partsEqual?(-1, {}, 0, 0)
+        !{}.partsEqual?(9223372036854775807, {}, 0, 0)
+        !{}.partsEqual?(-9223372036854775808, {}, 0, 0)
+        !{}.partsEqual?(0, {}, 1, 0)
+        !{}.partsEqual?(0, {}, -1, 0)
+        !{}.partsEqual?(0, {}, 9223372036854775807, 0)
+        !{}.partsEqual?(0, {}, -9223372036854775808, 0)
+        !{}.partsEqual?(0, {}, 0, 1)
+        !{}.partsEqual?(0, {}, 0, -1)
+        !{}.partsEqual?(0, {}, 0, -9223372036854775808)
+        !{}.partsEqual?(0, {}, 0, 9223372036854775807)
+        !{}.partsEqual?(-1, {}, -1, -1)
+        {1}.partsEqual?(0, {1}, 0, 1)
+        {1}.partsEqual?(1, {1}, 1, 0)
+        {1}.partsEqual?(0, {0, 1}, 1, 1)
+        {1}.partsEqual?(1, {1}, 0, 0)
+        {1}.partsEqual?(1, {2}, 0, 0)
+        !{1}.partsEqual?(0, {0, 1}, 0, 1)
+        !{1}.partsEqual?(0, {2}, 0, 1)
+        !{1}.partsEqual?(0, {1}, 0, 2)
+        !{1}.partsEqual?(-1, {1}, 0, 0)
+        !{1}.partsEqual?(-9223372036854775808, {1}, 0, 0)
+        !{1}.partsEqual?(9223372036854775807, {1}, 0, 0)
+        {1, 2, 3, 4, 5, 6}.partsEqual?(0, {1, 2, 3, 4, 5, 6}, 0, 6)
+        {1, 2, 3, 4, 5, 6}.partsEqual?(1, {1, 2, 3, 4, 5, 6}, 1, 5)
+        !{1, 2, 3, 4, 5, 6, nothing, 1.0, 7, 8, 9}.partsEqual?(6, {nothing, 1.0}, 0, 2)
+        !{1, 2, 3, 4, 5, 6, nothing, 1.0, 7, 8, 9}.partsEqual?(5, {6, 1.0}, 0, 2)
+        {1, 2, 3, 4, 5, 6, nothing, 1.0, 7, 8, 9}.partsEqual?(3, {1, 2, 3, 4, 5, 6}, 3, 3)
+
+#noinline
+def testList_GetFromAToLast(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        {}[0:] == {}
+        {1}[1:] == {}
+        {1}[0:] == {1}
+        {1, 2}[2:] == {}
+        {1, 2}[1:] == {2}
+        {1, 2}[0:] == {1, 2}
+        {}[-9223372036854775808:] : error_outOfRange
+        {}[9223372036854775807:] : error_outOfRange
+        {}[-1:] : error_outOfRange
+        {}[1:] : error_outOfRange
+        {}[2:] : error_outOfRange
+        {1, 2, 3}[0:] == {1, 2, 3}
+        {1, 2, 3}[1:] == {2, 3}
+        {1, 2, 3}[2:] == {3}
+        {1, 2, 3}[3:] == {}
+        {1, 2, 3}[-9223372036854775808:] : error_outOfRange
+        {1, 2, 3}[9223372036854775807:] : error_outOfRange
+        {1, 2, 3}[-1:] : error_outOfRange
+        {1, 2, 3}[4:] : error_outOfRange
+        {1, 2, 3}[5:] : error_outOfRange
+
+#noinline
+def testList_GetFromFirstToA(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        {}[:0] == {}
+        {1}[:1] == {1}
+        {1}[:0] == {}
+        {1, 2}[:2] == {1, 2}
+        {1, 2}[:1] == {1}
+        {1, 2}[:0] == {}
+        {}[:-9223372036854775808] : error_outOfRange
+        {}[:9223372036854775807] : error_outOfRange
+        {}[:-1] : error_outOfRange
+        {}[:1] : error_outOfRange
+        {}[:2] : error_outOfRange
+        {1, 2, 3}[:0] == {}
+        {1, 2, 3}[:1] == {1}
+        {1, 2, 3}[:2] == {1, 2}
+        {1, 2, 3}[:3] == {1, 2, 3}
+        {1, 2, 3}[:-9223372036854775808] : error_outOfRange
+        {1, 2, 3}[:9223372036854775807] : error_outOfRange
+        {1, 2, 3}[:-1] : error_outOfRange
+        {1, 2, 3}[:4] : error_outOfRange
+        {1, 2, 3}[:5] : error_outOfRange
 
 #noinline
 def testList_GetRange(write ok Int, write errorsCoordinates List)
@@ -1225,128 +1310,128 @@ def testList_RepeatPart(write ok Int, write errorsCoordinates List)
         l4 == {{1}, {1}, {1}}
 
 #noinline
-def testList_ReversePart(write ok Int, write errorsCoordinates List)
+def testList_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
     var c List = {}
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == {}
-        c.reversePart(0, 1) : error_outOfRange
+        c.reverseFromAtoB(0, 1) : error_outOfRange
         c == {}
-        c.reversePart(1, 1) : error_outOfRange
+        c.reverseFromAtoB(1, 1) : error_outOfRange
         c == {}
-        c.reversePart(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : error_outOfRange
         c == {}
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == {}
-        c.reversePart(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
         c == {}
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == {}
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == {}
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == {}
     c = {1}
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == {1}
-        c.reversePart(0, 1).nothing?()
+        c.reverseFromAtoB(0, 1).nothing?()
         c == {1}
-        c.reversePart(1, 1).nothing?()
+        c.reverseFromAtoB(1, 1).nothing?()
         c == {1}
-        c.reversePart(0, 2) : error_outOfRange
+        c.reverseFromAtoB(0, 2) : error_outOfRange
         c == {1}
-        c.reversePart(2, 1) : error_outOfRange
+        c.reverseFromAtoB(2, 1) : error_outOfRange
         c == {1}
-        c.reversePart(1, 2) : error_outOfRange
+        c.reverseFromAtoB(1, 2) : error_outOfRange
         c == {1}
-        c.reversePart(2, 2) : error_outOfRange
+        c.reverseFromAtoB(2, 2) : error_outOfRange
         c == {1}
-        c.reversePart(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : error_outOfRange
         c == {1}
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == {1}
-        c.reversePart(-9223372036854775808, 1) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 1) : error_outOfRange
         c == {1}
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == {1}
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == {1}
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == {1}
     c = {1, 2}
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == {1, 2}
-        c.reversePart(0, 1).nothing?()
+        c.reverseFromAtoB(0, 1).nothing?()
         c == {1, 2}
-        c.reversePart(1, 1).nothing?()
+        c.reverseFromAtoB(1, 1).nothing?()
         c == {1, 2}
-        c.reversePart(1, 2).nothing?()
+        c.reverseFromAtoB(1, 2).nothing?()
         c == {1, 2}
-        c.reversePart(2, 2).nothing?()
+        c.reverseFromAtoB(2, 2).nothing?()
         c == {1, 2}
-        c.reversePart(0, 2).nothing?()
+        c.reverseFromAtoB(0, 2).nothing?()
         c == {2, 1}
-        c.reversePart(0, 3) : error_outOfRange
+        c.reverseFromAtoB(0, 3) : error_outOfRange
         c == {2, 1}
-        c.reversePart(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : error_outOfRange
         c == {2, 1}
-        c.reversePart(1, 3) : error_outOfRange
+        c.reverseFromAtoB(1, 3) : error_outOfRange
         c == {2, 1}
-        c.reversePart(3, 3) : error_outOfRange
+        c.reverseFromAtoB(3, 3) : error_outOfRange
         c == {2, 1}
-        c.reversePart(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : error_outOfRange
         c == {2, 1}
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == {2, 1}
-        c.reversePart(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
         c == {2, 1}
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == {2, 1}
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == {2, 1}
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == {2, 1}
     c = {1, 2, 3, 4, 5, 6, 7, 8, 9}
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        c.reversePart(0, 1).nothing?()
+        c.reverseFromAtoB(0, 1).nothing?()
         c == {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        c.reversePart(1, 1).nothing?()
+        c.reverseFromAtoB(1, 1).nothing?()
         c == {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        c.reversePart(1, 2).nothing?()
+        c.reverseFromAtoB(1, 2).nothing?()
         c == {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        c.reversePart(0, 5).nothing?()
+        c.reverseFromAtoB(0, 5).nothing?()
         c == {5, 4, 3, 2, 1, 6, 7, 8, 9}
-        c.reversePart(5, 9).nothing?()
+        c.reverseFromAtoB(5, 9).nothing?()
         c == {5, 4, 3, 2, 1, 9, 8, 7, 6}
-        c.reversePart(0, 9).nothing?()
+        c.reverseFromAtoB(0, 9).nothing?()
         c == {6, 7, 8, 9, 1, 2, 3, 4, 5}
-        c.reversePart(3, 7).nothing?()
+        c.reverseFromAtoB(3, 7).nothing?()
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(0, 10) : error_outOfRange
+        c.reverseFromAtoB(0, 10) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(9, 0) : error_outOfRange
+        c.reverseFromAtoB(9, 0) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(10, 0) : error_outOfRange
+        c.reverseFromAtoB(10, 0) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(3, -1) : error_outOfRange
+        c.reverseFromAtoB(3, -1) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reversePart(9223372036854775807, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(9223372036854775807, -9223372036854775808) : error_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
 
 #noinline

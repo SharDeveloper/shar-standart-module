@@ -3,4 +3,4 @@ module STD
 //@Members of the "STD::StringReader" group are types whose object values can be constructed from a string.
 export group StringReader
     //@The function creates an object with the same type as the first argument to the function, based on the data in the string from the third argument of the function.
-    fromString(noread This, $String) This
+    fromString(noread This, String) This

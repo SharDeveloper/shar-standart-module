@@ -7,6 +7,7 @@ export group Dict: AArray, KeyTypeNumber
 export primitive Dict
 
 //@The function creates an empty associative array of the "STD::Dict" type.
+//@The function returns a constant.
 #alwaysinline nothrow
 export def Dict() Dict
     return Dict.createEmpty()
@@ -110,6 +111,7 @@ def dump(dict Dict, level Int) String
     return result
 
 attach Dict to Empty
+    //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type Dict) Dict
         llvm
@@ -128,7 +130,7 @@ attach Dict to Shar__sugar__getItem
         const keyTypeNumberInDict Int = dict.keyTypeNumber~()
         inthrow
             if keyTypeNumberInDict != key.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         const slotAddress Int = dict.unsafe_dict_slotAddress(key.getShortRandomizedHash() & (dict.unsafe_dict_slotsCount() - 1))
         const slotLength Int = slotAddress.unsafe_getI64(0)
         var result $Any = nothing
@@ -153,7 +155,7 @@ attach Dict to Put
         const keyTypeNumberInDict Int = dict.keyTypeNumber~()
         inthrow
             if !(keyTypeNumberInDict == key.typeNumber~() || keyTypeNumberInDict == Nothing.typeNumber~())
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         const slotsCount Int = dict.unsafe_dict_slotsCount()
         const needToEnlarge Bool = dict.length~() == slotsCount && slotsCount != 0x100000000
         var result $Any = nothing
@@ -181,10 +183,10 @@ attach Dict to Put
                 var isEqual Bool = false
                 try
                     isEqual = unsafe_equal(keyTypeNumberInDict, slotAddress.unsafe_getI64(1), keyTypeNumberInDict, key)
-                catch id, message
+                catch id, message, errorData
                     key.shar__rc_free()
                     newValue.shar__rc_free()
-                    throw(id, message)
+                    throw(id, message, errorData)
                 if isEqual
                     unsafe_object(keyTypeNumberInDict, slotAddress.unsafe_getI64(1))
                     result = unsafe_object(slotAddress.unsafe_getI64(2), slotAddress.unsafe_getI64(3))
@@ -196,10 +198,10 @@ attach Dict to Put
                     for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 3; keyIndex += 3
                         try
                             isEqual = unsafe_equal(keyTypeNumberInDict, otherKeysAndValues.unsafe_getI64(keyIndex), keyTypeNumberInDict, key)
-                        catch id, message
+                        catch id, message, errorData
                             key.shar__rc_free()
                             newValue.shar__rc_free()
-                            throw(id, message)
+                            throw(id, message, errorData)
                         if isEqual
                             unsafe_object(keyTypeNumberInDict, otherKeysAndValues.unsafe_getI64(keyIndex))
                             result = unsafe_object(otherKeysAndValues.unsafe_getI64(keyIndex + 1), otherKeysAndValues.unsafe_getI64(keyIndex + 2))
@@ -267,7 +269,7 @@ def deleteKVFromDict(write dict Dict, key ${Equal, Hashable}) $Any
     const keyTypeNumberInDict Int = dict.keyTypeNumber~()
     inthrow
         if keyTypeNumberInDict != key.typeNumber~()
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
     var result $Any = nothing
     const slotsCount Int = dict.unsafe_dict_slotsCount()
     const slotAddress Int = dict.unsafe_dict_slotAddress(key.getShortRandomizedHash() & (slotsCount - 1))

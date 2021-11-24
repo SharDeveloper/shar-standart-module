@@ -12,6 +12,16 @@ attach Container to Shar__sugar__notEqual
     def shar__sugar__notEqual(container1, container2 Container) Bool
         return container1.toList() != container2.toList()
 
+attach Container to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(container Container, a Int) Container
+        return Container.fromList(container.toList()[a:])
+
+attach Container to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(container Container, a Int) Container
+        return Container.fromList(container.toList()[:a])
+
 attach Container to Shar__sugar__getRange
     def shar__sugar__getRange(container Container, from, to $Any) Container
         return Container.fromList(container.toList()[from : to])
@@ -29,7 +39,7 @@ attach Container to Shar__sugar__addSet
         container = container + addedContainer
 
 attach Container to StringWriter
-    def toString(container Container) $String
+    def toString(container Container) String
         return container.toList().toString()
 
 attach Container to Hashable
@@ -81,6 +91,170 @@ attach Container to Container
 
 def listToContainer(list List) Container
     return Container.fromList(list)
+
+type SortableContainer
+
+attach SortableContainer to Equal
+
+attach SortableContainer to Shar__sugar__equal
+    def shar__sugar__equal(container1, container2 SortableContainer) Bool
+        return container1.toList() == container2.toList()
+
+attach SortableContainer to Shar__sugar__notEqual
+    def shar__sugar__notEqual(container1, container2 SortableContainer) Bool
+        return container1.toList() != container2.toList()
+
+attach SortableContainer to Ordered
+    def compare(contaner1, contaner2 SortableContainer) Int
+        return contaner1.sortableContainerToArray().compare(contaner2.sortableContainerToArray())
+
+attach SortableContainer to Shar__sugar__less
+    def shar__sugar__less(contaner1, contaner2 SortableContainer) Bool
+        return contaner1.sortableContainerToArray() < contaner2.sortableContainerToArray()
+
+attach SortableContainer to Shar__sugar__great
+    def shar__sugar__great(contaner1, contaner2 SortableContainer) Bool
+        return contaner1.sortableContainerToArray() > contaner2.sortableContainerToArray()
+
+attach SortableContainer to Shar__sugar__lessOrEqual
+    def shar__sugar__lessOrEqual(contaner1, contaner2 SortableContainer) Bool
+        return contaner1.sortableContainerToArray() <= contaner2.sortableContainerToArray()
+
+attach SortableContainer to Shar__sugar__greatOrEqual
+    def shar__sugar__greatOrEqual(contaner1, contaner2 SortableContainer) Bool
+        return contaner1.sortableContainerToArray() >= contaner2.sortableContainerToArray()
+
+attach SortableContainer to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(container SortableContainer, a Int) SortableContainer
+        return SortableContainer.fromList(container.toList()[a:])
+
+attach SortableContainer to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(container SortableContainer, a Int) SortableContainer
+        return SortableContainer.fromList(container.toList()[:a])
+
+attach SortableContainer to Shar__sugar__getRange
+    def shar__sugar__getRange(container SortableContainer, from, to $Any) SortableContainer
+        return SortableContainer.fromList(container.toList()[from : to])
+
+attach SortableContainer to Shar__sugar__getItem
+    def shar__sugar__getItem(container SortableContainer, index $Any) $Any
+        return container.typeGetItem(index)
+
+attach SortableContainer to Shar__sugar__add
+    def shar__sugar__add(container, addedSortableContainer SortableContainer) SortableContainer
+        return SortableContainer.fromList(container.toList() + addedSortableContainer.toList())
+
+attach SortableContainer to Shar__sugar__addSet
+    def shar__sugar__addSet(write container, addedSortableContainer SortableContainer)
+        container = container + addedSortableContainer
+
+attach SortableContainer to StringWriter
+    def toString(container SortableContainer) String
+        return container.toList().toString()
+
+attach SortableContainer to Hashable
+    def getHash(container SortableContainer) Int
+        return container.toList().getHash()
+
+    def getRandomizedHash(container SortableContainer) Int
+        return container.toList().getRandomizedHash()
+
+attach SortableContainer to Long
+    def length~(container SortableContainer) Int
+        return container.toList().length~()
+
+attach SortableContainer to Empty
+    def createEmpty(noread type SortableContainer) SortableContainer
+        return SortableContainer.fromList({})
+
+attach SortableContainer to Put
+    def put(write container SortableContainer, index, newItem $Any) $Any
+        return typePut(container, index, newItem)
+
+attach SortableContainer to Iterable
+    #alwaysinline nothrow
+    def parse__init(container SortableContainer) $Any
+        return 0
+
+    #alwaysinline nothrow
+    def parse__predicate(container SortableContainer, index $Any) Bool
+        return index != container.length~()
+
+    #alwaysinline unsafewrite nothrow
+    def parse__next(container SortableContainer, write index $Any)
+        index++
+
+    #alwaysinline nothrow
+    def parse__get__key(container SortableContainer, index $Any) $Any
+        return index
+
+    #alwaysinline nothrow
+    def parse__get__item(container SortableContainer, index $Any) $Any
+        return container[index]
+
+attach SortableContainer to Container
+    def addItem(write container SortableContainer, newItem $Any)
+        container = container.addItem$(newItem)
+
+    def addItem$(container SortableContainer, newItem $Any) SortableContainer
+        return SortableContainer.fromList(container.toList().addItem$(newItem))
+
+attach SortableContainer to ItemTypeNumber
+    def itemTypeNumber~(container SortableContainer) Int
+        if container.empty?()
+            return nothing.typeNumber~()
+        return container[0].typeNumber~()
+
+def arrayToSortableContainer(array Array) SortableContainer
+    return SortableContainer.fromList(array.repackTo(List))
+
+def sortableContainerToArray(container SortableContainer) Array
+    return container.toList().repackTo(Array)
+
+type NotEqType_Container
+
+type ItemForStableSort_Container
+
+def ItemForStableSort_Container(sortedItem, id Int) ItemForStableSort_Container
+    return ItemForStableSort_Container.fromList({sortedItem, id})
+
+def sortedItem_Container~(ifss ItemForStableSort_Container) Int
+    return ifss.typeGetItem(0)
+
+def id_Container~(ifss ItemForStableSort_Container) Int
+    return ifss.typeGetItem(1)
+
+attach ItemForStableSort_Container to Equal
+
+attach ItemForStableSort_Container to Shar__sugar__equal
+    def shar__sugar__equal(item1, item2 ItemForStableSort_Container) Bool
+        return item1.sortedItem_Container~() == item2.sortedItem_Container~()
+
+attach ItemForStableSort_Container to Shar__sugar__notEqual
+    def shar__sugar__notEqual(item1, item2 ItemForStableSort_Container) Bool
+        return item1.sortedItem_Container~() != item2.sortedItem_Container~()
+
+attach ItemForStableSort_Container to Ordered
+    def compare(item1, item2 ItemForStableSort_Container) Int
+        return item1.sortedItem_Container~().compare(item2.sortedItem_Container~())
+
+attach ItemForStableSort_Container to Shar__sugar__less
+    def shar__sugar__less(item1, item2 ItemForStableSort_Container) Bool
+        return item1.sortedItem_Container~() < item2.sortedItem_Container~()
+
+attach ItemForStableSort_Container to Shar__sugar__great
+    def shar__sugar__great(item1, item2 ItemForStableSort_Container) Bool
+        return item1.sortedItem_Container~() > item2.sortedItem_Container~()
+
+attach ItemForStableSort_Container to Shar__sugar__lessOrEqual
+    def shar__sugar__lessOrEqual(item1, item2 ItemForStableSort_Container) Bool
+        return item1.sortedItem_Container~() <= item2.sortedItem_Container~()
+
+attach ItemForStableSort_Container to Shar__sugar__greatOrEqual
+    def shar__sugar__greatOrEqual(item1, item2 ItemForStableSort_Container) Bool
+        return item1.sortedItem_Container~() >= item2.sortedItem_Container~()
 
 def testContainer(write ok Int, write errorsCoordinates List)
     testContainer_Swap(ok, errorsCoordinates)
@@ -167,10 +341,15 @@ def testContainer(write ok Int, write errorsCoordinates List)
     testContainer_InsertPart(ok, errorsCoordinates)
     testContainer_Repeat(ok, errorsCoordinates)
     testContainer_RepeatPart(ok, errorsCoordinates)
-    testContainer_ReversePart$(ok, errorsCoordinates)
-    testContainer_ReversePart(ok, errorsCoordinates)
+    testContainer_ReverseFromAtoB$(ok, errorsCoordinates)
+    testContainer_ReverseFromAtoB(ok, errorsCoordinates)
     testContainer_Reverse$(ok, errorsCoordinates)
     testContainer_Reverse(ok, errorsCoordinates)
+    testContainer_Sort(ok, errorsCoordinates)
+    testContainer_StableSort(ok, errorsCoordinates)
+    testContainer_Join(ok, errorsCoordinates)
+    testContainer_Uniq$(ok, errorsCoordinates)
+    testContainer_Uniq(ok, errorsCoordinates)
 
 #noinline
 def testContainer_Swap(write ok Int, write errorsCoordinates List)
@@ -5378,188 +5557,188 @@ def testContainer_RepeatPart(write ok Int, write errorsCoordinates List)
         listToContainer({13, "a", 1.0}).repeatPart(-9223372036854775808) : error_outOfRange
 
 #noinline
-def testContainer_ReversePart$(write ok Int, write errorsCoordinates List)
+def testContainer_ReverseFromAtoB$(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        listToContainer({}).reversePart$(0, 0) == listToContainer({})
-        listToContainer({}).reversePart$(0, 1) : error_outOfRange
-        listToContainer({}).reversePart$(1, 1) : error_outOfRange
-        listToContainer({}).reversePart$(1, 0) : error_outOfRange
-        listToContainer({}).reversePart$(-1, -1) : error_outOfRange
-        listToContainer({}).reversePart$(-9223372036854775808, 0) : error_outOfRange
-        listToContainer({}).reversePart$(0, -9223372036854775808) : error_outOfRange
-        listToContainer({}).reversePart$(0, 9223372036854775807) : error_outOfRange
-        listToContainer({}).reversePart$(-9223372036854775808, 9223372036854775807) : error_outOfRange
-        listToContainer({1}).reversePart$(0, 0) == listToContainer({1})
-        listToContainer({1}).reversePart$(0, 1) == listToContainer({1})
-        listToContainer({1}).reversePart$(1, 1) == listToContainer({1})
-        listToContainer({1}).reversePart$(0, 2) : error_outOfRange
-        listToContainer({1}).reversePart$(2, 1) : error_outOfRange
-        listToContainer({1}).reversePart$(1, 2) : error_outOfRange
-        listToContainer({1}).reversePart$(2, 2) : error_outOfRange
-        listToContainer({1}).reversePart$(1, 0) : error_outOfRange
-        listToContainer({1}).reversePart$(-1, -1) : error_outOfRange
-        listToContainer({1}).reversePart$(-9223372036854775808, 0) : error_outOfRange
-        listToContainer({1}).reversePart$(0, -9223372036854775808) : error_outOfRange
-        listToContainer({1}).reversePart$(0, 9223372036854775807) : error_outOfRange
-        listToContainer({1}).reversePart$(-9223372036854775808, 9223372036854775807) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(0, 0) == listToContainer({1, 2})
-        listToContainer({1, 2}).reversePart$(0, 1) == listToContainer({1, 2})
-        listToContainer({1, 2}).reversePart$(1, 1) == listToContainer({1, 2})
-        listToContainer({1, 2}).reversePart$(1, 2) == listToContainer({1, 2})
-        listToContainer({1, 2}).reversePart$(2, 2) == listToContainer({1, 2})
-        listToContainer({1, 2}).reversePart$(0, 2) == listToContainer({2, 1})
-        listToContainer({1, 2}).reversePart$(0, 3) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(3, 0) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(1, 3) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(3, 3) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(1, 0) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(-1, -1) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(-9223372036854775808, 0) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(0, -9223372036854775808) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(0, 9223372036854775807) : error_outOfRange
-        listToContainer({1, 2}).reversePart$(-9223372036854775808, 9223372036854775807) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(0, 0) == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(0, 1) == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(1, 1) == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(1, 2) == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(0, 5) == listToContainer({5, 4, 3, 2, 1, 6, 7, 8, 9})
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(5, 9) == listToContainer({1, 2, 3, 4, 5, 9, 8, 7, 6})
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(0, 9) == listToContainer({9, 8, 7, 6, 5, 4, 3, 2, 1})
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(3, 7) == listToContainer({1, 2, 3, 7, 6, 5, 4, 8, 9})
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(0, 10) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(3, 0) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(9, 0) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(10, 0) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(3, -1) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(-1, -1) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(-9223372036854775808, 0) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(0, -9223372036854775808) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(0, 9223372036854775807) : error_outOfRange
-        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reversePart$(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        listToContainer({}).reverseFromAtoB$(0, 0) == listToContainer({})
+        listToContainer({}).reverseFromAtoB$(0, 1) : error_outOfRange
+        listToContainer({}).reverseFromAtoB$(1, 1) : error_outOfRange
+        listToContainer({}).reverseFromAtoB$(1, 0) : error_outOfRange
+        listToContainer({}).reverseFromAtoB$(-1, -1) : error_outOfRange
+        listToContainer({}).reverseFromAtoB$(-9223372036854775808, 0) : error_outOfRange
+        listToContainer({}).reverseFromAtoB$(0, -9223372036854775808) : error_outOfRange
+        listToContainer({}).reverseFromAtoB$(0, 9223372036854775807) : error_outOfRange
+        listToContainer({}).reverseFromAtoB$(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(0, 0) == listToContainer({1})
+        listToContainer({1}).reverseFromAtoB$(0, 1) == listToContainer({1})
+        listToContainer({1}).reverseFromAtoB$(1, 1) == listToContainer({1})
+        listToContainer({1}).reverseFromAtoB$(0, 2) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(2, 1) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(1, 2) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(2, 2) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(1, 0) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(-1, -1) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(-9223372036854775808, 0) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(0, -9223372036854775808) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(0, 9223372036854775807) : error_outOfRange
+        listToContainer({1}).reverseFromAtoB$(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(0, 0) == listToContainer({1, 2})
+        listToContainer({1, 2}).reverseFromAtoB$(0, 1) == listToContainer({1, 2})
+        listToContainer({1, 2}).reverseFromAtoB$(1, 1) == listToContainer({1, 2})
+        listToContainer({1, 2}).reverseFromAtoB$(1, 2) == listToContainer({1, 2})
+        listToContainer({1, 2}).reverseFromAtoB$(2, 2) == listToContainer({1, 2})
+        listToContainer({1, 2}).reverseFromAtoB$(0, 2) == listToContainer({2, 1})
+        listToContainer({1, 2}).reverseFromAtoB$(0, 3) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(3, 0) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(1, 3) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(3, 3) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(1, 0) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(-1, -1) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(-9223372036854775808, 0) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(0, -9223372036854775808) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(0, 9223372036854775807) : error_outOfRange
+        listToContainer({1, 2}).reverseFromAtoB$(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(0, 0) == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(0, 1) == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(1, 1) == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(1, 2) == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(0, 5) == listToContainer({5, 4, 3, 2, 1, 6, 7, 8, 9})
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(5, 9) == listToContainer({1, 2, 3, 4, 5, 9, 8, 7, 6})
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(0, 9) == listToContainer({9, 8, 7, 6, 5, 4, 3, 2, 1})
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(3, 7) == listToContainer({1, 2, 3, 7, 6, 5, 4, 8, 9})
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(0, 10) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(3, 0) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(9, 0) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(10, 0) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(3, -1) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(-1, -1) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(-9223372036854775808, 0) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(0, -9223372036854775808) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(0, 9223372036854775807) : error_outOfRange
+        listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9}).reverseFromAtoB$(-9223372036854775808, 9223372036854775807) : error_outOfRange
 
 #noinline
-def testContainer_ReversePart(write ok Int, write errorsCoordinates List)
+def testContainer_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
     var c Container = listToContainer({})
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == listToContainer({})
-        c.reversePart(0, 1) : error_outOfRange
+        c.reverseFromAtoB(0, 1) : error_outOfRange
         c == listToContainer({})
-        c.reversePart(1, 1) : error_outOfRange
+        c.reverseFromAtoB(1, 1) : error_outOfRange
         c == listToContainer({})
-        c.reversePart(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : error_outOfRange
         c == listToContainer({})
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == listToContainer({})
-        c.reversePart(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
         c == listToContainer({})
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == listToContainer({})
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == listToContainer({})
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == listToContainer({})
     c = listToContainer({1})
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == listToContainer({1})
-        c.reversePart(0, 1).nothing?()
+        c.reverseFromAtoB(0, 1).nothing?()
         c == listToContainer({1})
-        c.reversePart(1, 1).nothing?()
+        c.reverseFromAtoB(1, 1).nothing?()
         c == listToContainer({1})
-        c.reversePart(0, 2) : error_outOfRange
+        c.reverseFromAtoB(0, 2) : error_outOfRange
         c == listToContainer({1})
-        c.reversePart(2, 1) : error_outOfRange
+        c.reverseFromAtoB(2, 1) : error_outOfRange
         c == listToContainer({1})
-        c.reversePart(1, 2) : error_outOfRange
+        c.reverseFromAtoB(1, 2) : error_outOfRange
         c == listToContainer({1})
-        c.reversePart(2, 2) : error_outOfRange
+        c.reverseFromAtoB(2, 2) : error_outOfRange
         c == listToContainer({1})
-        c.reversePart(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : error_outOfRange
         c == listToContainer({1})
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == listToContainer({1})
-        c.reversePart(-9223372036854775808, 1) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 1) : error_outOfRange
         c == listToContainer({1})
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == listToContainer({1})
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == listToContainer({1})
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == listToContainer({1})
     c = listToContainer({1, 2})
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == listToContainer({1, 2})
-        c.reversePart(0, 1).nothing?()
+        c.reverseFromAtoB(0, 1).nothing?()
         c == listToContainer({1, 2})
-        c.reversePart(1, 1).nothing?()
+        c.reverseFromAtoB(1, 1).nothing?()
         c == listToContainer({1, 2})
-        c.reversePart(1, 2).nothing?()
+        c.reverseFromAtoB(1, 2).nothing?()
         c == listToContainer({1, 2})
-        c.reversePart(2, 2).nothing?()
+        c.reverseFromAtoB(2, 2).nothing?()
         c == listToContainer({1, 2})
-        c.reversePart(0, 2).nothing?()
+        c.reverseFromAtoB(0, 2).nothing?()
         c == listToContainer({2, 1})
-        c.reversePart(0, 3) : error_outOfRange
+        c.reverseFromAtoB(0, 3) : error_outOfRange
         c == listToContainer({2, 1})
-        c.reversePart(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : error_outOfRange
         c == listToContainer({2, 1})
-        c.reversePart(1, 3) : error_outOfRange
+        c.reverseFromAtoB(1, 3) : error_outOfRange
         c == listToContainer({2, 1})
-        c.reversePart(3, 3) : error_outOfRange
+        c.reverseFromAtoB(3, 3) : error_outOfRange
         c == listToContainer({2, 1})
-        c.reversePart(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : error_outOfRange
         c == listToContainer({2, 1})
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == listToContainer({2, 1})
-        c.reversePart(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
         c == listToContainer({2, 1})
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == listToContainer({2, 1})
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == listToContainer({2, 1})
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == listToContainer({2, 1})
     c = listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
-        c.reversePart(0, 1).nothing?()
+        c.reverseFromAtoB(0, 1).nothing?()
         c == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
-        c.reversePart(1, 1).nothing?()
+        c.reverseFromAtoB(1, 1).nothing?()
         c == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
-        c.reversePart(1, 2).nothing?()
+        c.reverseFromAtoB(1, 2).nothing?()
         c == listToContainer({1, 2, 3, 4, 5, 6, 7, 8, 9})
-        c.reversePart(0, 5).nothing?()
+        c.reverseFromAtoB(0, 5).nothing?()
         c == listToContainer({5, 4, 3, 2, 1, 6, 7, 8, 9})
-        c.reversePart(5, 9).nothing?()
+        c.reverseFromAtoB(5, 9).nothing?()
         c == listToContainer({5, 4, 3, 2, 1, 9, 8, 7, 6})
-        c.reversePart(0, 9).nothing?()
+        c.reverseFromAtoB(0, 9).nothing?()
         c == listToContainer({6, 7, 8, 9, 1, 2, 3, 4, 5})
-        c.reversePart(3, 7).nothing?()
+        c.reverseFromAtoB(3, 7).nothing?()
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(0, 10) : error_outOfRange
+        c.reverseFromAtoB(0, 10) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(9, 0) : error_outOfRange
+        c.reverseFromAtoB(9, 0) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(10, 0) : error_outOfRange
+        c.reverseFromAtoB(10, 0) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(3, -1) : error_outOfRange
+        c.reverseFromAtoB(3, -1) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
-        c.reversePart(9223372036854775807, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(9223372036854775807, -9223372036854775808) : error_outOfRange
         c == listToContainer({6, 7, 8, 3, 2, 1, 9, 4, 5})
 
 #noinline
@@ -5593,3 +5772,644 @@ def testContainer_Reverse(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         c.reverse().nothing?()
         c == listToContainer({9, 8, 7, 6, 5, 4, 3, 2, 1})
+
+#noinline
+def testContainer_Sort(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [NotEqType_Container.fromList({})].arrayToSortableContainer().sort$(true) : error_invalidType
+        [NotEqType_Container.fromList({})].arrayToSortableContainer().sort$(false) : error_invalidType
+        [NotEqType_Container.fromList({}), NotEqType_Container.fromList({})].arrayToSortableContainer().sort$(true) : error_invalidType
+        [NotEqType_Container.fromList({}), NotEqType_Container.fromList({})].arrayToSortableContainer().sort$(false) : error_invalidType
+        [].arrayToSortableContainer().sort$(true) == [].arrayToSortableContainer()
+        [].arrayToSortableContainer().sort$(false) == [].arrayToSortableContainer()
+        [].arrayToSortableContainer().sort$(true).itemTypeNumber~() == Nothing.typeNumber~()
+        [].arrayToSortableContainer().sort$(false).itemTypeNumber~() == Nothing.typeNumber~()
+        [1].arrayToSortableContainer().sort$(true) == [1].arrayToSortableContainer()
+        [1].arrayToSortableContainer().sort$(false) == [1].arrayToSortableContainer()
+        [1, 2].arrayToSortableContainer().sort$(true) == [1, 2].arrayToSortableContainer()
+        [1, 2].arrayToSortableContainer().sort$(false) == [2, 1].arrayToSortableContainer()
+        [2, 1].arrayToSortableContainer().sort$(true) == [1, 2].arrayToSortableContainer()
+        [2, 1].arrayToSortableContainer().sort$(false) == [2, 1].arrayToSortableContainer()
+        [1, 2, 3].arrayToSortableContainer().sort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [1, 2, 3].arrayToSortableContainer().sort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [1, 3, 2].arrayToSortableContainer().sort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [1, 3, 2].arrayToSortableContainer().sort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [2, 1, 3].arrayToSortableContainer().sort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [2, 1, 3].arrayToSortableContainer().sort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [2, 3, 1].arrayToSortableContainer().sort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [2, 3, 1].arrayToSortableContainer().sort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [3, 1, 2].arrayToSortableContainer().sort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [3, 1, 2].arrayToSortableContainer().sort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [3, 2, 1].arrayToSortableContainer().sort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [3, 2, 1].arrayToSortableContainer().sort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToSortableContainer().sort$(true) == [-301, -92, -3, 0, 9, 15, 26, 45, 172, 7134].arrayToSortableContainer()
+        [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToSortableContainer().sort$(false) == [7134, 172, 45, 26, 15, 9, 0, -3, -92, -301].arrayToSortableContainer()
+        [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] {
+            .arrayToSortableContainer().sort$(true) ==
+            [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            .arrayToSortableContainer()
+        }
+        [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] {
+            .arrayToSortableContainer().sort$(false) ==
+            [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100]
+            .arrayToSortableContainer()
+        }
+        [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100] {
+            .arrayToSortableContainer().sort$(true) ==
+            [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            .arrayToSortableContainer()
+        }
+        [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100] {
+            .arrayToSortableContainer().sort$(false) ==
+            [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100]
+            .arrayToSortableContainer()
+        }
+    var a1 SortableContainer = [].arrayToSortableContainer()
+    var a2 SortableContainer = [1].arrayToSortableContainer()
+    var a3 SortableContainer = [1, 2].arrayToSortableContainer()
+    var a4 SortableContainer = [1, 2, 3].arrayToSortableContainer()
+    var a5 SortableContainer = [2, 1, 3].arrayToSortableContainer()
+    var a6 SortableContainer = [2, 1, 3].arrayToSortableContainer()
+    var a7 SortableContainer = [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToSortableContainer()
+    var a8 SortableContainer = [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToSortableContainer()
+    var a9 SortableContainer = [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].arrayToSortableContainer()
+    var a10 SortableContainer = [NotEqType_Container.fromList({})].arrayToSortableContainer()
+    var a11 SortableContainer = [NotEqType_Container.fromList({}), NotEqType_Container.fromList({})].arrayToSortableContainer()
+    test: ok, errorsCoordinates
+        a1.sort(true).nothing?()
+        a1 == [].arrayToSortableContainer()
+        a1.sort(false).nothing?()
+        a1 == [].arrayToSortableContainer()
+        a1.sort(true).nothing?()
+        a1.itemTypeNumber~() == Nothing.typeNumber~()
+        a1 == [].arrayToSortableContainer()
+        a1.sort(false).nothing?()
+        a1.itemTypeNumber~() == Nothing.typeNumber~()
+        a1 == [].arrayToSortableContainer()
+        a2.sort(true).nothing?()
+        a2 == [1].arrayToSortableContainer()
+        a2.sort(false).nothing?()
+        a2 == [1].arrayToSortableContainer()
+        a3.sort(true).nothing?()
+        a3 == [1, 2].arrayToSortableContainer()
+        a3.sort(false).nothing?()
+        a3 == [2, 1].arrayToSortableContainer()
+        a3.sort(false).nothing?()
+        a3 == [2, 1].arrayToSortableContainer()
+        a4.sort(true).nothing?()
+        a4 == [1, 2, 3].arrayToSortableContainer()
+        a4.sort(false).nothing?()
+        a4 == [3, 2, 1].arrayToSortableContainer()
+        a4.sort(false).nothing?()
+        a4 == [3, 2, 1].arrayToSortableContainer()
+        a5.sort(true).nothing?()
+        a5 == [1, 2, 3].arrayToSortableContainer()
+        a6.sort(false).nothing?()
+        a6 == [3, 2, 1].arrayToSortableContainer()
+        a7.sort(true).nothing?()
+        a7 == [-301, -92, -3, 0, 9, 15, 26, 45, 172, 7134].arrayToSortableContainer()
+        a8.sort(false).nothing?()
+        a8 == [7134, 172, 45, 26, 15, 9, 0, -3, -92, -301].arrayToSortableContainer()
+        a9.sort(true).nothing?()
+        a9 == [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].arrayToSortableContainer()
+        a9.sort(false).nothing?()
+        a9 == [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100].arrayToSortableContainer()
+        a9.sort(true).nothing?()
+        a9 == [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].arrayToSortableContainer()
+        a10.sort(true) : error_invalidType
+        a10.sort(false) : error_invalidType
+        a11.sort(true) : error_invalidType
+        a11.sort(false) : error_invalidType
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a1.sort(true)
+    var allOk Bool = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a1.sort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a2 = a1.sort$(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i - 1] <= a2[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a2 = a1.sort$(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i] <= a2[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a1.sort(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a1.sort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a2 = a1.sort$(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i - 1] <= a2[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a2 = a1.sort$(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i] <= a2[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = SortableContainer.repeat(123, 12)
+    a1.sort(true)
+    a2 = SortableContainer.repeat(123, 200)
+    a2.sort(true)
+    a3 = SortableContainer.repeat(123, 12)
+    a3.sort(false)
+    a4 = SortableContainer.repeat(123, 200)
+    a4.sort(false)
+    test: ok, errorsCoordinates
+        a1 == SortableContainer.repeat(123, 12)
+        a2 == SortableContainer.repeat(123, 200)
+        a3 == SortableContainer.repeat(123, 12)
+        a4 == SortableContainer.repeat(123, 200)
+        SortableContainer.repeat(123, 12).sort$(true) == SortableContainer.repeat(123, 12)
+        SortableContainer.repeat(123, 12).sort$(false) == SortableContainer.repeat(123, 12)
+        SortableContainer.repeat(123, 200).sort$(true) == SortableContainer.repeat(123, 200)
+        SortableContainer.repeat(123, 200).sort$(false) == SortableContainer.repeat(123, 200)
+
+#noinline
+def testContainer_StableSort(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [NotEqType_Container.fromList({})].arrayToSortableContainer().stableSort$(true) : error_invalidType
+        [NotEqType_Container.fromList({})].arrayToSortableContainer().stableSort$(false) : error_invalidType
+        [NotEqType_Container.fromList({}), NotEqType_Container.fromList({})].arrayToSortableContainer().stableSort$(true) : error_invalidType
+        [NotEqType_Container.fromList({}), NotEqType_Container.fromList({})].arrayToSortableContainer().stableSort$(false) : error_invalidType
+        [].arrayToSortableContainer().stableSort$(true) == [].arrayToSortableContainer()
+        [].arrayToSortableContainer().stableSort$(false) == [].arrayToSortableContainer()
+        [].arrayToSortableContainer().stableSort$(true).itemTypeNumber~() == Nothing.typeNumber~()
+        [].arrayToSortableContainer().stableSort$(false).itemTypeNumber~() == Nothing.typeNumber~()
+        [1].arrayToSortableContainer().stableSort$(true) == [1].arrayToSortableContainer()
+        [1].arrayToSortableContainer().stableSort$(false) == [1].arrayToSortableContainer()
+        [1, 2].arrayToSortableContainer().stableSort$(true) == [1, 2].arrayToSortableContainer()
+        [1, 2].arrayToSortableContainer().stableSort$(false) == [2, 1].arrayToSortableContainer()
+        [2, 1].arrayToSortableContainer().stableSort$(true) == [1, 2].arrayToSortableContainer()
+        [2, 1].arrayToSortableContainer().stableSort$(false) == [2, 1].arrayToSortableContainer()
+        [1, 2, 3].arrayToSortableContainer().stableSort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [1, 2, 3].arrayToSortableContainer().stableSort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [1, 3, 2].arrayToSortableContainer().stableSort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [1, 3, 2].arrayToSortableContainer().stableSort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [2, 1, 3].arrayToSortableContainer().stableSort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [2, 1, 3].arrayToSortableContainer().stableSort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [2, 3, 1].arrayToSortableContainer().stableSort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [2, 3, 1].arrayToSortableContainer().stableSort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [3, 1, 2].arrayToSortableContainer().stableSort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [3, 1, 2].arrayToSortableContainer().stableSort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [3, 2, 1].arrayToSortableContainer().stableSort$(true) == [1, 2, 3].arrayToSortableContainer()
+        [3, 2, 1].arrayToSortableContainer().stableSort$(false) == [3, 2, 1].arrayToSortableContainer()
+        [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToSortableContainer().stableSort$(true) == [-301, -92, -3, 0, 9, 15, 26, 45, 172, 7134].arrayToSortableContainer()
+        [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToSortableContainer().stableSort$(false) == [7134, 172, 45, 26, 15, 9, 0, -3, -92, -301].arrayToSortableContainer()
+        [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] {
+            .arrayToSortableContainer().stableSort$(true) ==
+            [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            .arrayToSortableContainer()
+        }
+        [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] {
+            .arrayToSortableContainer().stableSort$(false) ==
+            [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100]
+            .arrayToSortableContainer()
+        }
+        [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100] {
+            .arrayToSortableContainer().stableSort$(true) ==
+            [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            .arrayToSortableContainer()
+        }
+        [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100] {
+            .arrayToSortableContainer().stableSort$(false) ==
+            [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100]
+            .arrayToSortableContainer()
+        }
+    var a1 SortableContainer = [].arrayToSortableContainer()
+    var a2 SortableContainer = [1].arrayToSortableContainer()
+    var a3 SortableContainer = [1, 2].arrayToSortableContainer()
+    var a4 SortableContainer = [1, 2, 3].arrayToSortableContainer()
+    var a5 SortableContainer = [2, 1, 3].arrayToSortableContainer()
+    var a6 SortableContainer = [2, 1, 3].arrayToSortableContainer()
+    var a7 SortableContainer = [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToSortableContainer()
+    var a8 SortableContainer = [-3, 45, 172, -92, 26, 7134, 0, 9, 15, -301].arrayToSortableContainer()
+    var a9 SortableContainer = [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].arrayToSortableContainer()
+    var a10 SortableContainer = [NotEqType_Container.fromList({})].arrayToSortableContainer()
+    var a11 SortableContainer = [NotEqType_Container.fromList({}), NotEqType_Container.fromList({})].arrayToSortableContainer()
+    test: ok, errorsCoordinates
+        a1.stableSort(true).nothing?()
+        a1 == [].arrayToSortableContainer()
+        a1.stableSort(false).nothing?()
+        a1 == [].arrayToSortableContainer()
+        a1.stableSort(true).nothing?()
+        a1.itemTypeNumber~() == Nothing.typeNumber~()
+        a1 == [].arrayToSortableContainer()
+        a1.stableSort(false).nothing?()
+        a1.itemTypeNumber~() == Nothing.typeNumber~()
+        a1 == [].arrayToSortableContainer()
+        a2.stableSort(true).nothing?()
+        a2 == [1].arrayToSortableContainer()
+        a2.stableSort(false).nothing?()
+        a2 == [1].arrayToSortableContainer()
+        a3.stableSort(true).nothing?()
+        a3 == [1, 2].arrayToSortableContainer()
+        a3.stableSort(false).nothing?()
+        a3 == [2, 1].arrayToSortableContainer()
+        a3.stableSort(false).nothing?()
+        a3 == [2, 1].arrayToSortableContainer()
+        a4.stableSort(true).nothing?()
+        a4 == [1, 2, 3].arrayToSortableContainer()
+        a4.stableSort(false).nothing?()
+        a4 == [3, 2, 1].arrayToSortableContainer()
+        a4.stableSort(false).nothing?()
+        a4 == [3, 2, 1].arrayToSortableContainer()
+        a5.stableSort(true).nothing?()
+        a5 == [1, 2, 3].arrayToSortableContainer()
+        a6.stableSort(false).nothing?()
+        a6 == [3, 2, 1].arrayToSortableContainer()
+        a7.stableSort(true).nothing?()
+        a7 == [-301, -92, -3, 0, 9, 15, 26, 45, 172, 7134].arrayToSortableContainer()
+        a8.stableSort(false).nothing?()
+        a8 == [7134, 172, 45, 26, 15, 9, 0, -3, -92, -301].arrayToSortableContainer()
+        a9.stableSort(true).nothing?()
+        a9 == [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].arrayToSortableContainer()
+        a9.stableSort(false).nothing?()
+        a9 == [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -55, -60, -65, -70, -75, -80, -85, -90, -95, -100].arrayToSortableContainer()
+        a9.stableSort(true).nothing?()
+        a9 == [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].arrayToSortableContainer()
+        a10.stableSort(true) : error_invalidType
+        a10.stableSort(false) : error_invalidType
+        a11.stableSort(true) : error_invalidType
+        a11.stableSort(false) : error_invalidType
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a1.stableSort(true)
+    var allOk Bool = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a1.stableSort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a2 = a1.stableSort$(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i - 1] <= a2[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom())
+    a2 = a1.stableSort$(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i] <= a2[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a1.stableSort(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a1.stableSort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a2 = a1.stableSort$(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i - 1] <= a2[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(Int.getRandom() & 127)
+    a2 = a1.stableSort$(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i] <= a2[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = SortableContainer.repeat(123, 12)
+    a1.stableSort(true)
+    a2 = SortableContainer.repeat(123, 200)
+    a2.stableSort(true)
+    a3 = SortableContainer.repeat(123, 12)
+    a3.stableSort(false)
+    a4 = SortableContainer.repeat(123, 200)
+    a4.stableSort(false)
+    test: ok, errorsCoordinates
+        a1 == SortableContainer.repeat(123, 12)
+        a2 == SortableContainer.repeat(123, 200)
+        a3 == SortableContainer.repeat(123, 12)
+        a4 == SortableContainer.repeat(123, 200)
+        SortableContainer.repeat(123, 12).stableSort$(true) == SortableContainer.repeat(123, 12)
+        SortableContainer.repeat(123, 12).stableSort$(false) == SortableContainer.repeat(123, 12)
+        SortableContainer.repeat(123, 200).stableSort$(true) == SortableContainer.repeat(123, 200)
+        SortableContainer.repeat(123, 200).stableSort$(false) == SortableContainer.repeat(123, 200)
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(ItemForStableSort_Container(Int.getRandom() & 63, i))
+    a1.stableSort(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && (a1[i - 1].sortedItem_Container~() == a1[i].sortedItem_Container~()).select(a1[i - 1].id_Container~() < a1[i].id_Container~(), true)
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(ItemForStableSort_Container(Int.getRandom() & 63, i))
+    a1.stableSort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && (a1[i - 1].sortedItem_Container~() == a1[i].sortedItem_Container~()).select(a1[i - 1].id_Container~() < a1[i].id_Container~(), true)
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(ItemForStableSort_Container(Int.getRandom() & 63, i))
+    a2 = a1.stableSort$(true)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && (a2[i - 1].sortedItem_Container~() == a2[i].sortedItem_Container~()).select(a2[i - 1].id_Container~() < a2[i].id_Container~(), true)
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(ItemForStableSort_Container(Int.getRandom() & 63, i))
+    a2 = a1.stableSort$(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && (a2[i - 1].sortedItem_Container~() == a2[i].sortedItem_Container~()).select(a2[i - 1].id_Container~() < a2[i].id_Container~(), true)
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(ItemForStableSort_Container(11, i))
+    a1.stableSort(true)
+    allOk = true
+    for :(i Int = 0) i < 200; i++
+        allOk = allOk && a1[i].id_Container~() == i
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(ItemForStableSort_Container(11, i))
+    a1.stableSort(false)
+    allOk = true
+    for :(i Int = 0) i < 200; i++
+        allOk = allOk && a1[i].id_Container~() == i
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(ItemForStableSort_Container(11, i))
+    a2 = a1.stableSort$(true)
+    allOk = true
+    for :(i Int = 0) i < 200; i++
+        allOk = allOk && a2[i].id_Container~() == i
+    test: ok, errorsCoordinates
+        allOk
+    a1 = [].arrayToSortableContainer()
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(ItemForStableSort_Container(11, i))
+    a2 = a1.stableSort$(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a2[i].id_Container~() == i
+    test: ok, errorsCoordinates
+        allOk
+
+#noinline
+def testContainer_Join(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        [].join(listToContainer({})) == listToContainer({})
+        [].join(listToContainer({1})) == listToContainer({})
+        [].join(listToContainer({1, 2})) == listToContainer({})
+        [listToContainer({3})].join(listToContainer({})) == listToContainer({3})
+        [listToContainer({3})].join(listToContainer({1})) == listToContainer({3})
+        [listToContainer({3})].join(listToContainer({1, 2})) == listToContainer({3})
+        ["3"].join(listToContainer({})) : error_invalidType
+        ["3"].join(listToContainer({1})) : error_invalidType
+        ["3"].join(listToContainer({1, 2})) : error_invalidType
+        [listToContainer({3}), listToContainer({4})].join(listToContainer({})) == listToContainer({3, 4})
+        [listToContainer({3}), listToContainer({4})].join(listToContainer({1})) == listToContainer({3, 1, 4})
+        [listToContainer({3}), listToContainer({4})].join(listToContainer({1, 2})) == listToContainer({3, 1, 2, 4})
+        ["3", "4"].join(listToContainer({})) : error_invalidType
+        ["3", "4"].join(listToContainer({1})) : error_invalidType
+        ["3", "4"].join(listToContainer({1, 2})) : error_invalidType
+        [listToContainer({3}), listToContainer({4}), listToContainer({5})].join(listToContainer({})) == listToContainer({3, 4, 5})
+        [listToContainer({3}), listToContainer({4}), listToContainer({5})].join(listToContainer({1})) == listToContainer({3, 1, 4, 1, 5})
+        [listToContainer({3}), listToContainer({4}), listToContainer({5})].join(listToContainer({1, 2})) == listToContainer({3, 1, 2, 4, 1, 2, 5})
+        ["3", "4", "5"].join(listToContainer({})) : error_invalidType
+        ["3", "4", "5"].join(listToContainer({1})) : error_invalidType
+        ["3", "4", "5"].join(listToContainer({1, 2})) : error_invalidType
+        [listToContainer({})].join(listToContainer({})) == listToContainer({})
+        [listToContainer({})].join(listToContainer({1})) == listToContainer({})
+        [listToContainer({}), listToContainer({})].join(listToContainer({})) == listToContainer({})
+        [listToContainer({}), listToContainer({})].join(listToContainer({1})) == listToContainer({1})
+        [listToContainer({}), listToContainer({}), listToContainer({})].join(listToContainer({})) == listToContainer({})
+        [listToContainer({}), listToContainer({}), listToContainer({})].join(listToContainer({1, 2})) == listToContainer({1, 2, 1, 2})
+        [listToContainer({7}), listToContainer({}), listToContainer({})].join(listToContainer({1, 2})) == listToContainer({7, 1, 2, 1, 2})
+        [listToContainer({7}), listToContainer({9}), listToContainer({})].join(listToContainer({1, 2})) == listToContainer({7, 1, 2, 9, 1, 2})
+        [listToContainer({7}), listToContainer({}), listToContainer({9})].join(listToContainer({1, 2})) == listToContainer({7, 1, 2, 1, 2, 9})
+
+#noinline
+def testContainer_Uniq$(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        arrayToSortableContainer([]).uniq$() == arrayToSortableContainer([])
+        arrayToSortableContainer([1]).uniq$() == arrayToSortableContainer([1])
+        arrayToSortableContainer([1, 1]).uniq$() == arrayToSortableContainer([1])
+        arrayToSortableContainer([1, 1, 1, 1, 1, 1, 1, 1]).uniq$() == arrayToSortableContainer([1])
+        arrayToSortableContainer([1, 2]).uniq$() == arrayToSortableContainer([1, 2])
+        arrayToSortableContainer([2, 1]).uniq$() == arrayToSortableContainer([2, 1])
+        arrayToSortableContainer([1, 2, 2]).uniq$() == arrayToSortableContainer([1, 2])
+        arrayToSortableContainer([1, 2, 1]).uniq$() == arrayToSortableContainer([1, 2])
+        arrayToSortableContainer([1, 2, 1, 2, 1, 2, 2, 2]).uniq$() == arrayToSortableContainer([1, 2])
+        arrayToSortableContainer([1, 2, 3]).uniq$() == arrayToSortableContainer([1, 2, 3])
+        arrayToSortableContainer([1, 2, 3, 2]).uniq$() == arrayToSortableContainer([1, 2, 3])
+        arrayToSortableContainer([1, 2, 1, 3]).uniq$() == arrayToSortableContainer([1, 2, 3])
+        arrayToSortableContainer([1, 2, 3, 1]).uniq$() == arrayToSortableContainer([1, 2, 3])
+        arrayToSortableContainer([3, 2, 1, 1]).uniq$() == arrayToSortableContainer([3, 2, 1])
+        arrayToSortableContainer([1.0]).uniq$() == arrayToSortableContainer([1.0])
+        arrayToSortableContainer([1.0, 1.0]).uniq$() == arrayToSortableContainer([1.0])
+        arrayToSortableContainer([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).uniq$() == arrayToSortableContainer([1.0])
+        arrayToSortableContainer([1.0, 2.0]).uniq$() == arrayToSortableContainer([1.0, 2.0])
+        arrayToSortableContainer([1.0, 2.0, 2.0]).uniq$() == arrayToSortableContainer([1.0, 2.0])
+        arrayToSortableContainer([1.0, 2.0, 1.0]).uniq$() == arrayToSortableContainer([1.0, 2.0])
+        arrayToSortableContainer([1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 2.0, 2.0]).uniq$() == arrayToSortableContainer([1.0, 2.0])
+        arrayToSortableContainer([1.0, 2.0, 3.0]).uniq$() == arrayToSortableContainer([1.0, 2.0, 3.0])
+        arrayToSortableContainer([1.0, 2.0, 3.0, 2.0]).uniq$() == arrayToSortableContainer([1.0, 2.0, 3.0])
+        arrayToSortableContainer([1.0, 2.0, 1.0, 3.0]).uniq$() == arrayToSortableContainer([1.0, 2.0, 3.0])
+        arrayToSortableContainer([1.0, 2.0, 3.0, 1.0]).uniq$() == arrayToSortableContainer([1.0, 2.0, 3.0])
+        arrayToSortableContainer([3.0, 2.0, 1.0, 1.0]).uniq$() == arrayToSortableContainer([3.0, 2.0, 1.0])
+        arrayToSortableContainer([Map()]).uniq$() : error_invalidType
+
+#noinline
+def testContainer_Uniq(write ok Int, write errorsCoordinates List)
+    var c SortableContainer = arrayToSortableContainer([])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([])
+    c = arrayToSortableContainer([1])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1])
+    c = arrayToSortableContainer([1, 1])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1])
+    c = arrayToSortableContainer([1, 1, 1, 1, 1, 1, 1, 1])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1])
+    c = arrayToSortableContainer([1, 2])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1, 2])
+    c = arrayToSortableContainer([2, 1])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([2, 1])
+    c = arrayToSortableContainer([1, 2, 2])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1, 2])
+    c = arrayToSortableContainer([1, 2, 1])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1, 2])
+    c = arrayToSortableContainer([1, 2, 1, 2, 1, 2, 2, 2])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1, 2])
+    c = arrayToSortableContainer([1, 2, 3])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1, 2, 3])
+    c = arrayToSortableContainer([1, 2, 3, 2])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1, 2, 3])
+    c = arrayToSortableContainer([1, 2, 1, 3])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1, 2, 3])
+    c = arrayToSortableContainer([1, 2, 3, 1])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1, 2, 3])
+    c = arrayToSortableContainer([3, 2, 1, 1])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([3, 2, 1])
+    c = arrayToSortableContainer([1.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0])
+    c = arrayToSortableContainer([1.0, 1.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0])
+    c = arrayToSortableContainer([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0])
+    c = arrayToSortableContainer([1.0, 2.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0, 2.0])
+    c = arrayToSortableContainer([1.0, 2.0, 2.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0, 2.0])
+    c = arrayToSortableContainer([1.0, 2.0, 1.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0, 2.0])
+    c = arrayToSortableContainer([1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 2.0, 2.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0, 2.0])
+    c = arrayToSortableContainer([1.0, 2.0, 3.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0, 2.0, 3.0])
+    c = arrayToSortableContainer([1.0, 2.0, 3.0, 2.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0, 2.0, 3.0])
+    c = arrayToSortableContainer([1.0, 2.0, 1.0, 3.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0, 2.0, 3.0])
+    c = arrayToSortableContainer([1.0, 2.0, 3.0, 1.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([1.0, 2.0, 3.0])
+    c = arrayToSortableContainer([3.0, 2.0, 1.0, 1.0])
+    test: ok, errorsCoordinates
+        c.uniq().nothing?()
+        c == arrayToSortableContainer([3.0, 2.0, 1.0])
+    c = arrayToSortableContainer([Map()])
+    test: ok, errorsCoordinates
+        c.uniq() : error_invalidType

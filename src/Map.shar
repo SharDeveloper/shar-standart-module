@@ -10,6 +10,7 @@ export group Map: AArray, KeyTypeNumber
 export primitive Map
 
 //@The function creates an empty associative array of the "STD::Map" type.
+//@The function returns a constant.
 #alwaysinline nothrow
 export def Map() Map
     return Map.createEmpty()
@@ -116,6 +117,7 @@ def dump(map Map, level Int) String
     return result
 
 attach Map to Empty
+    //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type Map) Map
         llvm
@@ -134,7 +136,7 @@ attach Map to Shar__sugar__getItem
         const keyTypeNumberInMap Int = map.keyTypeNumber~()
         inthrow
             if keyTypeNumberInMap != key.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         const slotAddress Int = map.unsafe_map_slotAddress(key.getShortRandomizedHash() & (map.unsafe_map_slotsCount() - 1))
         const slotLength Int = slotAddress.unsafe_getI64(0)
         var result $Any = nothing
@@ -160,7 +162,7 @@ attach Map to Put
         const valueTypeNumberInMap Int = map.valueTypeNumber~()
         inthrow
             if (keyTypeNumberInMap != key.typeNumber~() || valueTypeNumberInMap != newValue.typeNumber~()) && keyTypeNumberInMap != Nothing.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         const slotsCount Int = map.unsafe_map_slotsCount()
         const needToEnlarge Bool = map.length~() == slotsCount && slotsCount != 0x100000000
         var result $Any = nothing
@@ -187,10 +189,10 @@ attach Map to Put
                 var isEqual Bool = false
                 try
                     isEqual = unsafe_equal(keyTypeNumberInMap, slotAddress.unsafe_getI64(1), keyTypeNumberInMap, key)
-                catch id, message
+                catch id, message, errorData
                     key.shar__rc_free()
                     newValue.shar__rc_free()
-                    throw(id, message)
+                    throw(id, message, errorData)
                 if isEqual
                     unsafe_object(keyTypeNumberInMap, slotAddress.unsafe_getI64(1))
                     result = unsafe_object(valueTypeNumberInMap, slotAddress.unsafe_getI64(2))
@@ -201,10 +203,10 @@ attach Map to Put
                     for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 2; keyIndex += 2
                         try
                             isEqual = unsafe_equal(keyTypeNumberInMap, otherKeysAndValues.unsafe_getI64(keyIndex), keyTypeNumberInMap, key)
-                        catch id, message
+                        catch id, message, errorData
                             key.shar__rc_free()
                             newValue.shar__rc_free()
-                            throw(id, message)
+                            throw(id, message, errorData)
                         if isEqual
                             unsafe_object(keyTypeNumberInMap, otherKeysAndValues.unsafe_getI64(keyIndex))
                             result = unsafe_object(valueTypeNumberInMap, otherKeysAndValues.unsafe_getI64(keyIndex + 1))
@@ -270,7 +272,7 @@ def deleteKVFromMap(write map Map, key ${Equal, Hashable}) $Any
     const valueTypeNumberInMap Int = map.valueTypeNumber~()
     inthrow
         if keyTypeNumberInMap != key.typeNumber~()
-            throw(enum::error_invalidType, "Invalid type.")
+            throw(enum::error_invalidType, "Invalid type.", nothing)
     var result $Any = nothing
     const slotsCount Int = map.unsafe_map_slotsCount()
     const slotAddress Int = map.unsafe_map_slotAddress(key.getShortRandomizedHash() & (slotsCount - 1))

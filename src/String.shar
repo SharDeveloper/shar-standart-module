@@ -1,20 +1,11 @@
 module STD
 
-//@A type that is a member of the "STD::String" group.
-export primitive String
-
-//@Members of the "STD::String" group are types whose objects contain zero or more objects (called “items”) of type “STD::Char” grouped into one object.
+//@"STD::String" is a type whose objects contain zero or more objects (called "items") of type "STD::Char", grouped into one object.
 //@Strings can be compared for more, less, or equal.
 //@If string "a" is empty, and string "b" is not empty, then string "a" is less than string "b".
 //@If string "a" has zero or more items equal to the same number of items in string "b", and the next item of string "a" is less than the next item of string "b", then string "a" is less than string "b".
 //@If string "a" is equal to the beginning of string "b", but at the same time string "b" contains more items than string "a", then string "a" is less than string "b".
-export group String: Container, Ordered
-    //@The function loads the file as a UTF-8 string.
-    //@If the load was not successful, then the function returns "Nothing".
-    loadFromUTF8File(noread This, String) <>This
-    //@The function saves a string to a file with UTF-8 characters.
-    //@If the save was successful, then the function returns "true", otherwise "false".
-    saveToUTF8File(This, String) Bool
+export primitive String
 
 #override(STD) alwaysinline
 def shar__rc_free(string String)
@@ -174,12 +165,22 @@ attach String to Shar__sugar__greatOrEqual
     def shar__sugar__greatOrEqual(string1, string2 String) Bool
         return string1.compare(string2) != enum::ord_less
 
+attach String to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(string String, a Int) String
+        return string[a : string.length~()]
+
+attach String to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(string String, a Int) String
+        return string[0 : a]
+
 attach String to Shar__sugar__getRange
     #alwaysinline
     def shar__sugar__getRange(string String, from, to Int) String
         inthrow
             if !(from >= 0 && from <= to && to <= string.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         var result String = ""
         const length Int = to - from
         if length != 0
@@ -192,8 +193,8 @@ attach String to Shar__sugar__getItem
     def shar__sugar__getItem(string String, index Int) Char
         inthrow
             if !index.inRange?(0, string.length~())
-                throw(enum::error_outOfRange, "Out of range.")
-        return string.unsafe_getI16(index + 8).unsafe_int_intToChar()
+                throw(enum::error_outOfRange, "Out of range.", nothing)
+        return unsafe_object(Char.typeNumber~(), string.unsafe_getI16(index + 8))
 
 attach String to Shar__sugar__add
     #inline nothrow
@@ -222,9 +223,10 @@ attach String to StringWriter
         return string
 
 attach String to StringReader
+    //@The function returns its second argument.
     #alwaysinline
-    def fromString(noread type String, string $String) String
-        return string.repackTo(String)
+    def fromString(noread type String, string String) String
+        return string
 
 #override(STD) alwaysinline nothrow
 def print(string String)
@@ -313,6 +315,7 @@ attach String to Long
         return string.unsafe_getI64(1)
 
 attach String to Empty
+    //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type String) String
         return ""
@@ -365,73 +368,88 @@ attach String to Container
         newString.unsafe_setI16(string.length~() + 8, newChar)
         return newString
 
-attach String to String
-    #alwaysinline
-    def loadFromUTF8File(noread type, fileName String) <>String
-        const utf8String <>Bytes = loadFile(fileName)
-        if utf8String.nothing?()
-            return nothing
-        const utf8StringSizeInBytes Int = utf8String.length~()
-        var positionInUTF8String Int = 0
-        var result String = ""
-        for positionInUTF8String < utf8StringSizeInBytes
-            var newChar Int = utf8String[positionInUTF8String]
-            positionInUTF8String++
-            if newChar > 127
-                if (newChar & 224) == 192
-                    inthrow
-                        if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    var charPart Int = utf8String[positionInUTF8String]
-                    positionInUTF8String++
-                    inthrow
-                        if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    newChar ^= 192
-                    newChar <<= 6
-                    newChar |= charPart ^ 128
-                elif (newChar & 240) == 224
-                    inthrow
-                        if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    var charPart Int = utf8String[positionInUTF8String]
-                    positionInUTF8String++
-                    inthrow
-                        if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    newChar ^= 224
-                    newChar <<= 6
-                    newChar |= charPart ^ 128
-                    inthrow
-                        if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    charPart = utf8String[positionInUTF8String]
-                    positionInUTF8String++
-                    inthrow
-                        if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.")
-                    newChar <<= 6
-                    newChar |= charPart ^ 128
-                else
-                    throw(enum::error_invalidCharacter, "Invalid character.")
-            result.addItem(newChar.unsafe_int_intToChar())
-        return result
+//@The function loads the file as a UTF-8 string.
+//@If the load was not successful, then the function returns "Nothing".
+#alwaysinline
+export def loadFromUTF8File(noread type, fileName String) <>String
+    const utf8String <>Bytes = loadFile(fileName)
+    if utf8String.nothing?()
+        return nothing
+    const utf8StringSizeInBytes Int = utf8String.length~()
+    var positionInUTF8String Int = 0
+    var result String = ""
+    for positionInUTF8String < utf8StringSizeInBytes
+        var newChar Int = utf8String[positionInUTF8String]
+        positionInUTF8String++
+        if newChar > 127
+            if (newChar & 224) == 192
+                inthrow
+                    if positionInUTF8String == utf8StringSizeInBytes
+                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
+                var charPart Int = utf8String[positionInUTF8String]
+                positionInUTF8String++
+                inthrow
+                    if (charPart & 192) != 128
+                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
+                newChar ^= 192
+                newChar <<= 6
+                newChar |= charPart ^ 128
+            elif (newChar & 240) == 224
+                inthrow
+                    if positionInUTF8String == utf8StringSizeInBytes
+                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
+                var charPart Int = utf8String[positionInUTF8String]
+                positionInUTF8String++
+                inthrow
+                    if (charPart & 192) != 128
+                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
+                newChar ^= 224
+                newChar <<= 6
+                newChar |= charPart ^ 128
+                inthrow
+                    if positionInUTF8String == utf8StringSizeInBytes
+                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
+                charPart = utf8String[positionInUTF8String]
+                positionInUTF8String++
+                inthrow
+                    if (charPart & 192) != 128
+                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
+                newChar <<= 6
+                newChar |= charPart ^ 128
+            else
+                throw(enum::error_invalidCharacter, "Invalid character.", nothing)
+        result.addItem(unsafe_object(Char.typeNumber~(), newChar))
+    return result
 
-    #alwaysinline nothrow
-    def saveToUTF8File(string, fileName String) Bool
-        var utf8String Bytes = Bytes()
-        parse _, char = string
-            const charAsInt Int = char.charToInt()
-            if charAsInt < 0x80
-                utf8String.addItem(charAsInt)
-            elif charAsInt > 0x7f && charAsInt < 0x800
-                utf8String.addItem((charAsInt >> 6) | 192)
-                utf8String.addItem((charAsInt & 63) | 128)
-            elif charAsInt > 0x7ff
-                utf8String.addItem((charAsInt >> 12) | 192)
-                utf8String.addItem(((charAsInt >> 6) & 63) | 128)
-                utf8String.addItem((charAsInt & 63) | 128)
-        return saveToFile(fileName, utf8String)
+//@The function saves a string to a file with UTF-8 characters.
+//@If the save was successful, then the function returns "true", otherwise "false".
+#alwaysinline nothrow
+export def saveToUTF8File(string, fileName String) Bool
+    const file <>File = openFile(fileName, enum::fmode_write)
+    if file.nothing?()
+        return false
+    var buffer Bytes = unsafe_bytes_createDummy(min(const::fileBlockSize, string.length~() * 2 + 3))
+    var position Int = 0
+    parse charIndex, char = string
+        const charAsInt Int = char.charToInt()
+        if charAsInt < 0x80
+            buffer.setItem(position, charAsInt)
+        elif charAsInt < 0x800
+            buffer.setItem(position, (charAsInt >> 6) | 192)
+            position++
+            buffer.setItem(position, (charAsInt & 63) | 128)
+        else
+            buffer.setItem(position, (charAsInt >> 12) | 224)
+            position++
+            buffer.setItem(position, ((charAsInt >> 6) & 63) | 128)
+            position++
+            buffer.setItem(position, (charAsInt & 63) | 128)
+        position++
+        if buffer.length~() - position < 3 || charIndex == string.length~() - 1
+            if writeDataToFile(file, position, buffer) != position
+                return false
+            position = 0
+    return true
 
 #override(STD) alwaysinline
 def copy(write destination String, destinationPosition Int, source String, sourcePosition, length Int)
@@ -445,7 +463,7 @@ def copy(write destination String, destinationPosition Int, source String, sourc
                 length >= 0 && length <= (destinationLength - destinationPosition).min(sourceLength - sourcePosition)
             )
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if destination.use?()
         var newString String = unsafe_string_createDummy(destinationLength)
         unsafe_memcpyI16(newString.unsafe_offsetI64(2), destination.unsafe_offsetI64(2), destinationPosition)
@@ -465,11 +483,11 @@ attach String to BinarySerializable
             const charAsInt Int = char.charToInt()
             if charAsInt < 0x80
                 utf8String.addItem(charAsInt)
-            elif charAsInt > 0x7f && charAsInt < 0x800
+            elif charAsInt < 0x800
                 utf8String.addItem((charAsInt >> 6) | 192)
                 utf8String.addItem((charAsInt & 63) | 128)
-            elif charAsInt > 0x7ff
-                utf8String.addItem((charAsInt >> 12) | 192)
+            else
+                utf8String.addItem((charAsInt >> 12) | 224)
                 utf8String.addItem(((charAsInt >> 6) & 63) | 128)
                 utf8String.addItem((charAsInt & 63) | 128)
         serialize(utf8String, bytes)
@@ -488,40 +506,40 @@ attach String to BinarySerializable
                 if (newChar & 224) == 192
                     inthrow
                         if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.")
+                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
                     var charPart Int = utf8String[positionInUTF8String]
                     positionInUTF8String++
                     inthrow
                         if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.")
+                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
                     newChar ^= 192
                     newChar <<= 6
                     newChar |= charPart ^ 128
                 elif (newChar & 240) == 224
                     inthrow
                         if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.")
+                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
                     var charPart Int = utf8String[positionInUTF8String]
                     positionInUTF8String++
                     inthrow
                         if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.")
+                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
                     newChar ^= 224
                     newChar <<= 6
                     newChar |= charPart ^ 128
                     inthrow
                         if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.")
+                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
                     charPart = utf8String[positionInUTF8String]
                     positionInUTF8String++
                     inthrow
                         if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.")
+                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
                     newChar <<= 6
                     newChar |= charPart ^ 128
                 else
-                    throw(enum::error_invalidCharacter, "Invalid character.")
-            result.addItem(newChar.unsafe_int_intToChar())
+                    throw(enum::error_invalidCharacter, "Invalid character.", nothing)
+            result.addItem(unsafe_object(Char.typeNumber~(), newChar))
         position = currentPosition
         return result
 
@@ -529,7 +547,7 @@ attach String to BinarySerializable
 def swap(write string String, position1, position2 Int)
     inthrow
         if !(position1.inRange?(0, string.length~()) && position2.inRange?(0, string.length~()))
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if string.use?()
         string = string.clone()
     const items Int = string.unsafe_offsetI64(2)
@@ -545,7 +563,7 @@ def setItem(write string String, index Int, newChar Char)
 def countFromAtoB(string String, char Char, a, b Int) Int
     inthrow
         if !(a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     return unsafe_string_countFromAtoB(string.unsafe_offsetI16(a + 8), char, b - a)
 
 #alwaysinline nothrow
@@ -609,13 +627,13 @@ def countPartFromAtoB(string, part String, a, b Int) Int
     const stringLength Int = string.length~()
     inthrow
         if !(a >= 0 && a <= b && b <= stringLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to count.")
+            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
     var result Int = 0
     const edge Int = b - partLength + 1
     if edge > 0
-        const firstChar Char = part.unsafe_getI16(8).unsafe_int_intToChar()
+        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
         for :(index Int = a) index < edge
             const indexOfFirstChar <>Int = string.lookFromAtoB(firstChar, index, edge)
             if indexOfFirstChar.nothing?()
@@ -642,7 +660,7 @@ def partsEqual?(string1 String, from1 Int, string2 String, from2, length Int) Bo
 def lookNFromAtoB(string String, char Char, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     return unsafe_string_lookNFromAtoB(string.unsafe_offsetI16(a + 8), char, n, a, b)
 
 #alwaysinline nothrow
@@ -733,13 +751,13 @@ def lookNPartFromAtoB(string, part String, n, a, b Int) <>Int
     const stringLength Int = string.length~()
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= stringLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     const edge Int = b - partLength + 1
     if edge > 0
         var mutN Int = n
-        const firstChar Char = part.unsafe_getI16(8).unsafe_int_intToChar()
+        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
         for :(index Int = a) index < edge
             const indexOfFirstChar <>Int = string.lookFromAtoB(firstChar, index, edge)
             if indexOfFirstChar.nothing?()
@@ -757,7 +775,7 @@ def lookNPartFromAtoB(string, part String, n, a, b Int) <>Int
 def lookAllFromAtoB(string String, char Char, a, b Int) Array
     inthrow
         if !(a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result Array = [].clone()
     unsafe_string_lookAllFromAtoB(string.unsafe_offsetI16(a + 8), char, a, b, result)
     return result
@@ -873,13 +891,13 @@ def lookAllPartsFromAtoB(string, part String, a, b Int) Array
     const stringLength Int = string.length~()
     inthrow
         if !(a >= 0 && a <= b && b <= stringLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to count.")
+            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
     var result Array = []
     const edge Int = b - partLength + 1
     if edge > 0
-        const firstChar Char = part.unsafe_getI16(8).unsafe_int_intToChar()
+        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
         for :(index Int = a) index < edge
             const indexOfFirstChar <>Int = string.lookFromAtoB(firstChar, index, edge)
             if indexOfFirstChar.nothing?()
@@ -896,7 +914,7 @@ def lookAllPartsFromAtoB(string, part String, a, b Int) Array
 def lookBackNFromAtoB(string String, char Char, n, a, b Int) <>Int
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     return unsafe_string_lookBackNFromAtoB(string.unsafe_offsetI16(b + 8), char, n, a, b)
 
 #alwaysinline nothrow
@@ -987,13 +1005,13 @@ def lookBackNPartFromAtoB(string, part String, n, a, b Int) <>Int
     const stringLength Int = string.length~()
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= stringLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.")
+            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
     const firstEdge Int = b - partLength + 1
     if firstEdge > 0
         var mutN Int = n
-        const firstChar Char = part.unsafe_getI16(8).unsafe_int_intToChar()
+        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
         for :(edge Int = firstEdge) edge > a
             const indexOfFirstChar <>Int = string.lookBackFromAtoB(firstChar, a, edge)
             if indexOfFirstChar.nothing?()
@@ -1016,7 +1034,7 @@ def delete$(string String, from, count Int) String
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result String = unsafe_string_createDummy(newLength)
     const resultItems Int = result.unsafe_offsetI16(8)
     const stringItems Int = string.unsafe_offsetI16(8)
@@ -1032,7 +1050,7 @@ def delete(write string String, from, count Int)
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if count == 0
         return
     const newLength Int = oldLength - count
@@ -1181,7 +1199,7 @@ def insert$(string String, index Int, newChar Char) String
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result String = unsafe_string_createDummy(newLength)
     const resultChars Int = result.unsafe_offsetI16(8)
     const stringChars Int = string.unsafe_offsetI16(8)
@@ -1196,7 +1214,7 @@ def insert(write string String, index Int, newChar Char)
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if string.use?()
         var newString String = unsafe_string_createDummy(newLength)
         const newChars Int = newString.unsafe_offsetI16(8)
@@ -1219,7 +1237,7 @@ def insertPart$(string String, index Int, addedString String) String
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return string
     var result String = unsafe_string_createDummy(newLength)
@@ -1238,7 +1256,7 @@ def insertPart(write string String, index Int, addedString String)
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return
     const addedChars Int = addedString.unsafe_offsetI16(8)
@@ -1261,7 +1279,7 @@ def insertPart(write string String, index Int, addedString String)
 def repeat(noread type String, char Char, count Int) String
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result String = unsafe_string_createDummy(count)
     unsafe_memsetI16(result.unsafe_offsetI16(8), char, count)
     return result
@@ -1270,7 +1288,7 @@ def repeat(noread type String, char Char, count Int) String
 def repeatPart(part String, count Int) String
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     const partLength Int = part.length~()
     const resultLength Int = count * partLength
     var result String = unsafe_string_createDummy(resultLength)
@@ -1286,10 +1304,10 @@ attach String to Multithreaded
         return string.constant?().select(string, string.clone())
 
 #override(STD) alwaysinline
-def reversePart(write string String, a, b Int)
+def reverseFromAtoB(write string String, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var mutA Int = a
     var mutB Int = b
     if string.use?()
@@ -1323,3 +1341,133 @@ def unsafe_string_simdReverseAndSwapParts(part1, part2 $Any)
         store <16 x i16> %##reg##reversed part1##, <16 x i16>* %##reg##part2 pointer##, align 2
         store <16 x i16> %##reg##reversed part2##, <16 x i16>* %##reg##part1 pointer##, align 2
         ret [2 x i64] zeroinitializer
+
+#inline nothrow
+export def toLower(string String) String
+    var result String = ""
+    parse _, oldChar = string
+        var newChar Int = charToInt(oldChar)
+        if oldChar < '\0080'
+            if oldChar >= 'A' && oldChar <= 'Z'
+                newChar |= 32
+        else
+            const upperChar <>Int = const::upperToLowerMap[oldChar]
+            if upperChar.type?(Int)
+                newChar = upperChar
+        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
+        const char1 Char = unsafe_object(Char.typeNumber~(), newChar >> 16)
+        result.addItem(char0)
+        if char1 != '\0000'
+            result.addItem(char1)
+    return result
+
+#inline nothrow
+export def toUpper(string String) String
+    var result String = ""
+    parse _, oldChar = string
+        var newChar Int = charToInt(oldChar)
+        if oldChar < '\0080'
+            if oldChar >= 'a' && oldChar <= 'z'
+                newChar ^= 32
+        else
+            const lowerChar <>Int = const::lowerToUpperMap[oldChar]
+            if lowerChar.type?(Int)
+                newChar = lowerChar
+        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
+        const char1 Char = unsafe_object(Char.typeNumber~(), (newChar >> 16) & 0xffff)
+        const char2 Char = unsafe_object(Char.typeNumber~(), newChar >> 32)
+        result.addItem(char0)
+        if char1 != '\0000'
+            result.addItem(char1)
+        if char2 != '\0000'
+            result.addItem(char2)
+    return result
+
+attach String to ItemTypeNumber
+    #alwaysinline nothrow
+    def itemTypeNumber~(string String) Int
+        return Char.typeNumber~()
+
+#override(STD) nothrow
+def sort(write string String, rise Bool)
+    if string.empty?()
+        return
+    return string.quicksort(0, string.length~(), rise, const::staticRandomNumber)
+
+#override(STD)
+def quicksort(write string String, beginIndex, endEdge Int, rise Bool, randomNumber Int)
+    var leftIndex Int = beginIndex
+    var rightEdge Int = endEdge
+    for :(mainLoop)
+        const rangeLength Int = rightEdge - leftIndex
+        var smallRangeLeftIndex Int = -1
+        var smallRangeRightEdge Int = -1
+        var smallRangeLength Int = -1
+        var bigRangeLeftIndex Int = -1
+        var bigRangeRightEdge Int = -1
+        if rangeLength > 16
+            const length25p Int = rangeLength >> 2
+            const length75p Int = (length25p << 1) + length25p
+            var randomOffset Int = (randomNumber & (rangeLength - 1))
+            if randomOffset < length25p
+                randomOffset += length25p
+            elif randomOffset > length75p
+                randomOffset -= length25p
+            string.swap(leftIndex, leftIndex + randomOffset)
+            const currentChar Char = string[leftIndex]
+            var currentIndex Int = leftIndex
+            var oppositeIndex Int = rightEdge - 1
+            var direction Int = -1
+            var cmpModifier Bool = rise
+            for :(loop)
+                const oppositeChar Char = string[oppositeIndex]
+                if cmpModifier.select(oppositeChar <= currentChar, currentChar <= oppositeChar)
+                    string.swap(currentIndex, oppositeIndex)
+                    exchange(currentIndex, oppositeIndex)
+                    direction = !direction
+                    cmpModifier = !cmpModifier
+                if (currentIndex - oppositeIndex).inRange?(-1, 2)
+                    end loop
+                oppositeIndex += direction
+            const leftRangeLength Int = currentIndex - leftIndex
+            const rightRangeLength Int = rightEdge - currentIndex - 1
+            if leftRangeLength < rightRangeLength
+                smallRangeLeftIndex = leftIndex
+                smallRangeRightEdge = currentIndex
+                smallRangeLength = leftRangeLength
+                bigRangeLeftIndex = currentIndex + 1
+                bigRangeRightEdge = rightEdge
+            else
+                smallRangeLeftIndex = currentIndex + 1
+                smallRangeRightEdge = rightEdge
+                smallRangeLength = rightRangeLength
+                bigRangeLeftIndex = leftIndex
+                bigRangeRightEdge = currentIndex
+            leftIndex = bigRangeLeftIndex
+            rightEdge = bigRangeRightEdge
+        else
+            smallRangeLeftIndex = leftIndex
+            smallRangeRightEdge = rightEdge
+            smallRangeLength = rangeLength
+        if smallRangeLength > 16
+            string.quicksort(smallRangeLeftIndex, smallRangeRightEdge, rise, randomNumber)
+        elif smallRangeLength > 2
+            string.heapSort(smallRangeLeftIndex, smallRangeRightEdge, smallRangeLength, rise)
+        elif smallRangeLength == 2
+            const firstChar Char = string[smallRangeLeftIndex]
+            const secondChar Char = string[smallRangeLeftIndex + 1]
+            if (secondChar < firstChar) == rise
+                string.swap(smallRangeLeftIndex, smallRangeLeftIndex + 1)
+        if bigRangeLeftIndex == -1
+            end mainLoop
+
+#override(STD)
+def stableSort(write string String, rise Bool)
+    if string.empty?()
+        return
+    return string.quicksort(0, string.length~(), rise, const::staticRandomNumber)
+
+attach String to Shar__sugar__patternMatch
+    #alwaysinline
+    def shar__sugar__patternMatch(string String, index Int) Char
+        return string[index]

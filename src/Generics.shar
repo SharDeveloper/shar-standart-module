@@ -8,13 +8,13 @@ export group Put
     put(write This, $Any, $Any) $Any
 
 
-//@The group exists so that members of the "STD::Dict" group and the "STD::Map" group can use the "STD::getKeyTypeNumber" function.
+//@The group exists so that members of the "STD::Dict" group and the "STD::Map" group can use the "STD::keyTypeNumber~" function.
 export group KeyTypeNumber
     //@The function returns the key type number.
     //@The function cannot return any errors.
     keyTypeNumber~(This) Int
 
-//@The group exists so that members of the "STD::Array" group and the "STD::Set" group can use the "STD::getKeyTypeNumber" function.
+//@The group exists so that members of the "STD::Container" group and the "STD::Set" group can use the "STD::itemTypeNumber~" function.
 export group ItemTypeNumber
     //@The function returns the type number of the items.
     //@The function cannot return any errors.

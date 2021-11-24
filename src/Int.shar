@@ -151,7 +151,7 @@ attach Int to Shar__sugar__div
     def shar__sugar__div(integer1, integer2 Int) Int
         inthrow
             if integer2 == 0
-                throw(enum::error_divisionByZero, "Division by 0.")
+                throw(enum::error_divisionByZero, "Division by 0.", nothing)
         return integer1.unsafe_int_div(integer2)
 
 #alwaysinline nothrow
@@ -180,7 +180,7 @@ attach Int to Shar__sugar__mod
     def shar__sugar__mod(integer1, integer2 Int) Int
         inthrow
             if integer2 == 0
-                throw(enum::error_divisionByZero, "Division by 0.")
+                throw(enum::error_divisionByZero, "Division by 0.", nothing)
         return integer1.unsafe_int_mod(integer2)
 
 #alwaysinline nothrow
@@ -224,7 +224,6 @@ attach Int to Shar__sugar__sub
             ret [2 x i64] %##reg##result##
 
 attach Int to StringWriter
-    //@The function returns an object of type "STD::String".
     #nothrow
     def toString(int Int) String
         const isNegative Bool = int < 0
@@ -243,7 +242,7 @@ attach Int to StringWriter
         return result
 
 attach Int to StringReader
-    def fromString(noread type Int, string $String) Int
+    def fromString(noread type Int, string String) Int
         const length Int = string.length~()
         var result Int = 0
         var error Bool = length == 0
@@ -271,7 +270,7 @@ attach Int to StringReader
                     tenInPowerDigitPosition *= 10
         inthrow
             if error
-                throw(enum::error_readFromString, "Reading from the string caused an error.")
+                throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
         return result
 
 attach Int to Shar__sugar__addSet
@@ -378,7 +377,7 @@ attach Int to Shar__sugar__shl
     def shar__sugar__shl(integer Int, shifts Int) Int
         inthrow
             if !shifts.inRange?(0, 64)
-                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.")
+                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.", nothing)
         return integer.unsafe_int_shl(shifts)
 
 #alwaysinline nothrow
@@ -395,7 +394,7 @@ attach Int to Shar__sugar__shr
     def shar__sugar__shr(integer Int, shifts Int) Int
         inthrow
             if !shifts.inRange?(0, 64)
-                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.")
+                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.", nothing)
         return integer.unsafe_integer_shr(shifts)
 
 #alwaysinline nothrow
@@ -438,14 +437,14 @@ attach Int to BitArray
     def getBit(integer Int, index Int) Bool
         inthrow
             if !index.inRange?(0, 64)
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         return ((integer >> index) & 1) == 1
 
     #alwaysinline
     def setBit$(integer Int, index Int, newBit Bool) Int
         inthrow
             if !index.inRange?(0, 64)
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const integerWithBit Int = 1 << index
         if newBit
             return integer | integerWithBit
@@ -469,7 +468,7 @@ attach Int to BitArray
             ret [2 x i64] %##reg##result##
 
 #alwaysinline nothrow
-export def unsafe_int_getNumberOfDecDigits(int $Any) Int
+def unsafe_int_getNumberOfDecDigits(int $Any) Int
     llvm
         %##nreg##r1## = extractvalue [2 x i64] %0, 1
         %##nreg##r2## = insertelement <1 x i64> zeroinitializer, i64 %##reg##r1##, i32 0
@@ -490,15 +489,8 @@ export def unsafe_int_getNumberOfDecDigits(int $Any) Int
 export def intToChar(int Int) Char
     inthrow
         if !int.inRange?(0, 0x10000)
-            throw(enum::error_outOfRange, "Out of range.")
-    return unsafe_int_intToChar(int)
-
-#alwaysinline nothrow
-def unsafe_int_intToChar(int $Any) Char
-    llvm
-        %##nreg##int## = extractvalue [2 x i64] %0, 1
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Char##, i64 0], i64 %##reg##int##, 1
-        ret [2 x i64] %##reg##result##
+            throw(enum::error_outOfRange, "Out of range.", nothing)
+    return unsafe_object(Char.typeNumber~(), int)
 
 //@The function converts an integer to a real number.
 #alwaysinline nothrow
@@ -516,20 +508,12 @@ export def intToReal(int Int) Real
 export def intToTime(int Int) Time
     inthrow
         if int < 0
-            throw(enum::error_outOfRange, "Out of range.")
-    return unsafe_int_intToTime(int)
-
-#alwaysinline nothrow
-def unsafe_int_intToTime(int $Any) Time
-    llvm
-        %##nreg##result## = insertvalue [2 x i64] %0, i64 ##tnum##STD::Time##, 0
-        ret [2 x i64] %##reg##result##
+            throw(enum::error_outOfRange, "Out of range.", nothing)
+    return unsafe_object(Time.typeNumber~(), int)
 
 #alwaysinline nothrow
 def intAsReal(int Int) Real
-    llvm
-        %##nreg##result## = insertvalue [2 x i64] %0, i64 ##tnum##STD::Real##, 0
-        ret [2 x i64] %##reg##result##
+    return unsafe_object(Real.typeNumber~(), int)
 
 attach Int to Hashable
     #alwaysinline nothrow
@@ -554,7 +538,7 @@ export def intToHex(int Int) String
     return result
 
 #alwaysinline nothrow
-export def unsafe_int_getNumberOfHecDigits(int $Any) Int
+def unsafe_int_getNumberOfHecDigits(int $Any) Int
     llvm
         %##nreg##int## = extractvalue [2 x i64] %0, 1
         ##llvmdeclare##llvm.ctlz.i64##declare i64  @llvm.ctlz.i64(i64, i1)##
@@ -596,7 +580,7 @@ def unsafe_int_writeHexToString(int, charsAddress, countOfChars $Any)
 
 //@The function converts a string containing the hexadecimal representation of a number to a number, if the conversion was unsuccessful, the function returns an error with the "enum::STD::error_readFromString" code.
 #alwaysinline
-export def hexToInt(hex $String) Int
+export def hexToInt(hex String) Int
     var hexIsCorrect Bool = true
     inthrow
         hexIsCorrect = hex.length~().inRange?(3, 19) && hex.hasPrefix?("0x")
@@ -619,7 +603,7 @@ export def hexToInt(hex $String) Int
             result |= digit
     inthrow
         if !hexIsCorrect
-            throw(enum::error_readFromString, "Invalid hexadecimal number.")
+            throw(enum::error_readFromString, "Invalid hexadecimal number.", nothing)
     return result
 
 attach Int to BinarySerializable
@@ -639,7 +623,7 @@ attach Int to BinarySerializable
     def deserialize(noread type Int, bytes Bytes, write position Int) Int
         inthrow
             if bytes.length~() - position < 8 || position < 0
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const result Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI64(0)
         position += 8
         return result

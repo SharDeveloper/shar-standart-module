@@ -3,24 +3,24 @@ module STD
 //@Members of the "STD::StringWriter" group are types whose object values can be represented as a string.
 export group StringWriter
     //@The function returns a string that contains a representation of the value of the first argument to the function.
-    toString(This) $String
+    toString(This) String
 
 //@The function prints the string to the console.
 #this(StringWriter)
 export def print(stringWriter This)
-    stringWriter.toString().repackTo(String).print()
+    stringWriter.toString().print()
 
 //@The function prints the string and newline character to the console.
 #this(StringWriter)
 export def println(stringWriter This)
-    stringWriter.toString().repackTo(String).println()
+    stringWriter.toString().println()
 
 //@The function prints the string to the console as an error without interrupting the program.
 #this(StringWriter)
 export def printAsError(stringWriter This)
-    stringWriter.toString().repackTo(String).printAsError()
+    stringWriter.toString().printAsError()
 
 //@The function prints the string and newline character to the console as an error without interrupting the program.
 #this(StringWriter)
 export def printlnAsError(stringWriter This)
-    stringWriter.toString().repackTo(String).printlnAsError()
+    stringWriter.toString().printlnAsError()

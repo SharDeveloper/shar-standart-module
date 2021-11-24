@@ -43,7 +43,7 @@ attach Real to Shar__sugar__equal
     def shar__sugar__equal(real1, real2 Real) Bool
         inthrow
             if real1.nan?() || real2.nan?()
-                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.")
+                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.", nothing)
         return unsafe_real_equal(real1, real2)
 
 #alwaysinline nothrow
@@ -63,7 +63,7 @@ attach Real to Shar__sugar__notEqual
     def shar__sugar__notEqual(real1, real2 Real) Bool
         inthrow
             if real1.nan?() || real2.nan?()
-                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.")
+                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.", nothing)
         return unsafe_real_notEqual(real1, real2)
 
 #alwaysinline nothrow
@@ -83,7 +83,7 @@ attach Real to Ordered
     def compare(real1, real2 Real) Int
         inthrow
             if real1.nan?() || real2.nan?()
-                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.")
+                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.", nothing)
         return unsafe_real_compare(real1, real2)
 
 #alwaysinline nothrow
@@ -105,7 +105,7 @@ attach Real to Shar__sugar__great
     def shar__sugar__great(real1, real2 Real) Bool
         inthrow
             if real1.nan?() || real2.nan?()
-                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.")
+                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.", nothing)
         return unsafe_real_great(real1, real2)
 
 #alwaysinline nothrow
@@ -125,7 +125,7 @@ attach Real to Shar__sugar__greatOrEqual
     def shar__sugar__greatOrEqual(real1, real2 Real) Bool
         inthrow
             if real1.nan?() || real2.nan?()
-                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.")
+                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.", nothing)
         return unsafe_real_greatOrEqual(real1, real2)
 
 #alwaysinline nothrow
@@ -145,7 +145,7 @@ attach Real to Shar__sugar__less
     def shar__sugar__less(real1, real2 Real) Bool
         inthrow
             if real1.nan?() || real2.nan?()
-                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.")
+                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.", nothing)
         return unsafe_real_less(real1, real2)
 
 #alwaysinline nothrow
@@ -165,7 +165,7 @@ attach Real to Shar__sugar__lessOrEqual
     def shar__sugar__lessOrEqual(real1, real2 Real) Bool
         inthrow
             if real1.nan?() || real2.nan?()
-                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.")
+                throw(enum::error_compareWithNaN, "Comparison with \qNaN\q.", nothing)
         return unsafe_real_lessOrEqual(real1, real2)
 
 #alwaysinline nothrow
@@ -292,7 +292,6 @@ attach Real to Shar__sugar__modSet
         real1 = real1 % real2
 
 attach Real to StringWriter
-    //@The function returns an object of type "STD::String".
     #nothrow
     def toString(real Real) String
         llvm
@@ -324,16 +323,15 @@ attach Real to StringWriter
             ret [2 x i64] %##reg##dummy string##
 
 attach Real to StringReader
-    def fromString(noread type Real, string $String) Real
+    def fromString(noread type Real, string String) Real
         var result Real = 0.0
-        const str String = string.repackTo(String)
         inthrow
-            if !stringCorrectForReal?(str)
-                throw(enum::error_readFromString, "Reading from the string caused an error.")
-        const allOk Bool = unsafe_real_fromString(result, str)
+            if !stringCorrectForReal?(string)
+                throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
+        const allOk Bool = unsafe_real_fromString(result, string)
         inthrow
             if !allOk
-                throw(enum::error_readFromString, "Reading from the string caused an error.")
+                throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
         return result
 
 #alwaysinline nothrow
@@ -609,7 +607,7 @@ attach Real to Shar__sugar__shl
     def shar__sugar__shl(real Real, shifts Int) Real
         inthrow
             if !shifts.inRange?(0, 64)
-                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.")
+                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.", nothing)
         return real.unsafe_real_shl(shifts)
 
 #alwaysinline nothrow
@@ -626,7 +624,7 @@ attach Real to Shar__sugar__shr
     def shar__sugar__shr(real Real, shifts Int) Real
         inthrow
             if !shifts.inRange?(0, 64)
-                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.")
+                throw(enum::error_invalidShiftsNumber, "Invalid number of shifts.", nothing)
         return real.unsafe_real_shr(shifts)
 
 #alwaysinline nothrow
@@ -673,7 +671,7 @@ attach Real to BitArray
     def setBit$(real Real, index Int, newBit Bool) Real
         inthrow
             if !index.inRange?(0, 64)
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const realWithBit Real = intAsReal(1) << index
         if newBit
             return real | realWithBit
@@ -702,7 +700,7 @@ attach Real to BitArray
 export def realToInt(real Real) Int
     inthrow
         if real.nan?() || !real.inRange?(-9223372036854775808.0, 9223372036854775808.0)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     return unsafe_real_realToInt(real)
 
 #alwaysinline nothrow
@@ -746,7 +744,7 @@ attach Real to BinarySerializable
     def deserialize(noread type Real, bytes Bytes, write position Int) Real
         inthrow
             if bytes.length~() - position < 8 || position < 0
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         const resultAsInt Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI64(0)
         position += 8
         return resultAsInt.intAsReal()

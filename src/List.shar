@@ -1,10 +1,7 @@
 module STD
 
-//@A type that is a member of the "STD::List" group.
+//@"STD::List" is a type whose objects contain zero or more objects (called "items") of the same or different types, grouped into one object.
 export primitive List
-
-//@Members of the "STD::List" group are types whose objects contain zero or more objects (called "items") of the same or different types, grouped into one object.
-export group List: Container
 
 #override(STD)
 def shar__rc_free(list List)
@@ -68,12 +65,42 @@ attach List to Shar__sugar__notEqual
     def shar__sugar__notEqual(list1, list2 List) Bool
         return !(list1 == list2)
 
+#override(STD) alwaysinline
+def partsEqual?(list1 List, from1 Int, list2 List, from2, length Int) Bool
+    const list1Length Int = list1.length~()
+    const list2Length Int = list2.length~()
+    var result Bool = {
+        from1 >= 0 && from1 <= list1Length &&
+        from2 >= 0 && from2 <= list2Length &&
+        length >= 0 && length <= (list1Length - from1).min(list2Length - from2)
+    }
+    if result
+        for :(offset Int = 0) offset < length; offset++
+            const item1TypeNumber Int = list1.unsafe_getI64((from1 + offset + 1) * 2)
+            const item1Value Int = list1.unsafe_getI64((from1 + offset + 1) * 2 + 1)
+            const item2TypeNumber Int = list2.unsafe_getI64((from2 + offset + 1) * 2)
+            const item2Value Int = list2.unsafe_getI64((from2 + offset + 1) * 2 + 1)
+            result = item1TypeNumber == item2TypeNumber && item1TypeNumber.unsafe_inEqualGroup?() && unsafe_equal(item1TypeNumber, item1Value, item2TypeNumber, item2Value)
+            if !result
+                end offset
+    return result
+
+attach List to Shar__sugar__getFromAToLast
+    #alwaysinline
+    def shar__sugar__getFromAToLast(list List, a Int) List
+        return list[a : list.length~()]
+
+attach List to Shar__sugar__getFromFirstToA
+    #alwaysinline
+    def shar__sugar__getFromFirstToA(list List, a Int) List
+        return list[0 : a]
+
 attach List to Shar__sugar__getRange
     #alwaysinline
     def shar__sugar__getRange(list List, from, to Int) List
         inthrow
             if !(from >= 0 && from <= to && to <= list.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         var result List = unsafe_list_createDummy(to - from)
         for :(index Int = from) index < to; index++
             result.unsafe_list_setItemInDummy(index - from, list[index])
@@ -84,7 +111,7 @@ attach List to Shar__sugar__getItem
     def shar__sugar__getItem(list List, index Int) $Any
         inthrow
             if !index.inRange?(0, list.length~())
-                throw(enum::error_outOfRange, "Out of range.")
+                throw(enum::error_outOfRange, "Out of range.", nothing)
         return list.unsafe_list_getItem(index)
 
 #alwaysinline nothrow
@@ -120,7 +147,6 @@ attach List to Shar__sugar__addSet
             list.unsafe_list_setItemInDummy(startListLength + offset, item)
 
 attach List to StringWriter
-    //@The function returns an object of type "STD::String".
     def toString(list List) String
         var result String = ""
         if list.empty?()
@@ -128,7 +154,7 @@ attach List to StringWriter
         else
             result = "{"
             parse _, item = list
-                result += item.toString().repackTo(String)
+                result += item.toString()
                 result += ", "
             result.delete(result.length~() - 1, 1)
             result.unsafe_setI16(result.length~() + 7, '}')
@@ -173,6 +199,7 @@ attach List to Long
         return list.unsafe_getI64(1)
 
 attach List to Empty
+    //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type List) List
         return {}
@@ -249,13 +276,11 @@ def unsafe_list_setItemInDummy(list, index, item $Any)
     item.shar__rc_use()
     list.unsafe_set2xI64(index + 1, item)
 
-attach List to List
-
 #override(STD) alwaysinline
 def swap(write list List, position1, position2 Int)
     inthrow
         if !(position1.inRange?(0, list.length~()) && position2.inRange?(0, list.length~()))
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if list.use?()
         list = list.clone()
     const item1Address Int = list.unsafe_offsetI64(2 * (position1 + 1))
@@ -276,7 +301,7 @@ def delete$(list List, from, count Int) List
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result List = unsafe_list_createDummy(newLength)
     for :(index Int = 0) index < from; index++
         result.unsafe_list_setItemInDummy(index, list.unsafe_list_getItem(index))
@@ -292,7 +317,7 @@ def delete(write list List, from, count Int)
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if count == 0
         return
     const newLength Int = oldLength - count
@@ -320,7 +345,7 @@ def insert$(list List, index Int, newItem $Any) List
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result List = unsafe_list_createDummy(newLength)
     for :(listIndex Int = 0) listIndex < index; listIndex++
         result.unsafe_list_setItemInDummy(listIndex, list.unsafe_list_getItem(listIndex))
@@ -335,7 +360,7 @@ def insert(write list List, index Int, newItem $Any)
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if list.use?()
         var newList List = unsafe_list_createDummy(newLength)
         for :(listIndex Int = 0) listIndex < index; listIndex++
@@ -358,7 +383,7 @@ def insertPart$(list List, index Int, addedList List) List
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return list
     var result List = unsafe_list_createDummy(newLength)
@@ -377,7 +402,7 @@ def insertPart(write list List, index Int, addedList List)
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return
     if list.use?()
@@ -401,7 +426,7 @@ def insertPart(write list List, index Int, addedList List)
 def repeat(noread type List, item $Any, count Int) List
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var result List = unsafe_list_createDummy(count)
     for :(index Int = 0) index < count; index++
         result.unsafe_list_setItemInDummy(index, item)
@@ -411,7 +436,7 @@ def repeat(noread type List, item $Any, count Int) List
 def repeatPart(part List, count Int) List
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     const partLength Int = part.length~()
     const resultLength Int = count * partLength
     var result List = unsafe_list_createDummy(resultLength)
@@ -421,10 +446,10 @@ def repeatPart(part List, count Int) List
     return result
 
 #override(STD) alwaysinline
-def reversePart(write list List, a, b Int)
+def reverseFromAtoB(write list List, a, b Int)
     inthrow
         if !(a >= 0 && a <= b && b <= list.length~())
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     var mutA Int = a * 2
     var mutB Int = b * 2
     if list.use?()
@@ -461,3 +486,8 @@ def unsafe_list_simdReverseAndSwapParts(part1, part2 $Any)
         store <4 x i64> %##reg##reversed part1##, <4 x i64>* %##reg##part2 pointer##, align 8
         store <4 x i64> %##reg##reversed part2##, <4 x i64>* %##reg##part1 pointer##, align 8
         ret [2 x i64] zeroinitializer
+
+attach List to Shar__sugar__patternMatch
+    #alwaysinline
+    def shar__sugar__patternMatch(list List, index Int) $Any
+        return list[index]

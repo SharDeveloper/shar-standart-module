@@ -13,6 +13,7 @@ export group Set: Iterable, Empty, Shar__sugar__getItem
 export primitive Set
 
 //@The function creates an empty set.
+//@The function returns a constant.
 #alwaysinline nothrow
 export def Set() Set
     return Set.createEmpty()
@@ -110,6 +111,7 @@ def dump(set Set, level Int) String
     return result
 
 attach Set to Empty
+    //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type Set) Set
         llvm
@@ -128,7 +130,7 @@ attach Set to Shar__sugar__getItem
         const itemTypeNumberInSet Int = set.itemTypeNumber~()
         inthrow
             if itemTypeNumberInSet != item.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         const slotAddress Int = set.unsafe_set_slotAddress(item.getShortRandomizedHash() & (set.unsafe_set_slotsCount() - 1))
         const slotLength Int = slotAddress.unsafe_getI64(0)
         var result Bool = false
@@ -149,7 +151,7 @@ attach Set to Set
         const itemTypeNumberInSet Int = set.itemTypeNumber~()
         inthrow
             if !(itemTypeNumberInSet == item.typeNumber~() ||  itemTypeNumberInSet == Nothing.typeNumber~())
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         const slotsCount Int = set.unsafe_set_slotsCount()
         const needToEnlarge Bool = set.length~() == slotsCount && slotsCount != 0x100000000
         var result Bool = false
@@ -173,9 +175,9 @@ attach Set to Set
             else
                 try
                     result = unsafe_equal(itemTypeNumberInSet, slotAddress.unsafe_getI64(1), itemTypeNumberInSet, item)
-                catch id, message
+                catch id, message, errorData
                     item.shar__rc_free()
-                    throw(id, message)
+                    throw(id, message, errorData)
                 if result
                     unsafe_object(itemTypeNumberInSet, slotAddress.unsafe_getI64(1))
                     slotAddress.unsafe_setI64(1, item)
@@ -184,9 +186,9 @@ attach Set to Set
                     for :(itemIndex Int = 0) itemIndex < slotLength - 1; itemIndex++
                         try
                             result = unsafe_equal(itemTypeNumberInSet, otherItems.unsafe_getI64(itemIndex), itemTypeNumberInSet, item)
-                        catch id, message
+                        catch id, message, errorData
                             item.shar__rc_free()
-                            throw(id, message)
+                            throw(id, message, errorData)
                         if result
                             unsafe_object(itemTypeNumberInSet, otherItems.unsafe_getI64(itemIndex))
                             otherItems.unsafe_setI64(itemIndex, item)
@@ -212,7 +214,7 @@ attach Set to Set
         const itemTypeNumberInSet Int = set.itemTypeNumber~()
         inthrow
             if itemTypeNumberInSet != item.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.")
+                throw(enum::error_invalidType, "Invalid type.", nothing)
         const slotsCount Int = set.unsafe_set_slotsCount()
         const slotAddress Int = set.unsafe_set_slotAddress(item.getShortRandomizedHash() & (slotsCount - 1))
         const slotLength Int = slotAddress.unsafe_getI64(0)

@@ -77,7 +77,7 @@ export def fsoType~(fsObject FSObject) Int
 export def fsoSubObjects~(fsObject FSObject) <>Array
     inthrow
         if fsObject.fsoType~() != enum::fsot_dir
-            throw(enum::error_accessContentsOfNotDirectory, "An attempt was made to access the contents of a directory, but the object is not a directory.")
+            throw(enum::error_accessContentsOfNotDirectory, "An attempt was made to access the contents of a directory, but the object is not a directory.", nothing)
     return fsObject.typeGetItem(2)
 
 #alwaysinline nothrow

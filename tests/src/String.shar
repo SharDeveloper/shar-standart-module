@@ -8,6 +8,8 @@ def testString(write ok Int, write errorsCoordinates List)
     testString_MemoryManagement(ok, errorsCoordinates)
     testString_Equal(ok, errorsCoordinates)
     testString_Ordered(ok, errorsCoordinates)
+    testString_GetFromAToLast(ok, errorsCoordinates)
+    testString_GetFromFirstToA(ok, errorsCoordinates)
     testString_GetRange(ok, errorsCoordinates)
     testString_GetItem(ok, errorsCoordinates)
     testString_Add(ok, errorsCoordinates)
@@ -43,8 +45,13 @@ def testString(write ok Int, write errorsCoordinates List)
     testString_InsertPart(ok, errorsCoordinates)
     testString_Repeat(ok, errorsCoordinates)
     testString_RepeatPart(ok, errorsCoordinates)
-    testString_ReversePart(ok, errorsCoordinates)
+    testString_ReverseFromAtoB(ok, errorsCoordinates)
     testString_Dump(ok, errorsCoordinates)
+    testString_ToLower(ok, errorsCoordinates)
+    testString_ToUpper(ok, errorsCoordinates)
+    testString_ItemTypeNumber(ok, errorsCoordinates)
+    testString_Sort(ok, errorsCoordinates)
+    testString_StableSort(ok, errorsCoordinates)
 
 #noinline
 def testString_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -401,6 +408,54 @@ def testString_Ordered(write ok Int, write errorsCoordinates List)
         compare("123456791234567812345678123456781", "123456781234567812345678123456781") == enum::ord_great
         compare("123456781234567812345679123456781", "123456781234567812345678123456781") == enum::ord_great
         compare("123456781234567812345678123456782", "123456781234567812345678123456781") == enum::ord_great
+
+#noinline
+def testString_GetFromAToLast(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        ""[0:] == ""
+        "1"[1:] == ""
+        "1"[0:] == "1"
+        "12"[2:] == ""
+        "12"[1:] == "2"
+        "12"[0:] == "12"
+        ""[-9223372036854775808:] : error_outOfRange
+        ""[9223372036854775807:] : error_outOfRange
+        ""[-1:] : error_outOfRange
+        ""[1:] : error_outOfRange
+        ""[2:] : error_outOfRange
+        "123"[0:] == "123"
+        "123"[1:] == "23"
+        "123"[2:] == "3"
+        "123"[3:] == ""
+        "123"[-9223372036854775808:] : error_outOfRange
+        "123"[9223372036854775807:] : error_outOfRange
+        "123"[-1:] : error_outOfRange
+        "123"[4:] : error_outOfRange
+        "123"[5:] : error_outOfRange
+
+#noinline
+def testString_GetFromFirstToA(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        ""[:0] == ""
+        "1"[:1] == "1"
+        "1"[:0] == ""
+        "12"[:2] == "12"
+        "12"[:1] == "1"
+        "12"[:0] == ""
+        ""[:-9223372036854775808] : error_outOfRange
+        ""[:9223372036854775807] : error_outOfRange
+        ""[:-1] : error_outOfRange
+        ""[:1] : error_outOfRange
+        ""[:2] : error_outOfRange
+        "123"[:0] == ""
+        "123"[:1] == "1"
+        "123"[:2] == "12"
+        "123"[:3] == "123"
+        "123"[:-9223372036854775808] : error_outOfRange
+        "123"[:9223372036854775807] : error_outOfRange
+        "123"[:-1] : error_outOfRange
+        "123"[:4] : error_outOfRange
+        "123"[:5] : error_outOfRange
 
 #noinline
 def testString_GetRange(write ok Int, write errorsCoordinates List)
@@ -2717,128 +2772,128 @@ def testString_RepeatPart(write ok Int, write errorsCoordinates List)
         "13110100".repeatPart(-9223372036854775808) : error_outOfRange
 
 #noinline
-def testString_ReversePart(write ok Int, write errorsCoordinates List)
+def testString_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
     var c String = ""
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == ""
-        c.reversePart(0, 1) : error_outOfRange
+        c.reverseFromAtoB(0, 1) : error_outOfRange
         c == ""
-        c.reversePart(1, 1) : error_outOfRange
+        c.reverseFromAtoB(1, 1) : error_outOfRange
         c == ""
-        c.reversePart(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : error_outOfRange
         c == ""
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == ""
-        c.reversePart(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
         c == ""
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == ""
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == ""
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == ""
     c = "1"
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == "1"
-        c.reversePart(0, 1).nothing?()
+        c.reverseFromAtoB(0, 1).nothing?()
         c == "1"
-        c.reversePart(1, 1).nothing?()
+        c.reverseFromAtoB(1, 1).nothing?()
         c == "1"
-        c.reversePart(0, 2) : error_outOfRange
+        c.reverseFromAtoB(0, 2) : error_outOfRange
         c == "1"
-        c.reversePart(2, 1) : error_outOfRange
+        c.reverseFromAtoB(2, 1) : error_outOfRange
         c == "1"
-        c.reversePart(1, 2) : error_outOfRange
+        c.reverseFromAtoB(1, 2) : error_outOfRange
         c == "1"
-        c.reversePart(2, 2) : error_outOfRange
+        c.reverseFromAtoB(2, 2) : error_outOfRange
         c == "1"
-        c.reversePart(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : error_outOfRange
         c == "1"
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == "1"
-        c.reversePart(-9223372036854775808, 1) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 1) : error_outOfRange
         c == "1"
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == "1"
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == "1"
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == "1"
     c = "12"
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == "12"
-        c.reversePart(0, 1).nothing?()
+        c.reverseFromAtoB(0, 1).nothing?()
         c == "12"
-        c.reversePart(1, 1).nothing?()
+        c.reverseFromAtoB(1, 1).nothing?()
         c == "12"
-        c.reversePart(1, 2).nothing?()
+        c.reverseFromAtoB(1, 2).nothing?()
         c == "12"
-        c.reversePart(2, 2).nothing?()
+        c.reverseFromAtoB(2, 2).nothing?()
         c == "12"
-        c.reversePart(0, 2).nothing?()
+        c.reverseFromAtoB(0, 2).nothing?()
         c == "21"
-        c.reversePart(0, 3) : error_outOfRange
+        c.reverseFromAtoB(0, 3) : error_outOfRange
         c == "21"
-        c.reversePart(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : error_outOfRange
         c == "21"
-        c.reversePart(1, 3) : error_outOfRange
+        c.reverseFromAtoB(1, 3) : error_outOfRange
         c == "21"
-        c.reversePart(3, 3) : error_outOfRange
+        c.reverseFromAtoB(3, 3) : error_outOfRange
         c == "21"
-        c.reversePart(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : error_outOfRange
         c == "21"
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == "21"
-        c.reversePart(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
         c == "21"
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == "21"
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == "21"
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == "21"
     c = "123456789"
     test: ok, errorsCoordinates
-        c.reversePart(0, 0).nothing?()
+        c.reverseFromAtoB(0, 0).nothing?()
         c == "123456789"
-        c.reversePart(0, 1).nothing?()
+        c.reverseFromAtoB(0, 1).nothing?()
         c == "123456789"
-        c.reversePart(1, 1).nothing?()
+        c.reverseFromAtoB(1, 1).nothing?()
         c == "123456789"
-        c.reversePart(1, 2).nothing?()
+        c.reverseFromAtoB(1, 2).nothing?()
         c == "123456789"
-        c.reversePart(0, 5).nothing?()
+        c.reverseFromAtoB(0, 5).nothing?()
         c == "543216789"
-        c.reversePart(5, 9).nothing?()
+        c.reverseFromAtoB(5, 9).nothing?()
         c == "543219876"
-        c.reversePart(0, 9).nothing?()
+        c.reverseFromAtoB(0, 9).nothing?()
         c == "678912345"
-        c.reversePart(3, 7).nothing?()
+        c.reverseFromAtoB(3, 7).nothing?()
         c == "678321945"
-        c.reversePart(0, 10) : error_outOfRange
+        c.reverseFromAtoB(0, 10) : error_outOfRange
         c == "678321945"
-        c.reversePart(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : error_outOfRange
         c == "678321945"
-        c.reversePart(9, 0) : error_outOfRange
+        c.reverseFromAtoB(9, 0) : error_outOfRange
         c == "678321945"
-        c.reversePart(10, 0) : error_outOfRange
+        c.reverseFromAtoB(10, 0) : error_outOfRange
         c == "678321945"
-        c.reversePart(3, -1) : error_outOfRange
+        c.reverseFromAtoB(3, -1) : error_outOfRange
         c == "678321945"
-        c.reversePart(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : error_outOfRange
         c == "678321945"
-        c.reversePart(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
         c == "678321945"
-        c.reversePart(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
         c == "678321945"
-        c.reversePart(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
         c == "678321945"
-        c.reversePart(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
         c == "678321945"
-        c.reversePart(9223372036854775807, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(9223372036854775807, -9223372036854775808) : error_outOfRange
         c == "678321945"
     c = ""
     for :(i Int = 0) i < 128; i++
@@ -2851,9 +2906,9 @@ def testString_ReversePart(write ok Int, write errorsCoordinates List)
     for :(i Int = 0) i < 64; i++
         c2.addItem(i.intToChar())
     test: ok, errorsCoordinates
-        c.reversePart(0, 64).nothing?()
+        c.reverseFromAtoB(0, 64).nothing?()
         c[0 : 64] == c1
-        c.reversePart(0, 65).nothing?()
+        c.reverseFromAtoB(0, 65).nothing?()
         c[0 : 65] == c2
 
 #noinline
@@ -2863,3 +2918,141 @@ def testString_Dump(write ok Int, write errorsCoordinates List)
         "".dump(1) == "  Type: STD::String = \n"
         "1".dump(0) == "Type: STD::String = 1\n"
         "1".dump(1) == "  Type: STD::String = 1\n"
+
+#noinline
+def testString_ToLower(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        "".toLower() == ""
+        "1".toLower() == "1"
+        "0".toLower() == "0"
+        "a".toLower() == "a"
+        "A".toLower() == "a"
+        "@ABCXYZ[`abcxyz ~ЁЍЎАБВЭЮЯабвэюяёѝўßİ".toLower() == "@abcxyz[`abcxyz ~ёѝўабвэюяабвэюяёѝўßi̇"
+
+#noinline
+def testString_ToUpper(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        "".toUpper() == ""
+        "1".toUpper() == "1"
+        "0".toUpper() == "0"
+        "a".toUpper() == "A"
+        "A".toUpper() == "A"
+        "@ABCXYZ[`abcxyz ~ЁЍЎАБВЭЮЯабвэюяёѝўßİ".toUpper() == "@ABCXYZ[`ABCXYZ ~ЁЍЎАБВЭЮЯАБВЭЮЯЁЍЎSSİ"
+
+#noinline
+def testString_ItemTypeNumber(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        "".itemTypeNumber~() == Char.typeNumber~()
+        "0".itemTypeNumber~() == Char.typeNumber~()
+        "dfd".itemTypeNumber~() == Char.typeNumber~()
+        "01010".itemTypeNumber~() == Char.typeNumber~()
+
+#noinline
+def testString_Sort(write ok Int, write errorsCoordinates List)
+    var a1 String = ""
+    var a2 String = "1"
+    var a3 String = "12"
+    var a4 String = "123"
+    var a5 String = "213"
+    var a6 String = "213"
+    var a7 String = "-345172-922671340915-301"
+    test: ok, errorsCoordinates
+        a1.sort(true).nothing?()
+        a1 == ""
+        a1.sort(false).nothing?()
+        a1 == ""
+        a2.sort(true).nothing?()
+        a2 == "1"
+        a2.sort(false).nothing?()
+        a2 == "1"
+        a3.sort(true).nothing?()
+        a3 == "12"
+        a3.sort(false).nothing?()
+        a3 == "21"
+        a3.sort(false).nothing?()
+        a3 == "21"
+        a4.sort(true).nothing?()
+        a4 == "123"
+        a4.sort(false).nothing?()
+        a4 == "321"
+        a4.sort(false).nothing?()
+        a4 == "321"
+        a5.sort(true).nothing?()
+        a5 == "123"
+        a6.sort(false).nothing?()
+        a6 == "321"
+        a7.sort(true).nothing?()
+        a7 == "---001111222333445567799"
+    a1 = ""
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(intToChar(Int.getRandom() & 0xffff))
+    a1.sort(true)
+    var allOk Bool = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = ""
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(intToChar(Int.getRandom() & 0xffff))
+    a1.sort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk
+
+#noinline
+def testString_StableSort(write ok Int, write errorsCoordinates List)
+    var a1 String = ""
+    var a2 String = "1"
+    var a3 String = "12"
+    var a4 String = "123"
+    var a5 String = "213"
+    var a6 String = "213"
+    var a7 String = "-345172-922671340915-301"
+    test: ok, errorsCoordinates
+        a1.stableSort(true).nothing?()
+        a1 == ""
+        a1.stableSort(false).nothing?()
+        a1 == ""
+        a2.stableSort(true).nothing?()
+        a2 == "1"
+        a2.stableSort(false).nothing?()
+        a2 == "1"
+        a3.stableSort(true).nothing?()
+        a3 == "12"
+        a3.stableSort(false).nothing?()
+        a3 == "21"
+        a3.stableSort(false).nothing?()
+        a3 == "21"
+        a4.stableSort(true).nothing?()
+        a4 == "123"
+        a4.stableSort(false).nothing?()
+        a4 == "321"
+        a4.stableSort(false).nothing?()
+        a4 == "321"
+        a5.stableSort(true).nothing?()
+        a5 == "123"
+        a6.stableSort(false).nothing?()
+        a6 == "321"
+        a7.stableSort(true).nothing?()
+        a7 == "---001111222333445567799"
+    a1 = ""
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(intToChar(Int.getRandom() & 0xffff))
+    a1.stableSort(true)
+    var allOk Bool = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i - 1] <= a1[i]
+    test: ok, errorsCoordinates
+        allOk
+    a1 = ""
+    for :(i Int = 0) i < 200; i++
+        a1.addItem(intToChar(Int.getRandom() & 0xffff))
+    a1.stableSort(false)
+    allOk = true
+    for :(i Int = 1) i < 200; i++
+        allOk = allOk && a1[i] <= a1[i - 1]
+    test: ok, errorsCoordinates
+        allOk

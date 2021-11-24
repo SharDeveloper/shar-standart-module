@@ -17,7 +17,7 @@ export def yield()
 export def sleep(milliseconds Int)
     inthrow
         if milliseconds < 0
-            throw(enum::error_outOfRange, "Out of range.")
+            throw(enum::error_outOfRange, "Out of range.", nothing)
     unsafe_sleep(milliseconds)
 
 #alwaysinline nothrow

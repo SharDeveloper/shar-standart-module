@@ -105,7 +105,6 @@ attach Bool to Shar__sugar__or
             ret [2 x i64] %##reg##result##
 
 attach Bool to StringWriter
-    //@The function returns an object of type "STD::String".
     #alwaysinline nothrow
     def toString(boolean Bool) String
         return boolean.select("true", "false")
@@ -128,12 +127,12 @@ def printlnAsError(boolean Bool)
 
 attach Bool to StringReader
     #alwaysinline
-    def fromString(noread type Bool, string $String) Bool
-        if string == "true".repackTo(string)
+    def fromString(noread type Bool, string String) Bool
+        if string == "true"
             return true
-        if string == "false".repackTo(string)
+        if string == "false"
             return false
-        throw(enum::error_readFromString, "Reading from the string caused an error.")
+        throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
 
 attach Bool to Hashable
     #alwaysinline nothrow

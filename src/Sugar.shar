@@ -8,6 +8,14 @@ export group Shar__sugar__notEqual
     //@"a != b" is syntactic sugar for this function.
     shar__sugar__notEqual(This, This) Bool
 
+export group Shar__sugar__getFromAToLast
+    //@"a[b:]" is syntactic sugar for this function.
+    shar__sugar__getFromAToLast(This, $Any) This
+
+export group Shar__sugar__getFromFirstToA
+    //@"a[:b]" is syntactic sugar for this function.
+    shar__sugar__getFromFirstToA(This, $Any) This
+
 export group Shar__sugar__getRange
     //@"a[b : c]" is syntactic sugar for this function.
     shar__sugar__getRange(This, $Any, $Any) This
@@ -123,3 +131,7 @@ export group Shar__sugar__shlSet
 export group Shar__sugar__shrSet
     //@"a >>= b" is syntactic sugar for this function.
     shar__sugar__shrSet(write This, Int)
+
+export group Shar__sugar__patternMatch
+    //@The function is used for pattern matching.
+    shar__sugar__patternMatch(This, Int) $Any
