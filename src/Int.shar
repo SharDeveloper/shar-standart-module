@@ -45,80 +45,80 @@ attach Int to Shar__sugar__equal
     #alwaysinline nothrow
     def shar__sugar__equal(integer1, integer2 Int) Bool
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp eq i64 %##reg##integer1##, %##reg##integer2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__notEqual
     #alwaysinline nothrow
     def shar__sugar__notEqual(integer1, integer2 Int) Bool
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp ne i64 %##reg##integer1##, %##reg##integer2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Ordered
     #alwaysinline nothrow
     def compare(integer1, integer2 Int) Int
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##less## = icmp slt i64 %##reg##integer1##, %##reg##integer2##
             %##nreg##equal## = icmp eq i64 %##reg##integer1##, %##reg##integer2##
             %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
             %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__great
     #alwaysinline nothrow
     def shar__sugar__great(integer1, integer2 Int) Bool
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp sgt i64 %##reg##integer1##, %##reg##integer2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__greatOrEqual
     #alwaysinline nothrow
     def shar__sugar__greatOrEqual(integer1, integer2 Int) Bool
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp sge i64 %##reg##integer1##, %##reg##integer2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__less
     #alwaysinline nothrow
     def shar__sugar__less(integer1, integer2 Int) Bool
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp slt i64 %##reg##integer1##, %##reg##integer2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__lessOrEqual
     #alwaysinline nothrow
     def shar__sugar__lessOrEqual(integer1, integer2 Int) Bool
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp sle i64 %##reg##integer1##, %##reg##integer2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__inc
     #alwaysinline nothrow
@@ -139,11 +139,11 @@ attach Int to Shar__sugar__mul
     #alwaysinline nothrow
     def shar__sugar__mul(integer1, integer2 Int) Int
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result value## = mul i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__div
     //@If the second number is zero, then the function returns an error with the code "enum::STD::error_divisionByZero".
@@ -157,8 +157,8 @@ attach Int to Shar__sugar__div
 #alwaysinline nothrow
 def unsafe_int_div(integer1, integer2 $Any) Int
     llvm
-        %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-        %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+        %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+        %##nreg##integer2## = extractvalue {i64, i32} %1, 0
         %##nreg##integer1 == -9223372036854775808## = icmp eq i64 %##reg##integer1##, -9223372036854775808
         %##nreg##integer2 == -1## = icmp eq i64 %##reg##integer2##, -1
         %##nreg##-9223372036854775808 / -1## = and i1 %##reg##integer1 == -9223372036854775808##, %##reg##integer2 == -1##
@@ -171,8 +171,8 @@ def unsafe_int_div(integer1, integer2 $Any) Int
         br label %##reg##end label##
         ##nreg##end label##:
         %##nreg##result value## = phi i64 [%##reg##sdiv##, %##reg##sdiv label##], [-9223372036854775808, %##reg##min label##]
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__mod
     //@If the second number is zero, then the function returns an error with the code "enum::STD::error_divisionByZero".
@@ -186,8 +186,8 @@ attach Int to Shar__sugar__mod
 #alwaysinline nothrow
 def unsafe_int_mod(integer1, integer2 $Any) Int
     llvm
-        %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-        %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+        %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+        %##nreg##integer2## = extractvalue {i64, i32} %1, 0
         %##nreg##integer1 == -9223372036854775808## = icmp eq i64 %##reg##integer1##, -9223372036854775808
         %##nreg##integer2 == -1## = icmp eq i64 %##reg##integer2##, -1
         %##nreg##-9223372036854775808 / -1## = and i1 %##reg##integer1 == -9223372036854775808##, %##reg##integer2 == -1##
@@ -200,28 +200,28 @@ def unsafe_int_mod(integer1, integer2 $Any) Int
         br label %##reg##end label##
         ##nreg##end label##:
         %##nreg##result value## = phi i64 [%##reg##srem##, %##reg##srem label##], [0, %##reg##zero label##]
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__add
     #alwaysinline nothrow
     def shar__sugar__add(integer1, integer2 Int) Int
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result value## = add i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__sub
     #alwaysinline nothrow
     def shar__sugar__sub(integer1, integer2 Int) Int
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result value## = sub i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to StringWriter
     #nothrow
@@ -304,12 +304,12 @@ attach Int to Number
     #alwaysinline nothrow
     def abs(integer Int) Int
         llvm
-            %##nreg##integer## = extractvalue [2 x i64] %0, 1
+            %##nreg##integer## = extractvalue {i64, i32} %0, 0
             %##nreg##neg integer## = sub i64 0, %##reg##integer##
             %##nreg##integer < 0## = icmp slt i64 %##reg##integer##, 0
             %##nreg##result value## = select i1 %##reg##integer < 0##, i64 %##reg##neg integer##, i64 %##reg##integer##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
     #alwaysinline nothrow
     def power(integer, power Int) Int
@@ -332,45 +332,45 @@ attach Int to Number
     def getRandom(noread int Int) Int
         llvm
             %##nreg##random int## = call i64 @shar__get__random__number()
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##random int##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##random int##, 0
+            ret {i64, i32} %##reg##result##
 
     #alwaysinline nothrow
     def getCryptographicRandom(noread int Int) Int
         llvm
             %##nreg##random int## = call i64 @shar__get__cryptographic__random__number()
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##random int##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##random int##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__and
     #alwaysinline nothrow
     def shar__sugar__and(integer1, integer2 Int) Int
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = and i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__xor
     #alwaysinline nothrow
     def shar__sugar__xor(integer1, integer2 Int) Int
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = xor i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__or
     #alwaysinline nothrow
     def shar__sugar__or(integer1, integer2 Int) Int
         llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
+            %##nreg##integer1## = extractvalue {i64, i32} %0, 0
+            %##nreg##integer2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = or i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__shl
     #alwaysinline
@@ -383,11 +383,11 @@ attach Int to Shar__sugar__shl
 #alwaysinline nothrow
 def unsafe_int_shl(integer, shifts $Any) Int
     llvm
-        %##nreg##integer## = extractvalue [2 x i64] %0, 1
-        %##nreg##shifts## = extractvalue [2 x i64] %1, 1
+        %##nreg##integer## = extractvalue {i64, i32} %0, 0
+        %##nreg##shifts## = extractvalue {i64, i32} %1, 0
         %##nreg##result i64## = shl i64 %##reg##integer##, %##reg##shifts##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__shr
     #alwaysinline
@@ -400,11 +400,11 @@ attach Int to Shar__sugar__shr
 #alwaysinline nothrow
 def unsafe_integer_shr(integer, shifts $Any) Int
     llvm
-        %##nreg##integer## = extractvalue [2 x i64] %0, 1
-        %##nreg##shifts## = extractvalue [2 x i64] %1, 1
+        %##nreg##integer## = extractvalue {i64, i32} %0, 0
+        %##nreg##shifts## = extractvalue {i64, i32} %1, 0
         %##nreg##result i64## = lshr i64 %##reg##integer##, %##reg##shifts##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Int to Shar__sugar__andSet
     #alwaysinline nothrow
@@ -462,15 +462,15 @@ attach Int to BitArray
     #alwaysinline nothrow
     def not(integer Int) Int
         llvm
-            %##nreg##integer## = extractvalue [2 x i64] %0, 1
+            %##nreg##integer## = extractvalue {i64, i32} %0, 0
             %##nreg##result i64## = xor i64 %##reg##integer##, -1
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 #alwaysinline nothrow
 def unsafe_int_getNumberOfDecDigits(int $Any) Int
     llvm
-        %##nreg##r1## = extractvalue [2 x i64] %0, 1
+        %##nreg##r1## = extractvalue {i64, i32} %0, 0
         %##nreg##r2## = insertelement <1 x i64> zeroinitializer, i64 %##reg##r1##, i32 0
         %##nreg##r3## = shufflevector <1 x i64> %##reg##r2##, <1 x i64> zeroinitializer, <18 x i32> zeroinitializer
         %##nreg##r4## = icmp sgt <18 x i64> %##reg##r3##, <i64 9, i64 99, i64 999, i64 9999, i64 99999, i64 999999, i64 9999999, i64 99999999, i64 999999999, i64 9999999999, i64 99999999999, i64 999999999999, i64 9999999999999, i64 99999999999999, i64 999999999999999, i64 9999999999999999, i64 99999999999999999, i64 999999999999999999>
@@ -480,8 +480,8 @@ def unsafe_int_getNumberOfDecDigits(int $Any) Int
         %##nreg##r7## = call i32 @llvm.ctpop.i32(i32 %##reg##r6##)
         %##nreg##r8## = add i32 %##reg##r7##, 1
         %##nreg##r9## = zext i32 %##reg##r8## to i64
-        %##nreg##r10## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##r9##, 1
-        ret [2 x i64] %##reg##r10##
+        %##nreg##r10## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##r9##, 0
+        ret {i64, i32} %##reg##r10##
 
 //@The function converts a number into a character with a code specified in the number.
 //@If the value of the number is outside the range of possible character codes, the function returns an error with the code "enum::STD::error_outOfRange".
@@ -496,11 +496,11 @@ export def intToChar(int Int) Char
 #alwaysinline nothrow
 export def intToReal(int Int) Real
     llvm
-        %##nreg##int## = extractvalue [2 x i64] %0, 1
+        %##nreg##int## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = sitofp i64 %##reg##int## to double
         %##nreg##real i64## = bitcast double %##reg##real## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##real i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##real i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function converts a number to time, the number contains the number of seconds that have passed since 0 hours, 0 minutes, 0 seconds on January 1, 1970.
 //@If the number is less than zero, then the function returns an error with the code "enum::STD::error_outOfRange".
@@ -540,22 +540,22 @@ export def intToHex(int Int) String
 #alwaysinline nothrow
 def unsafe_int_getNumberOfHecDigits(int $Any) Int
     llvm
-        %##nreg##int## = extractvalue [2 x i64] %0, 1
+        %##nreg##int## = extractvalue {i64, i32} %0, 0
         ##llvmdeclare##llvm.ctlz.i64##declare i64  @llvm.ctlz.i64(i64, i1)##
         %##nreg##ctlz## = call i64 @llvm.ctlz.i64(i64 %##reg##int##, i1 1)
         %##nreg##higher set bit## = sub i64 63, %##reg##ctlz##
         %##nreg##count of chars - 1## = lshr i64 %##reg##higher set bit##, 2
         %##nreg##count of chars## = add i64 %##reg##count of chars - 1##, 1
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##count of chars##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##count of chars##, 0
+        ret {i64, i32} %##reg##result##
 
 #alwaysinline nothrow
 def unsafe_int_writeHexToString(int, charsAddress, countOfChars $Any)
     llvm
-        %##nreg##int## = extractvalue [2 x i64] %0, 1
-        %##nreg##chars i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##int## = extractvalue {i64, i32} %0, 0
+        %##nreg##chars i64## = extractvalue {i64, i32} %1, 0
         %##nreg##chars## = inttoptr i64 %##reg##chars i64## to i16*
-        %##nreg##count## = extractvalue [2 x i64] %2, 1
+        %##nreg##count## = extractvalue {i64, i32} %2, 0
         %##nreg##buffer## = alloca i16, i8 16, align 2
         ##llvmdeclare##llvm.bswap.i64##declare i64  @llvm.bswap.i64(i64)##
         %##nreg##r1## = call i64 @llvm.bswap.i64(i64 %##reg##int##)
@@ -576,7 +576,7 @@ def unsafe_int_writeHexToString(int, charsAddress, countOfChars $Any)
         %##nreg##r15## = getelementptr i16, i16* %##reg##buffer##, i64 %##reg##r14##
         ##llvmdeclare##llvm.memcpy.i16.i16.i64##declare void @llvm.memcpy.i16.i16.i64(i16*, i16*, i64, i1)##
         call void @llvm.memcpy.i16.i16.i64(i16* nonnull align 2 %##reg##chars##, i16* nonnull align 2 %##reg##r15##, i64 %##reg##r13##, i1 0)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function converts a string containing the hexadecimal representation of a number to a number, if the conversion was unsuccessful, the function returns an error with the "enum::STD::error_readFromString" code.
 #alwaysinline

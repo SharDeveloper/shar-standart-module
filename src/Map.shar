@@ -121,7 +121,7 @@ attach Map to Empty
     #alwaysinline nothrow
     def createEmpty(noread type Map) Map
         llvm
-            ret [2 x i64] [i64 ##tnum##STD::Map##, i64 ptrtoint ([5 x i64]* ##llvmconst##>private unnamed_addr constant [5 x i64] zeroinitializer, align 8<## to i64)]
+            ret {i64, i32} {i64 ptrtoint ([5 x i64]* ##llvmconst##>private unnamed_addr constant [5 x i64] zeroinitializer, align 8<## to i64), i32 ##tnum##STD::Map##}
 
 attach Map to Long
     #alwaysinline nothrow

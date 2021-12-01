@@ -10,7 +10,7 @@ export group Multithreaded
 export def yield()
     llvm
         call void @shar__yield()
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@When this function is called, the current thread pauses its work for a time not less than the specified number of milliseconds, but the work is resumed as soon as possible.
 #alwaysinline
@@ -23,6 +23,6 @@ export def sleep(milliseconds Int)
 #alwaysinline nothrow
 def unsafe_sleep(milliseconds $Any)
     llvm
-        %##nreg##milliseconds## = extractvalue [2 x i64] %0, 1
+        %##nreg##milliseconds## = extractvalue {i64, i32} %0, 0
         call void @shar__sleep(i64 %##reg##milliseconds##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer

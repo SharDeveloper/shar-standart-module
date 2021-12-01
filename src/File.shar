@@ -106,27 +106,27 @@ def dump(file File, level Int) String
 #alwaysinline nothrow
 export def flushFile(file File) Bool
     llvm
-        %##nreg##file memory## = extractvalue [2 x i64] %0, 1
+        %##nreg##file memory## = extractvalue {i64, i32} %0, 0
         %##nreg##file memory i64*## = inttoptr i64 %##reg##file memory## to  i64*
         %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory i64*##, i64 1
         %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
         %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
         %##nreg##result i1## = call i1 @shar__flush__file(i8* %##reg##file##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //The function flushes the output buffer and close the file.
 #alwaysinline nothrow
 def unsafe_file_closeFile(file $Any)
     llvm
-        %##nreg##file memory## = extractvalue [2 x i64] %0, 1
+        %##nreg##file memory## = extractvalue {i64, i32} %0, 0
         %##nreg##file memory i64*## = inttoptr i64 %##reg##file memory## to  i64*
         %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory i64*##, i64 1
         %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
         %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
         %##nreg##unneeded## = call i1 @shar__close__file(i8* %##reg##file##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function reads the specified number of bytes from the file into the third argument of the function and returns the number of bytes that were actually read.
 //@If there is not enough space in the third argument to read the specified number of bytes, then the array of bytes in the third argument is expanded to the required size.
@@ -152,18 +152,18 @@ export def readDataFromFile(file File, countOfBytes Int, write buffer Bytes) Int
 #alwaysinline nothrow
 def unsafe_file_readDataFromFile(file, countOfBytes, buffer $Any) Int
     llvm
-        %##nreg##file memory pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##file memory pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##file memory pointer## = inttoptr i64 %##reg##file memory pointer i64## to i64*
         %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory pointer##, i64 1
         %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
         %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
-        %##nreg##count of bytes## = extractvalue [2 x i64] %1, 1
-        %##nreg##buffer with counter and length i64## = extractvalue [2 x i64] %2, 1
+        %##nreg##count of bytes## = extractvalue {i64, i32} %1, 0
+        %##nreg##buffer with counter and length i64## = extractvalue {i64, i32} %2, 0
         %##nreg##buffer with counter and length## = inttoptr i64 %##reg##buffer with counter and length i64## to i8*
         %##nreg##buffer## = getelementptr i8, i8* %##reg##buffer with counter and length##, i64 16
         %##nreg##result i64## = call i64 @shar__read__from__file(i8* %##reg##file##, i64 %##reg##count of bytes##, i8* %##reg##buffer##)
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function writes the specified number of bytes from the byte array in the third argument to the function to a file and returns the number of bytes that were actually written.
 //@If the specified number of bytes is less than zero, the function returns an error with the "enum::STD::error_outOfRange" code.
@@ -180,25 +180,25 @@ export def writeDataToFile(file File, countOfBytes Int, buffer Bytes) Int
 #alwaysinline nothrow
 def unsafe_file_writeDataToFile(file, countOfBytes, buffer $Any) Int
     llvm
-        %##nreg##file memory pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##file memory pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##file memory pointer## = inttoptr i64 %##reg##file memory pointer i64## to i64*
         %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory pointer##, i64 1
         %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
         %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
-        %##nreg##count of bytes## = extractvalue [2 x i64] %1, 1
-        %##nreg##buffer with counter and length i64## = extractvalue [2 x i64] %2, 1
+        %##nreg##count of bytes## = extractvalue {i64, i32} %1, 0
+        %##nreg##buffer with counter and length i64## = extractvalue {i64, i32} %2, 0
         %##nreg##buffer with counter and length## = inttoptr i64 %##reg##buffer with counter and length i64## to i8*
         %##nreg##buffer## = getelementptr i8, i8* %##reg##buffer with counter and length##, i64 16
         %##nreg##result i64## = call i64 @shar__write__to__file(i8* %##reg##file##, i64 %##reg##count of bytes##, i8* %##reg##buffer##)
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function returns the current position in the file.
 //@If the function was unable to get the current file position, then "Nothing" is returned as a result.
 #alwaysinline nothrow
 export def getCurrentFilePosition(file File) <>Int
     llvm
-        %##nreg##file memory## = extractvalue [2 x i64] %0, 1
+        %##nreg##file memory## = extractvalue {i64, i32} %0, 0
         %##nreg##file memory i64*## = inttoptr i64 %##reg##file memory## to  i64*
         %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory i64*##, i64 1
         %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
@@ -207,10 +207,10 @@ export def getCurrentFilePosition(file File) <>Int
         %##nreg##result i64 >= 0## = icmp sge i64 %##reg##result i64##, 0
         br i1 %##reg##result i64 >= 0##, label %##reg##int label##, label %##reg##nothing label##
         ##nreg##int label##:
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##nothing label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function sets the current position in the file.
 //@If the setting was successful, then the function returns "true", otherwise "false".
@@ -228,16 +228,16 @@ export def setFilePosition(file File, position Int) Bool
 #alwaysinline nothrow
 def unsafe_file_setFilePosition(file, position $Any) Bool
     llvm
-        %##nreg##file memory## = extractvalue [2 x i64] %0, 1
+        %##nreg##file memory## = extractvalue {i64, i32} %0, 0
         %##nreg##file memory i64*## = inttoptr i64 %##reg##file memory## to  i64*
         %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory i64*##, i64 1
         %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
         %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
-        %##nreg##position## = extractvalue [2 x i64] %1, 1
+        %##nreg##position## = extractvalue {i64, i32} %1, 0
         %##nreg##result i1## = call i1 @shar__set__position__in__file(i8* %##reg##file##, i64 %##reg##position##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function opens the file for reading it in parts.
 //@If the file can not be opened, the function returns "nothing".

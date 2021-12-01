@@ -73,9 +73,10 @@ export def type!(a This, noread type This) This
 #alwaysinline nothrow
 export def typeNumber~(noread a $Any) Int
     llvm
-        %##nreg##type## = extractvalue [2 x i64] %0, 0
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##type##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##type i32## = extractvalue {i64, i32} %0, 1
+        %##nreg##type## = zext i32 %##reg##type i32## to i64
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##type##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function swaps the values of its arguments.
 //@If the arguments are of different types, then the function returns an error with the code "enum::STD::error_invalidType", and the arguments remain unchanged.
@@ -89,13 +90,13 @@ export def exchange(write a, write b $Any)
 #alwaysinline unsafewrite
 def unsafe_exchange(write a, write b $Any)
     llvm
-        %##nreg##a pointer## = getelementptr [2 x i64], [2 x i64]* %0, i64 0, i32 1
-        %##nreg##b pointer## = getelementptr [2 x i64], [2 x i64]* %1, i64 0, i32 1
+        %##nreg##a pointer## = getelementptr {i64, i32}, {i64, i32}* %0, i64 0, i32 0
+        %##nreg##b pointer## = getelementptr {i64, i32}, {i64, i32}* %1, i64 0, i32 0
         %##nreg##a## = load i64, i64* %##reg##a pointer##, align 8
         %##nreg##b## = load i64, i64* %##reg##b pointer##, align 8
         store i64 %##reg##a##, i64* %##reg##b pointer##, align 8
         store i64 %##reg##b##, i64* %##reg##a pointer##, align 8
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function returns the type name whose number is specified by the function argument.
 //@If the type with the specified number does not exist, the function returns an error with the code "enum::STD::error_outOfRange".
@@ -109,9 +110,10 @@ export def getTypeName(typeNumber Int) String
 #alwaysinline nothrow
 def unsafe_getTypeName(typeNumber $Any) String
     llvm
-        %##nreg##type number## = extractvalue [2 x i64] %0, 1
-        %##nreg##type name## = call [2 x i64] @shar.type.number.to.type.name(i64 %##reg##type number##)
-        ret [2 x i64] %##reg##type name##
+        %##nreg##type number i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##type number## = trunc i64 %##reg##type number i64## to i32
+        %##nreg##type name## = call {i64, i32} @shar.type.number.to.type.name(i32 %##reg##type number##)
+        ret {i64, i32} %##reg##type name##
 
 #alwaysinline nothrow
 export def nothing?(noread arg $Any) Bool

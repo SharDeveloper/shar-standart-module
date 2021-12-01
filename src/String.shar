@@ -76,11 +76,11 @@ def unsafe_string_compare(address1, address2, generalLength, length1, length2 $A
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address s1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address s1 i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address s1## = inttoptr i64 %##reg##address s1 i64## to <16 x i16>*
-        %##nreg##address s2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##address s2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##address s2## = inttoptr i64 %##reg##address s2 i64## to <16 x i16>*
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##length## = extractvalue {i64, i32} %2, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
         br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##simd loop##:
@@ -106,8 +106,8 @@ def unsafe_string_compare(address1, address2, generalLength, length1, length2 $A
         %##nreg##char from vector s2## = extractelement <16 x i16> %##reg##vector from address s2##, i16 %##reg##vector index##
         %##nreg##simd less## = icmp ult i16 %##reg##char from vector s1##, %##reg##char from vector s2##
         %##nreg##simd result i64## = select i1 %##reg##simd less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##simd result i64##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##simd result i64##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##scalar label##:
         %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
         %##nreg##vector address s1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
@@ -133,17 +133,17 @@ def unsafe_string_compare(address1, address2, generalLength, length1, length2 $A
         ##nreg##not equal label##:
         %##nreg##scalar less## = icmp ult i16 %##reg##char from address s1##, %##reg##char from address s2##
         %##nreg##scalar result i64## = select i1 %##reg##scalar less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar result i64##, 1
-        ret [2 x i64] %##reg##scalar result##
+        %##nreg##scalar result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##scalar result i64##, 0
+        ret {i64, i32} %##reg##scalar result##
         ##nreg##end label##:
-        %##nreg##length s1## = extractvalue [2 x i64] %3, 1
-        %##nreg##length s2## = extractvalue [2 x i64] %4, 1
+        %##nreg##length s1## = extractvalue {i64, i32} %3, 0
+        %##nreg##length s2## = extractvalue {i64, i32} %4, 0
         %##nreg##less## = icmp ult i64 %##reg##length s1##, %##reg##length s2##
         %##nreg##equal## = icmp eq i64 %##reg##length s1##, %##reg##length s2##
         %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
         %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach String to Shar__sugar__less
     #alwaysinline nothrow
@@ -231,50 +231,50 @@ attach String to StringReader
 #override(STD) alwaysinline nothrow
 def print(string String)
     llvm
-        %##nreg##string pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##string pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##string pointer## = inttoptr i64 %##reg##string pointer i64## to i64*
         %##nreg##length pointer## = getelementptr i64, i64* %##reg##string pointer##, i64 1
         %##nreg##chars i64*## = getelementptr i64, i64* %##reg##string pointer##, i64 2
         %##nreg##chars## = bitcast i64* %##reg##chars i64*## to i16*
         %##nreg##length## = load i64, i64* %##reg##length pointer##, align 8
         call void @shar__print__string(i64 %##reg##length##, i16* %##reg##chars##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline nothrow
 def println(string String)
     llvm
-        %##nreg##string pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##string pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##string pointer## = inttoptr i64 %##reg##string pointer i64## to i64*
         %##nreg##length pointer## = getelementptr i64, i64* %##reg##string pointer##, i64 1
         %##nreg##chars i64*## = getelementptr i64, i64* %##reg##string pointer##, i64 2
         %##nreg##chars## = bitcast i64* %##reg##chars i64*## to i16*
         %##nreg##length## = load i64, i64* %##reg##length pointer##, align 8
         call void @shar__println__string(i64 %##reg##length##, i16* %##reg##chars##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) nothrow
 def printAsError(string String)
     llvm
-        %##nreg##string pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##string pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##string pointer## = inttoptr i64 %##reg##string pointer i64## to i64*
         %##nreg##length pointer## = getelementptr i64, i64* %##reg##string pointer##, i64 1
         %##nreg##chars i64*## = getelementptr i64, i64* %##reg##string pointer##, i64 2
         %##nreg##chars## = bitcast i64* %##reg##chars i64*## to i16*
         %##nreg##length## = load i64, i64* %##reg##length pointer##, align 8
         call void @shar__print__as__error(i64 %##reg##length##, i16* %##reg##chars##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) nothrow
 def printlnAsError(string String)
     llvm
-        %##nreg##string pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##string pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##string pointer## = inttoptr i64 %##reg##string pointer i64## to i64*
         %##nreg##length pointer## = getelementptr i64, i64* %##reg##string pointer##, i64 1
         %##nreg##chars i64*## = getelementptr i64, i64* %##reg##string pointer##, i64 2
         %##nreg##chars## = bitcast i64* %##reg##chars i64*## to i16*
         %##nreg##length## = load i64, i64* %##reg##length pointer##, align 8
         call void @shar__println__as__error(i64 %##reg##length##, i16* %##reg##chars##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 attach String to Hashable
     #alwaysinline nothrow
@@ -571,11 +571,11 @@ def unsafe_string_countFromAtoB(address, char, length $Any) Int
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##char 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##char 64## = extractvalue {i64, i32} %1, 0
         %##nreg##char## = trunc i64 %##reg##char 64## to i16
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##length## = extractvalue {i64, i32} %2, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
@@ -618,8 +618,8 @@ def unsafe_string_countFromAtoB(address, char, length $Any) Int
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
         %##nreg##result 4## = phi i64 [%##reg##result 2##, %##reg##scalar label##], [%##reg##new result 3##, %##reg##scalar loop##]
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result 4##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result 4##, 0
+        ret {i64, i32} %##reg##result##
 
 #override(STD) inline
 def countPartFromAtoB(string, part String, a, b Int) Int
@@ -668,13 +668,13 @@ def unsafe_string_lookNFromAtoB(address, char, n, a, b $Any) <>Int
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##char 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##char 64## = extractvalue {i64, i32} %1, 0
         %##nreg##char## = trunc i64 %##reg##char 64## to i16
-        %##nreg##n## = extractvalue [2 x i64] %2, 1
-        %##nreg##a## = extractvalue [2 x i64] %3, 1
-        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##n## = extractvalue {i64, i32} %2, 0
+        %##nreg##a## = extractvalue {i64, i32} %3, 0
+        %##nreg##b## = extractvalue {i64, i32} %4, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
         %##nreg##use simd## = icmp uge i64 %##reg##range size##, 16
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
@@ -708,8 +708,8 @@ def unsafe_string_lookNFromAtoB(address, char, n, a, b $Any) <>Int
         %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain chars 1##
         %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
         %##nreg##full simd index## = add i64 %##reg##start index##, %##reg##offset##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full simd index##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##continue simd search##:
         %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
         %##nreg##new simd address## = getelementptr <16 x i16>, <16 x i16>* %##reg##address 1##, i64 1
@@ -740,10 +740,10 @@ def unsafe_string_lookNFromAtoB(address, char, n, a, b $Any) <>Int
         ##nreg##final found char label##:
         %##nreg##scalar offset## = sub i64 %##reg##range size##, %##reg##remain chars 3##
         %##nreg##full scalar index## = add i64 %##reg##scalar offset##, %##reg##a##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full scalar index##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) inline
 def lookNPartFromAtoB(string, part String, n, a, b Int) <>Int
@@ -785,12 +785,12 @@ def unsafe_string_lookAllFromAtoB(address, char, a, b, write result $Any)
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##char 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##char 64## = extractvalue {i64, i32} %1, 0
         %##nreg##char## = trunc i64 %##reg##char 64## to i16
-        %##nreg##a## = extractvalue [2 x i64] %2, 1
-        %##nreg##b## = extractvalue [2 x i64] %3, 1
+        %##nreg##a## = extractvalue {i64, i32} %2, 0
+        %##nreg##b## = extractvalue {i64, i32} %3, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
         %##nreg##use simd## = icmp uge i64 %##reg##range size##, 16
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
@@ -809,14 +809,14 @@ def unsafe_string_lookAllFromAtoB(address, char, a, b, write result $Any)
         ##nreg##simd add indexes##:
         %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain chars 1##
         %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
-        %##nreg##start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##start index##, 1
+        %##nreg##start index arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##start index##, 0
         ##llvmdeclare##llvm.ctpop.i16##declare i16 @llvm.ctpop.i16(i16)##
         %##nreg##count of chars in vector## = call i16 @llvm.ctpop.i16(i16 %##reg##vector compare result i16##)
         %##nreg##count of chars in vector i64## = zext i16 %##reg##count of chars in vector## to i64
-        %##nreg##count of chars in vector arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##count of chars in vector i64##, 1
+        %##nreg##count of chars in vector arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##count of chars in vector i64##, 0
         %##nreg##vector compare result i64## = zext i16 %##reg##vector compare result i16## to i64
-        %##nreg##vector compare result arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##vector compare result i64##, 1
-        %##nreg##unneeded 1## = call [2 x i64] ##ancntfunc##STD::unsafe_string_lookAllFromAtoB_addIndexes_SIMD##([2 x i64] %##reg##start index arg##, [2 x i64] %##reg##count of chars in vector arg##, [2 x i64] %##reg##vector compare result arg##, [2 x i64]* %4)
+        %##nreg##vector compare result arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##vector compare result i64##, 0
+        %##nreg##unneeded 1## = call {i64, i32} ##ancntfunc##STD::unsafe_string_lookAllFromAtoB_addIndexes_SIMD##({i64, i32} %##reg##start index arg##, {i64, i32} %##reg##count of chars in vector arg##, {i64, i32} %##reg##vector compare result arg##, {i64, i32}* %4)
         br label %##reg##simd continue search##
         ##nreg##simd continue search##:
         %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
@@ -838,8 +838,8 @@ def unsafe_string_lookAllFromAtoB(address, char, a, b, write result $Any)
         ##nreg##scalar add index##:
         %##nreg##offset## = sub i64 %##reg##range size##, %##reg##remain chars 3##
         %##nreg##scalar start index## = add i64 %##reg##a##, %##reg##offset##
-        %##nreg##scalar start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar start index##, 1
-        %##nreg##unneeded 2## = call [2 x i64] ##ancntfunc##STD::unsafe_string_lookAllFromAtoB_addIndex_scalar##([2 x i64] %##reg##scalar start index arg##, [2 x i64]* %4)
+        %##nreg##scalar start index arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##scalar start index##, 0
+        %##nreg##unneeded 2## = call {i64, i32} ##ancntfunc##STD::unsafe_string_lookAllFromAtoB_addIndex_scalar##({i64, i32} %##reg##scalar start index arg##, {i64, i32}* %4)
         br label %##reg##scalar continue search##
         ##nreg##scalar continue search##:
         %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
@@ -847,7 +847,7 @@ def unsafe_string_lookAllFromAtoB(address, char, a, b, write result $Any)
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        %##nreg##result pointer of pointer## = getelementptr [2 x i64], [2 x i64]* %4, i64 0, i64 1
+        %##nreg##result pointer of pointer## = getelementptr {i64, i32}, {i64, i32}* %4, i64 0, i32 0
         %##nreg##result pointer i64## = load i64, i64* %##reg##result pointer of pointer##, align 8
         %##nreg##result pointer## = inttoptr i64 %##reg##result pointer i64## to i64*
         %##nreg##result length pointer## = getelementptr i64, i64* %##reg##result pointer##, i64 1
@@ -856,7 +856,7 @@ def unsafe_string_lookAllFromAtoB(address, char, a, b, write result $Any)
         %##nreg##length == 0## = icmp eq i64 %##reg##result length##, 0
         %##nreg##result new item type## = select i1 %##reg##length == 0##, i64 ##tnum##STD::Nothing##, i64 ##tnum##STD::Int##
         store i64 %##reg##result new item type##, i64* %##reg##result type pointer##, align 8
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #alwaysinline nothrow
 def unsafe_string_lookAllFromAtoB_addIndexes_SIMD(startIndex, countOfNewIndexes, charsAsBits Int, write indexes Array)
@@ -922,13 +922,13 @@ def unsafe_string_lookBackNFromAtoB(address, char, n, a, b $Any) <>Int
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##char 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##char 64## = extractvalue {i64, i32} %1, 0
         %##nreg##char## = trunc i64 %##reg##char 64## to i16
-        %##nreg##n## = extractvalue [2 x i64] %2, 1
-        %##nreg##a## = extractvalue [2 x i64] %3, 1
-        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##n## = extractvalue {i64, i32} %2, 0
+        %##nreg##a## = extractvalue {i64, i32} %3, 0
+        %##nreg##b## = extractvalue {i64, i32} %4, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
         %##nreg##use simd## = icmp uge i64 %##reg##range size##, 16
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
@@ -967,8 +967,8 @@ def unsafe_string_lookBackNFromAtoB(address, char, n, a, b $Any) <>Int
         ##nreg##simd found label##:
         %##nreg##start index## = add i64 %##reg##remain chars 1##, %##reg##a##
         %##nreg##full simd index## = sub i64 %##reg##start index##, %##reg##offset##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full simd index##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##scalar label##:
         %##nreg##remain chars 2## = phi i64 [%##reg##range size##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##continue simd search##]
         %##nreg##n 2## = phi i64 [%##reg##n##, %##reg##start##], [%##reg##n in simd look##, %##reg##continue simd search##]
@@ -994,10 +994,10 @@ def unsafe_string_lookBackNFromAtoB(address, char, n, a, b $Any) <>Int
         ##nreg##final found char label##:
         %##nreg##full scalar index + 1## = add i64 %##reg##remain chars 3##, %##reg##a##
         %##nreg##full scalar index## = sub i64 %##reg##full scalar index + 1##, 1
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full scalar index##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) inline
 def lookBackNPartFromAtoB(string, part String, n, a, b Int) <>Int
@@ -1080,15 +1080,15 @@ def unsafe_string_replace$(destination, source, oldChar, newChar, length $Any)
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to <16 x i16>*
-        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source i64## = extractvalue {i64, i32} %1, 0
         %##nreg##source## = inttoptr i64 %##reg##source i64## to <16 x i16>*
-        %##nreg##old char 64## = extractvalue [2 x i64] %2, 1
+        %##nreg##old char 64## = extractvalue {i64, i32} %2, 0
         %##nreg##old char## = trunc i64 %##reg##old char 64## to i16
-        %##nreg##new char 64## = extractvalue [2 x i64] %3, 1
+        %##nreg##new char 64## = extractvalue {i64, i32} %3, 0
         %##nreg##new char## = trunc i64 %##reg##new char 64## to i16
-        %##nreg##length## = extractvalue [2 x i64] %4, 1
+        %##nreg##length## = extractvalue {i64, i32} %4, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
@@ -1132,7 +1132,7 @@ def unsafe_string_replace$(destination, source, oldChar, newChar, length $Any)
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline nothrow
 def replace(write string String, oldChar, newChar Char)
@@ -1147,13 +1147,13 @@ def unsafe_string_replace(address, oldChar, newChar, length $Any)
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##old char 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##old char 64## = extractvalue {i64, i32} %1, 0
         %##nreg##old char## = trunc i64 %##reg##old char 64## to i16
-        %##nreg##new char 64## = extractvalue [2 x i64] %2, 1
+        %##nreg##new char 64## = extractvalue {i64, i32} %2, 0
         %##nreg##new char## = trunc i64 %##reg##new char 64## to i16
-        %##nreg##length## = extractvalue [2 x i64] %3, 1
+        %##nreg##length## = extractvalue {i64, i32} %3, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
@@ -1191,7 +1191,7 @@ def unsafe_string_replace(address, oldChar, newChar, length $Any)
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline
 def insert$(string String, index Int, newChar Char) String
@@ -1330,8 +1330,8 @@ def reverseFromAtoB(write string String, a, b Int)
 #alwaysinline nothrow
 def unsafe_string_simdReverseAndSwapParts(part1, part2 $Any)
     llvm
-        %##nreg##part1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##part2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##part1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##part2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##part1 pointer## = inttoptr i64 %##reg##part1 i64## to <16 x i16>*
         %##nreg##part2 pointer## = inttoptr i64 %##reg##part2 i64## to <16 x i16>*
         %##nreg##part1## = load <16 x i16>, <16 x i16>* %##reg##part1 pointer##, align 2
@@ -1340,7 +1340,7 @@ def unsafe_string_simdReverseAndSwapParts(part1, part2 $Any)
         %##nreg##reversed part2## = shufflevector <16 x i16> %##reg##part2##, <16 x i16> undef, <16 x i32> <i32 15, i32 14, i32 13, i32 12, i32 11, i32 10, i32 9, i32 8, i32 7, i32 6, i32 5, i32 4, i32 3, i32 2, i32 1, i32 0>
         store <16 x i16> %##reg##reversed part1##, <16 x i16>* %##reg##part2 pointer##, align 2
         store <16 x i16> %##reg##reversed part2##, <16 x i16>* %##reg##part1 pointer##, align 2
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #inline nothrow
 export def toLower(string String) String

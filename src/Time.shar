@@ -226,16 +226,16 @@ export def year~(time Time) Int
 export def currentTime() Time
     llvm
         %##nreg##time## = call i64 @shar__get__current__time()
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Time##, i64 0], i64 %##reg##time##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Time##}, i64 %##reg##time##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function returns the current time. (UTC)
 #alwaysinline nothrow
 export def currentUTCTime() Time
     llvm
         %##nreg##time## = call i64 @shar__get__current__utc__time()
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Time##, i64 0], i64 %##reg##time##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Time##}, i64 %##reg##time##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function returns the number of seconds elapsed from 0 hours, 0 minutes, 0 seconds, January 1, 1970 to the specified time.
 #alwaysinline nothrow
@@ -246,18 +246,15 @@ attach Time to Independent
 
 #override(STD) alwaysinline
 def shar__rc_free(time Time)
-    llvm
-        ret [2 x i64] zeroinitializer
+    return nothing
 
 #override(STD) alwaysinline
 def shar__rc_use(time Time)
-    llvm
-        ret [2 x i64] zeroinitializer
+    return nothing
 
 #override(STD) alwaysinline
 def shar__to_const(time Time)
-    llvm
-        ret [2 x i64] zeroinitializer
+    return nothing
 
 #override(STD) alwaysinline nothrow
 def use?(time Time) Bool
@@ -291,58 +288,58 @@ attach Time to Ordered
     #alwaysinline nothrow
     def compare(time1, time2 Time) Int
         llvm
-            %##nreg##time1## = extractvalue [2 x i64] %0, 1
-            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##time1## = extractvalue {i64, i32} %0, 0
+            %##nreg##time2## = extractvalue {i64, i32} %1, 0
             %##nreg##less## = icmp ult i64 %##reg##time1##, %##reg##time2##
             %##nreg##equal## = icmp eq i64 %##reg##time1##, %##reg##time2##
             %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
             %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Time to Shar__sugar__great
     #alwaysinline nothrow
     def shar__sugar__great(time1, time2 Time) Bool
         llvm
-            %##nreg##time1## = extractvalue [2 x i64] %0, 1
-            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##time1## = extractvalue {i64, i32} %0, 0
+            %##nreg##time2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp ugt i64 %##reg##time1##, %##reg##time2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Time to Shar__sugar__greatOrEqual
     #alwaysinline nothrow
     def shar__sugar__greatOrEqual(time1, time2 Time) Bool
         llvm
-            %##nreg##time1## = extractvalue [2 x i64] %0, 1
-            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##time1## = extractvalue {i64, i32} %0, 0
+            %##nreg##time2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp uge i64 %##reg##time1##, %##reg##time2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Time to Shar__sugar__less
     #alwaysinline nothrow
     def shar__sugar__less(time1, time2 Time) Bool
         llvm
-            %##nreg##time1## = extractvalue [2 x i64] %0, 1
-            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##time1## = extractvalue {i64, i32} %0, 0
+            %##nreg##time2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp ult i64 %##reg##time1##, %##reg##time2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Time to Shar__sugar__lessOrEqual
     #alwaysinline nothrow
     def shar__sugar__lessOrEqual(time1, time2 Time) Bool
         llvm
-            %##nreg##time1## = extractvalue [2 x i64] %0, 1
-            %##nreg##time2## = extractvalue [2 x i64] %1, 1
+            %##nreg##time1## = extractvalue {i64, i32} %0, 0
+            %##nreg##time2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp ule i64 %##reg##time1##, %##reg##time2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Time to StringWriter
     #nothrow

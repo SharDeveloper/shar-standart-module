@@ -49,14 +49,14 @@ attach Real to Shar__sugar__equal
 #alwaysinline nothrow
 def unsafe_real_equal(real1, real2 $Any) Bool
     llvm
-        %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
         %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
         %##nreg##result i1## = fcmp oeq double %##reg##real1##, %##reg##real2##
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__notEqual
     #alwaysinline
@@ -69,14 +69,14 @@ attach Real to Shar__sugar__notEqual
 #alwaysinline nothrow
 def unsafe_real_notEqual(real1, real2 $Any) Bool
     llvm
-        %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
         %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
         %##nreg##result i1## = fcmp one double %##reg##real1##, %##reg##real2##
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Ordered
     #alwaysinline
@@ -89,16 +89,16 @@ attach Real to Ordered
 #alwaysinline nothrow
 def unsafe_real_compare(real1, real2 $Any) Int
     llvm
-        %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
         %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
         %##nreg##less## = fcmp olt double %##reg##real1##, %##reg##real2##
         %##nreg##equal## = fcmp oeq double %##reg##real1##, %##reg##real2##
         %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
         %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__great
     #alwaysinline
@@ -111,14 +111,14 @@ attach Real to Shar__sugar__great
 #alwaysinline nothrow
 def unsafe_real_great(real1, real2 $Any) Bool
     llvm
-        %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
         %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
         %##nreg##result i1## = fcmp ogt double %##reg##real1##, %##reg##real2##
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__greatOrEqual
     #alwaysinline
@@ -131,14 +131,14 @@ attach Real to Shar__sugar__greatOrEqual
 #alwaysinline nothrow
 def unsafe_real_greatOrEqual(real1, real2 $Any) Bool
     llvm
-        %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
         %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
         %##nreg##result i1## = fcmp oge double %##reg##real1##, %##reg##real2##
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__less
     #alwaysinline
@@ -151,14 +151,14 @@ attach Real to Shar__sugar__less
 #alwaysinline nothrow
 def unsafe_real_less(real1, real2 $Any) Bool
     llvm
-        %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
         %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
         %##nreg##result i1## = fcmp olt double %##reg##real1##, %##reg##real2##
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__lessOrEqual
     #alwaysinline
@@ -171,14 +171,14 @@ attach Real to Shar__sugar__lessOrEqual
 #alwaysinline nothrow
 def unsafe_real_lessOrEqual(real1, real2 $Any) Bool
     llvm
-        %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
         %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
         %##nreg##result i1## = fcmp ole double %##reg##real1##, %##reg##real2##
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__inc
     #alwaysinline nothrow
@@ -194,77 +194,77 @@ attach Real to Shar__sugar__neg
     #alwaysinline nothrow
     def shar__sugar__neg(real Real) Real
         llvm
-            %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+            %##nreg##real i64## = extractvalue {i64, i32} %0, 0
             %##nreg##real## = bitcast i64 %##reg##real i64## to double
             %##nreg##result value double## = fneg double %##reg##real##
             %##nreg##result value## = bitcast double %##reg##result value double## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__mul
     #alwaysinline nothrow
     def shar__sugar__mul(real1, real2 Real) Real
         llvm
-            %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
             %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
             %##nreg##result value double## = fmul double %##reg##real1##, %##reg##real2##
             %##nreg##result value## = bitcast double %##reg##result value double## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__div
     #alwaysinline nothrow
     def shar__sugar__div(real1, real2 Real) Real
         llvm
-            %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
             %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
             %##nreg##result value double## = fdiv double %##reg##real1##, %##reg##real2##
             %##nreg##result value## = bitcast double %##reg##result value double## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__mod
     #alwaysinline nothrow
     def shar__sugar__mod(real1, real2 Real) Real
         llvm
-            %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
             %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
             %##nreg##result value double## = frem double %##reg##real1##, %##reg##real2##
             %##nreg##result value## = bitcast double %##reg##result value double## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__add
     #alwaysinline nothrow
     def shar__sugar__add(real1, real2 Real) Real
         llvm
-            %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
             %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
             %##nreg##result value double## = fadd double %##reg##real1##, %##reg##real2##
             %##nreg##result value## = bitcast double %##reg##result value double## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__sub
     #alwaysinline nothrow
     def shar__sugar__sub(real1, real2 Real) Real
         llvm
-            %##nreg##real1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##real2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##real1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##real2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##real1## = bitcast i64 %##reg##real1 i64## to double
             %##nreg##real2## = bitcast i64 %##reg##real2 i64## to double
             %##nreg##result value double## = fsub double %##reg##real1##, %##reg##real2##
             %##nreg##result value## = bitcast double %##reg##result value double## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__addSet
     #alwaysinline nothrow
@@ -297,15 +297,15 @@ attach Real to StringWriter
         llvm
             br label %##reg##start##
             ##nreg##start##:
-            %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+            %##nreg##real i64## = extractvalue {i64, i32} %0, 0
             %##nreg##real## = bitcast i64 %##reg##real i64## to double
             %##nreg##buffer## = alloca i8, i32 313, align 1
             ##llvmdeclare##sprintf##declare i32 @sprintf(i8* noalias nocapture, i8* nocapture readonly, ...) local_unnamed_addr nofree nounwind##
             %##nreg##length i32## = call i32 (i8*, i8*, ...) @sprintf(i8* %##reg##buffer##, i8* getelementptr ([3 x i8], [3 x i8]* ##llvmconst##>private unnamed_addr constant [3 x i8] c"%g\00", align 1<##, i64 0, i64 0), double %##reg##real##)
             %##nreg##length i64## = zext i32 %##reg##length i32## to i64
-            %##nreg##length## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##length i64##, 1
-            %##nreg##dummy string## = call [2 x i64] ##ancntfunc##STD::unsafe_string_createDummy##([2 x i64] %##reg##length##)
-            %##nreg##string pointer i64## = extractvalue [2 x i64] %##reg##dummy string##, 1
+            %##nreg##length## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##length i64##, 0
+            %##nreg##dummy string## = call {i64, i32} ##ancntfunc##STD::unsafe_string_createDummy##({i64, i32} %##reg##length##)
+            %##nreg##string pointer i64## = extractvalue {i64, i32} %##reg##dummy string##, 0
             %##nreg##string pointer## = inttoptr i64 %##reg##string pointer i64## to i16*
             %##nreg##chars## = getelementptr i16, i16* %##reg##string pointer##, i64 8
             br label %##reg##loop##
@@ -320,7 +320,7 @@ attach Real to StringWriter
             %##nreg##continue## = icmp ne i64 %##reg##new index##, %##reg##length i64##
             br i1 %##reg##continue##, label %##reg##loop##, label %##reg##end loop##
             ##nreg##end loop##:
-            ret [2 x i64] %##reg##dummy string##
+            ret {i64, i32} %##reg##dummy string##
 
 attach Real to StringReader
     def fromString(noread type Real, string String) Real
@@ -351,7 +351,7 @@ def unsafe_real_fromString(write real, string $Any) Bool
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##string i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##string i64## = extractvalue {i64, i32} %1, 0
         %##nreg##string pointer## = inttoptr i64 %##reg##string i64## to i64*
         %##nreg##chars i64## = getelementptr i64, i64* %##reg##string pointer##, i64 2
         %##nreg##chars## = bitcast i64* %##reg##chars i64## to i16*
@@ -383,36 +383,36 @@ def unsafe_real_fromString(write real, string $Any) Bool
         br i1 %##reg##all ok##, label %##reg##true label##, label %##reg##false label##
         ##nreg##true label##:
         %##nreg##result i64## = bitcast double %##reg##result double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result i64##, 1
-        store [2 x i64] %##reg##result##, [2 x i64]* %0, align 8
-        ret [2 x i64] [i64 ##tnum##STD::Bool##, i64 1]
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result i64##, 0
+        store {i64, i32} %##reg##result##, {i64, i32}* %0, align 8
+        ret {i64, i32} {i64 1, i32 ##tnum##STD::Bool##}
         ##nreg##false label##:
-        ret [2 x i64] [i64 ##tnum##STD::Bool##, i64 0]
+        ret {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}
 
 attach Real to Number
     #alwaysinline nothrow
     def abs(real Real) Real
         llvm
-            %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+            %##nreg##real i64## = extractvalue {i64, i32} %0, 0
             %##nreg##real## = bitcast i64 %##reg##real i64## to double
             ##llvmdeclare##llvm.fabs.f64##declare double @llvm.fabs.f64(double)##
             %##nreg##result value double## = call double @llvm.fabs.f64(double %##reg##real##)
             %##nreg##result value## = bitcast double %##reg##result value double## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
     #alwaysinline nothrow
     def power(real, power Real) Real
         llvm
-            %##nreg##real i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##power i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##real i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##power i64## = extractvalue {i64, i32} %1, 0
             %##nreg##real## = bitcast i64 %##reg##real i64## to double
             %##nreg##power## = bitcast i64 %##reg##power i64## to double
             ##llvmdeclare##llvm.pow.f64##declare double @llvm.pow.f64(double, double)##
             %##nreg##result value double## = call double @llvm.pow.f64(double %##reg##real##, double %##reg##power##)
             %##nreg##result value## = bitcast double %##reg##result value double## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+            ret {i64, i32} %##reg##result##
 
     #alwaysinline nothrow
     def getRandom(noread real Real) Real
@@ -429,178 +429,178 @@ attach Real to Number
 #alwaysinline nothrow
 export def sqrt(real Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.sqrt.f64##declare double @llvm.sqrt.f64(double)##
         %##nreg##result value double## = call double @llvm.sqrt.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function calculates the sine.
 //@Angle degrees are in radians.
 #alwaysinline nothrow
 export def sin(angle Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.sin.f64##declare double @llvm.sin.f64(double)##
         %##nreg##result value double## = call double @llvm.sin.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function calculates the cosine.
 //@Angle degrees are in radians.
 #alwaysinline nothrow
 export def cos(angle Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.cos.f64##declare double @llvm.cos.f64(double)##
         %##nreg##result value double## = call double @llvm.cos.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function evaluates the expression "power(e, power)" ("e" is a mathematical constant)
 #alwaysinline nothrow
 export def exp(power Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.exp.f64##declare double @llvm.exp.f64(double)##
         %##nreg##result value double## = call double @llvm.exp.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function evaluates the expression "power(2, power)"
 #alwaysinline nothrow
 export def exp2(power Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.exp2.f64##declare double @llvm.exp2.f64(double)##
         %##nreg##result value double## = call double @llvm.exp2.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function calculates the natural logarithm.
 #alwaysinline nothrow
 export def log(real Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.log.f64##declare double @llvm.log.f64(double)##
         %##nreg##result value double## = call double @llvm.log.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function calculates the logarithm to base 2.
 #alwaysinline nothrow
 export def log2(real Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.log2.f64##declare double @llvm.log2.f64(double)##
         %##nreg##result value double## = call double @llvm.log2.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function calculates the logarithm to base 10.
 #alwaysinline nothrow
 export def log10(real Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.log10.f64##declare double @llvm.log10.f64(double)##
         %##nreg##result value double## = call double @llvm.log10.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@Functions return the largest integer not exceeding the given number.
 #alwaysinline nothrow
 export def floor(real Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.floor.f64##declare double @llvm.floor.f64(double)##
         %##nreg##result value double## = call double @llvm.floor.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function returns the smallest integer that is not less than the given number.
 #alwaysinline nothrow
 export def ceil(real Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.ceil.f64##declare double @llvm.ceil.f64(double)##
         %##nreg##result value double## = call double @llvm.ceil.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function returns the given number without the fractional part.
 #alwaysinline nothrow
 export def trunc(real Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.trunc.f64##declare double @llvm.trunc.f64(double)##
         %##nreg##result value double## = call double @llvm.trunc.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function rounds a number to the nearest integer.
 //@If there are two integers that are equidistant from the given number, then rounding is performed to the number whose absolute value is greater.
 #alwaysinline nothrow
 export def round(real Real) Real
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         ##llvmdeclare##llvm.round.f64##declare double @llvm.round.f64(double)##
         %##nreg##result value double## = call double @llvm.round.f64(double %##reg##real##)
         %##nreg##result value## = bitcast double %##reg##result value double## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result value##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result value##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__and
     #alwaysinline nothrow
     def shar__sugar__and(real1, real2 Real) Real
         llvm
-            %##nreg##real1## = extractvalue [2 x i64] %0, 1
-            %##nreg##real2## = extractvalue [2 x i64] %1, 1
+            %##nreg##real1## = extractvalue {i64, i32} %0, 0
+            %##nreg##real2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = and i64 %##reg##real1##, %##reg##real2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__xor
     #alwaysinline nothrow
     def shar__sugar__xor(real1, real2 Real) Real
         llvm
-            %##nreg##real1## = extractvalue [2 x i64] %0, 1
-            %##nreg##real2## = extractvalue [2 x i64] %1, 1
+            %##nreg##real1## = extractvalue {i64, i32} %0, 0
+            %##nreg##real2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = xor i64 %##reg##real1##, %##reg##real2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__or
     #alwaysinline nothrow
     def shar__sugar__or(real1, real2 Real) Real
         llvm
-            %##nreg##real1## = extractvalue [2 x i64] %0, 1
-            %##nreg##real2## = extractvalue [2 x i64] %1, 1
+            %##nreg##real1## = extractvalue {i64, i32} %0, 0
+            %##nreg##real2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = or i64 %##reg##real1##, %##reg##real2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__shl
     #alwaysinline
@@ -613,11 +613,11 @@ attach Real to Shar__sugar__shl
 #alwaysinline nothrow
 def unsafe_real_shl(real, shifts $Any) Real
     llvm
-        %##nreg##real## = extractvalue [2 x i64] %0, 1
-        %##nreg##shifts## = extractvalue [2 x i64] %1, 1
+        %##nreg##real## = extractvalue {i64, i32} %0, 0
+        %##nreg##shifts## = extractvalue {i64, i32} %1, 0
         %##nreg##result i64## = shl i64 %##reg##real##, %##reg##shifts##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__shr
     #alwaysinline
@@ -630,11 +630,11 @@ attach Real to Shar__sugar__shr
 #alwaysinline nothrow
 def unsafe_real_shr(real, shifts $Any) Real
     llvm
-        %##nreg##real## = extractvalue [2 x i64] %0, 1
-        %##nreg##shifts## = extractvalue [2 x i64] %1, 1
+        %##nreg##real## = extractvalue {i64, i32} %0, 0
+        %##nreg##shifts## = extractvalue {i64, i32} %1, 0
         %##nreg##result i64## = lshr i64 %##reg##real##, %##reg##shifts##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Real to Shar__sugar__andSet
     #alwaysinline nothrow
@@ -689,10 +689,10 @@ attach Real to BitArray
     #alwaysinline nothrow
     def not(real Real) Real
         llvm
-            %##nreg##real## = extractvalue [2 x i64] %0, 1
+            %##nreg##real## = extractvalue {i64, i32} %0, 0
             %##nreg##result i64## = xor i64 %##reg##real##, -1
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Real##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Real##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 //@The function converts a real number to an integer.
 //@If a real number is not within the range of valid values of type "STD::Int", then an error with code "enum::STD::error_outOfRange" is returned.
@@ -706,11 +706,11 @@ export def realToInt(real Real) Int
 #alwaysinline nothrow
 def unsafe_real_realToInt(real $Any) Int
     llvm
-        %##nreg##real i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##real i64## = extractvalue {i64, i32} %0, 0
         %##nreg##real## = bitcast i64 %##reg##real i64## to double
         %##nreg##int## = fptosi double %##reg##real## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##int##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##int##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function finds out if the number is positive infinity.
 #alwaysinline nothrow

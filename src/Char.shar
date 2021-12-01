@@ -1624,124 +1624,124 @@ attach Char to Shar__sugar__equal
     #alwaysinline nothrow
     def shar__sugar__equal(character1, character2 Char) Bool
         llvm
-            %##nreg##character1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##character1## = trunc i64 %##reg##character1 i64## to i16
             %##nreg##character2## = trunc i64 %##reg##character2 i64## to i16
             %##nreg##result i1## = icmp eq i16 %##reg##character1##, %##reg##character2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__notEqual
     #alwaysinline nothrow
     def shar__sugar__notEqual(character1, character2 Char) Bool
         llvm
-            %##nreg##character1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##character1## = trunc i64 %##reg##character1 i64## to i16
             %##nreg##character2## = trunc i64 %##reg##character2 i64## to i16
             %##nreg##result i1## = icmp ne i16 %##reg##character1##, %##reg##character2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Ordered
     #alwaysinline nothrow
     def compare(character1, character2 Char) Int
         llvm
-            %##nreg##character1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##character1## = trunc i64 %##reg##character1 i64## to i16
             %##nreg##character2## = trunc i64 %##reg##character2 i64## to i16
             %##nreg##less## = icmp ult i16 %##reg##character1##, %##reg##character2##
             %##nreg##equal## = icmp eq i16 %##reg##character1##, %##reg##character2##
             %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
             %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__great
     #alwaysinline nothrow
     def shar__sugar__great(character1, character2 Char) Bool
         llvm
-            %##nreg##character1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##character1## = trunc i64 %##reg##character1 i64## to i16
             %##nreg##character2## = trunc i64 %##reg##character2 i64## to i16
             %##nreg##result i1## = icmp ugt i16 %##reg##character1##, %##reg##character2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__greatOrEqual
     #alwaysinline nothrow
     def shar__sugar__greatOrEqual(character1, character2 Char) Bool
         llvm
-            %##nreg##character1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##character1## = trunc i64 %##reg##character1 i64## to i16
             %##nreg##character2## = trunc i64 %##reg##character2 i64## to i16
             %##nreg##result i1## = icmp uge i16 %##reg##character1##, %##reg##character2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__less
     #alwaysinline nothrow
     def shar__sugar__less(character1, character2 Char) Bool
         llvm
-            %##nreg##character1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##character1## = trunc i64 %##reg##character1 i64## to i16
             %##nreg##character2## = trunc i64 %##reg##character2 i64## to i16
             %##nreg##result i1## = icmp ult i16 %##reg##character1##, %##reg##character2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__lessOrEqual
     #alwaysinline nothrow
     def shar__sugar__lessOrEqual(character1, character2 Char) Bool
         llvm
-            %##nreg##character1 i64## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2 i64## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##character1## = trunc i64 %##reg##character1 i64## to i16
             %##nreg##character2## = trunc i64 %##reg##character2 i64## to i16
             %##nreg##result i1## = icmp ule i16 %##reg##character1##, %##reg##character2##
             %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__and
     #alwaysinline nothrow
     def shar__sugar__and(character1, character2 Char) Char
         llvm
-            %##nreg##character1## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = and i64 %##reg##character1##, %##reg##character2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Char##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Char##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__xor
     #alwaysinline nothrow
     def shar__sugar__xor(character1, character2 Char) Char
         llvm
-            %##nreg##character1## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = xor i64 %##reg##character1##, %##reg##character2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Char##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Char##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__or
     #alwaysinline nothrow
     def shar__sugar__or(character1, character2 Char) Char
         llvm
-            %##nreg##character1## = extractvalue [2 x i64] %0, 1
-            %##nreg##character2## = extractvalue [2 x i64] %1, 1
+            %##nreg##character1## = extractvalue {i64, i32} %0, 0
+            %##nreg##character2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = or i64 %##reg##character1##, %##reg##character2##
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Char##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Char##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__shl
     #alwaysinline
@@ -1754,11 +1754,11 @@ attach Char to Shar__sugar__shl
 #alwaysinline nothrow
 def unsafe_char_shl(character, shifts $Any) Char
     llvm
-        %##nreg##character## = extractvalue [2 x i64] %0, 1
-        %##nreg##shifts## = extractvalue [2 x i64] %1, 1
+        %##nreg##character## = extractvalue {i64, i32} %0, 0
+        %##nreg##shifts## = extractvalue {i64, i32} %1, 0
         %##nreg##result i64## = shl i64 %##reg##character##, %##reg##shifts##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Char##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Char##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__shr
     #alwaysinline
@@ -1771,14 +1771,14 @@ attach Char to Shar__sugar__shr
 #alwaysinline nothrow
 def unsafe_char_shr(character, shifts $Any) Char
     llvm
-        %##nreg##character## = extractvalue [2 x i64] %0, 1
-        %##nreg##shifts## = extractvalue [2 x i64] %1, 1
+        %##nreg##character## = extractvalue {i64, i32} %0, 0
+        %##nreg##shifts## = extractvalue {i64, i32} %1, 0
         %##nreg##character i16## = trunc i64 %##reg##character## to i16
         %##nreg##shifts i16## = trunc i64 %##reg##shifts## to i16
         %##nreg##result i16## = lshr i16 %##reg##character i16##, %##reg##shifts i16##
         %##nreg##result i64## = zext i16 %##reg##result i16## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Char##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Char##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Char to Shar__sugar__andSet
     #alwaysinline nothrow
@@ -1843,10 +1843,10 @@ attach Char to BitArray
     #alwaysinline nothrow
     def not(character Char) Char
         llvm
-            %##nreg##character## = extractvalue [2 x i64] %0, 1
+            %##nreg##character## = extractvalue {i64, i32} %0, 0
             %##nreg##result i64## = xor i64 %##reg##character##, -1
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Char##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Char##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
 
 attach Char to StringWriter
     #alwaysinline nothrow
@@ -1859,41 +1859,41 @@ attach Char to StringWriter
 def print(character Char)
     llvm
         %##nreg##char memory## = alloca i16, align 2
-        %##nreg##char i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##char i64## = extractvalue {i64, i32} %0, 0
         %##nreg##char## = trunc i64 %##reg##char i64## to i16
         store i16 %##reg##char##, i16* %##reg##char memory##, align 2
         call void @shar__print__string(i64 1, i16* %##reg##char memory##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline nothrow
 def println(character Char)
     llvm
         %##nreg##char memory## = alloca i16, align 2
-        %##nreg##char i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##char i64## = extractvalue {i64, i32} %0, 0
         %##nreg##char## = trunc i64 %##reg##char i64## to i16
         store i16 %##reg##char##, i16* %##reg##char memory##, align 2
         call void @shar__println__string(i64 1, i16* %##reg##char memory##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) nothrow
 def printAsError(character Char)
     llvm
         %##nreg##char memory## = alloca i16, align 2
-        %##nreg##char i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##char i64## = extractvalue {i64, i32} %0, 0
         %##nreg##char## = trunc i64 %##reg##char i64## to i16
         store i16 %##reg##char##, i16* %##reg##char memory##, align 2
         call void @shar__print__as__error(i64 1, i16* %##reg##char memory##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) nothrow
 def printlnAsError(character Char)
     llvm
         %##nreg##char memory## = alloca i16, align 2
-        %##nreg##char i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##char i64## = extractvalue {i64, i32} %0, 0
         %##nreg##char## = trunc i64 %##reg##char i64## to i16
         store i16 %##reg##char##, i16* %##reg##char memory##, align 2
         call void @shar__println__as__error(i64 1, i16* %##reg##char memory##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 attach Char to StringReader
     #alwaysinline

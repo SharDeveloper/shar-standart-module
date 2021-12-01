@@ -5,12 +5,12 @@ def testUnsafe(write ok Int, write errorsCoordinates List)
     testUnsafe_unsafe_getI16(ok, errorsCoordinates)
     testUnsafe_unsafe_getI32(ok, errorsCoordinates)
     testUnsafe_unsafe_getI64(ok, errorsCoordinates)
-    testUnsafe_unsafe_get2xI64(ok, errorsCoordinates)
+    testUnsafe_unsafe_getPackedObject(ok, errorsCoordinates)
     testUnsafe_unsafe_setI8(ok, errorsCoordinates)
     testUnsafe_unsafe_setI16(ok, errorsCoordinates)
     testUnsafe_unsafe_setI32(ok, errorsCoordinates)
     testUnsafe_unsafe_setI64(ok, errorsCoordinates)
-    testUnsafe_unsafe_set2xI64(ok, errorsCoordinates)
+    testUnsafe_unsafe_setPackedObject(ok, errorsCoordinates)
     testUnsafe_unsafe_malloc_free(ok, errorsCoordinates)
     testUnsafe_unsafe_realloc_free(ok, errorsCoordinates)
     testUnsafe_unsafe_setType(ok, errorsCoordinates)
@@ -114,13 +114,12 @@ def testUnsafe_unsafe_getI64(write ok Int, write errorsCoordinates List)
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(5) == 0x456789abcdef0123
 
 #noinline
-def testUnsafe_unsafe_get2xI64(write ok Int, write errorsCoordinates List)
-    var v $Any = 'a'
+def testUnsafe_unsafe_getPackedObject(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        [0, Int.typeNumber~(), 0x0123456789abcdef, Int.typeNumber~(), 0x23456789abcdef01].unsafe_get2xI64(2, v).nothing?()
-        v == 0x0123456789abcdef
-        [0, Int.typeNumber~(), 0x0123456789abcdef, Int.typeNumber~(), 0x23456789abcdef01].unsafe_get2xI64(3, v).nothing?()
-        v == 0x23456789abcdef01
+        {0, 1, 2, 3}.unsafe_offsetI64(2).unsafe_getPackedObject(0) == 0
+        {0, 1, 2, 3}.unsafe_offsetI64(2).unsafe_getPackedObject(1) == 1
+        {0, 1, 2, 3}.unsafe_offsetI64(2).unsafe_getPackedObject(2) == 2
+        {0, 1, 2, 3}.unsafe_offsetI64(2).unsafe_getPackedObject(3) == 3
 
 #noinline
 def testUnsafe_unsafe_setI8(write ok Int, write errorsCoordinates List)
@@ -202,14 +201,19 @@ def testUnsafe_unsafe_setI64(write ok Int, write errorsCoordinates List)
         a == [0x77bbcc00112233ff, 0x77bbcc00112233ff, 0x77bbcc00112233ff]
 
 #noinline
-def testUnsafe_unsafe_set2xI64(write ok Int, write errorsCoordinates List)
-    var a Array = [0, 0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123, 0x0123456789abcdef].clone()
-    a.unsafe_set2xI64(2, 0x00aa11bb22cc33dd)
+def testUnsafe_unsafe_setPackedObject(write ok Int, write errorsCoordinates List)
+    var a List = {0, 1, 2, 3, 4}.clone()
     test: ok, errorsCoordinates
-        a == [0, Int.typeNumber~(), 0x00aa11bb22cc33dd, 0x456789abcdef0123, 0x0123456789abcdef]
-    a.unsafe_set2xI64(3, 0x00aa11bb22cc33dd)
-    test: ok, errorsCoordinates
-        a == [0, Int.typeNumber~(), 0x00aa11bb22cc33dd, Int.typeNumber~(), 0x00aa11bb22cc33dd]
+        a.unsafe_offsetI64(2).unsafe_setPackedObject(0, 5).nothing?()
+        a == {5, 1, 2, 3, 4}
+        a.unsafe_offsetI64(2).unsafe_setPackedObject(1, 6).nothing?()
+        a == {5, 6, 2, 3, 4}
+        a.unsafe_offsetI64(2).unsafe_setPackedObject(2, 7).nothing?()
+        a == {5, 6, 7, 3, 4}
+        a.unsafe_offsetI64(2).unsafe_setPackedObject(3, 8).nothing?()
+        a == {5, 6, 7, 8, 4}
+        a.unsafe_offsetI64(2).unsafe_setPackedObject(4, 9).nothing?()
+        a == {5, 6, 7, 8, 9}
 
 #noinline
 def testUnsafe_unsafe_malloc_free(write ok Int, write errorsCoordinates List)
@@ -414,24 +418,6 @@ def testUnsafe_unsafe_memset(write ok Int, write errorsCoordinates List)
     unsafe_memsetI64(a.unsafe_offsetI64(3), 0x3513934aaaccb341, 1)
     test: ok, errorsCoordinates
         a == [0x3513934aaaccb341]
-    unsafe_memsetI8(a, 1, 0)
-    unsafe_memsetI16(a, 1, 0)
-    unsafe_memsetI32(a, 1, 0)
-    unsafe_memsetI64(a, 1, 0)
-    unsafe_memset2xI64(a, 1, 0)
-    var l List = {12, 13, 14}.clone()
-    unsafe_memset2xI64(l.unsafe_offsetI64(2), 0x3513934aaaccb341, 3)
-    test: ok, errorsCoordinates
-        l == {0x3513934aaaccb341, 0x3513934aaaccb341, 0x3513934aaaccb341}
-    unsafe_memset2xI64(l.unsafe_offsetI64(2), 1.0, 2)
-    test: ok, errorsCoordinates
-        l == {1.0, 1.0, 0x3513934aaaccb341}
-    unsafe_memset2xI64(l.unsafe_offsetI64(2), "abc", 1)
-    test: ok, errorsCoordinates
-        l == {"abc", 1.0, 0x3513934aaaccb341}
-    unsafe_memset2xI64(l.unsafe_offsetI64(2), 123, 0)
-    test: ok, errorsCoordinates
-        l == {"abc", 1.0, 0x3513934aaaccb341}
 
 #noinline
 def testUnsafe_unsafe_use_object(write ok Int, write errorsCoordinates List)

@@ -28,7 +28,7 @@ export def getCMDLineArgument(index Int) String
 #alwaysinline nothrow
 def unsafe_os_getCMDLineArgument(index $Any) <>String
     llvm
-        %##nreg##index## = extractvalue [2 x i64] %0, 1
+        %##nreg##index## = extractvalue {i64, i32} %0, 0
         %##nreg##length pointer## = alloca i64, align 8
         %##nreg##string pointer## = alloca i16*, align 8
         %##nreg##allOk## = call i1 @shar__get__cmd__argument(i64 %##reg##index##, i64 16, i64* %##reg##length pointer##, i16** %##reg##string pointer##)
@@ -42,25 +42,25 @@ def unsafe_os_getCMDLineArgument(index $Any) <>String
         %##nreg##length in string## = getelementptr i64, i64* %##reg##string i64*##, i64 1
         store i64 %##reg##length##, i64* %##reg##length in string##, align 8
         %##nreg##string as i64## = ptrtoint i16* %##reg##string## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::String##, i64 0], i64 %##reg##string as i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::String##}, i64 %##reg##string as i64##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function returns the number of command line arguments, including the name of the program executable.
 #alwaysinline nothrow
 export def getCMDLineArgumentsCount() Int
     llvm
         %##nreg##count## = call i64 @shar__get__cmd__arguments__count()
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##count##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##count##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function returns the value of the environment variable.
 //@If it was not possible to get the value of the variable with the specified name, the function returns "Nothing".
 #alwaysinline nothrow
 export def getEnvironmentVariable(variableName String) <>String
     llvm
-        %##nreg##variable name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##variable name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##variable name pointer## = inttoptr i64 %##reg##variable name pointer i64## to i64*
         %##nreg##varable name length pointer## = getelementptr i64, i64* %##reg##variable name pointer##, i64 1
         %##nreg##varable name chars i64*## = getelementptr i64, i64* %##reg##variable name pointer##, i64 2
@@ -78,10 +78,10 @@ export def getEnvironmentVariable(variableName String) <>String
         %##nreg##length in string## = getelementptr i64, i64* %##reg##result string i64*##, i64 1
         store i64 %##reg##result length##, i64* %##reg##length in string##, align 8
         %##nreg##result string as i64## = ptrtoint i16* %##reg##result string## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::String##, i64 0], i64 %##reg##result string as i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::String##}, i64 %##reg##result string as i64##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function gets a string from the command line.
 //@If it was not possible to get the string, the function returns "Nothing".
@@ -101,10 +101,10 @@ export def getStringFromCMDLine() <>String
         %##nreg##length in string## = getelementptr i64, i64* %##reg##string i64*##, i64 1
         store i64 %##reg##length##, i64* %##reg##length in string##, align 8
         %##nreg##string as i64## = ptrtoint i16* %##reg##string## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::String##, i64 0], i64 %##reg##string as i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::String##}, i64 %##reg##string as i64##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function returns the name of the platform on which the program was launched.
 #alwaysinline nothrow
@@ -120,15 +120,15 @@ export def getPlatformName() String
         %##nreg##length in string## = getelementptr i64, i64* %##reg##string i64*##, i64 1
         store i64 %##reg##length##, i64* %##reg##length in string##, align 8
         %##nreg##string as i64## = ptrtoint i16* %##reg##string## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::String##, i64 0], i64 %##reg##string as i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::String##}, i64 %##reg##string as i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function executes the command in the host environment.
 //@If the execution was successful, then the function returns "true", otherwise "false".
 #alwaysinline nothrow
 export def execute(command String) Bool
     llvm
-        %##nreg##command pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##command pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##command pointer## = inttoptr i64 %##reg##command pointer i64## to i64*
         %##nreg##command length pointer## = getelementptr i64, i64* %##reg##command pointer##, i64 1
         %##nreg##command chars i64*## = getelementptr i64, i64* %##reg##command pointer##, i64 2
@@ -136,15 +136,15 @@ export def execute(command String) Bool
         %##nreg##command chars## = bitcast i64* %##reg##command chars i64*## to i16*
         %##nreg##result i1## = call i1 @shar__execute__command(i64 %##reg##command length##, i16* %##reg##command chars##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function deletes the file at the specified path.
 //@If the delete was successful, then the function returns "true", otherwise "false".
 #alwaysinline nothrow
 export def deleteFile(fileName String) Bool
     llvm
-        %##nreg##file name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##file name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##file name pointer## = inttoptr i64 %##reg##file name pointer i64## to i64*
         %##nreg##file name length pointer## = getelementptr i64, i64* %##reg##file name pointer##, i64 1
         %##nreg##file name chars i64*## = getelementptr i64, i64* %##reg##file name pointer##, i64 2
@@ -152,15 +152,15 @@ export def deleteFile(fileName String) Bool
         %##nreg##file name chars## = bitcast i64* %##reg##file name chars i64*## to i16*
         %##nreg##result i1## = call i1 @shar__delete__file(i64 %##reg##file name length##, i16* %##reg##file name chars##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function deletes the empty directory at the specified path.
 //@If the delete was successful, then the function returns "true", otherwise "false".
 #alwaysinline nothrow
 export def deleteEmptyDirectory(directoryName String) Bool
     llvm
-        %##nreg##directory name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##directory name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##directory name pointer## = inttoptr i64 %##reg##directory name pointer i64## to i64*
         %##nreg##directory name length pointer## = getelementptr i64, i64* %##reg##directory name pointer##, i64 1
         %##nreg##directory name chars i64*## = getelementptr i64, i64* %##reg##directory name pointer##, i64 2
@@ -168,14 +168,14 @@ export def deleteEmptyDirectory(directoryName String) Bool
         %##nreg##directory name chars## = bitcast i64* %##reg##directory name chars i64*## to i16*
         %##nreg##result i1## = call i1 @shar__delete__empty__directory(i64 %##reg##directory name length##, i16* %##reg##directory name chars##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@If the file exists at the specified path, the function returns "true" otherwise "false".
 #alwaysinline nothrow
 export def fileExist?(fileName String) Bool
     llvm
-        %##nreg##file name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##file name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##file name pointer## = inttoptr i64 %##reg##file name pointer i64## to i64*
         %##nreg##file name length pointer## = getelementptr i64, i64* %##reg##file name pointer##, i64 1
         %##nreg##file name chars i64*## = getelementptr i64, i64* %##reg##file name pointer##, i64 2
@@ -183,14 +183,14 @@ export def fileExist?(fileName String) Bool
         %##nreg##file name chars## = bitcast i64* %##reg##file name chars i64*## to i16*
         %##nreg##result i1## = call i1 @shar__file__is__exist(i64 %##reg##file name length##, i16* %##reg##file name chars##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@If the directory exists at the specified path, the function returns "true" otherwise "false".
 #alwaysinline nothrow
 export def directoryExist?(directoryName String) Bool
     llvm
-        %##nreg##directory name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##directory name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##directory name pointer## = inttoptr i64 %##reg##directory name pointer i64## to i64*
         %##nreg##directory name length pointer## = getelementptr i64, i64* %##reg##directory name pointer##, i64 1
         %##nreg##directory name chars i64*## = getelementptr i64, i64* %##reg##directory name pointer##, i64 2
@@ -198,8 +198,8 @@ export def directoryExist?(directoryName String) Bool
         %##nreg##directory name chars## = bitcast i64* %##reg##directory name chars i64*## to i16*
         %##nreg##result i1## = call i1 @shar__directory__is__exist(i64 %##reg##directory name length##, i16* %##reg##directory name chars##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function opens the file in the specified mode.
 //@If the file can not be opened, the function returns "Nothing".
@@ -220,13 +220,13 @@ export def openFile(fileName String, mode Int) <>File
 def unsafe_os_openFile(fileName, mode $Any) <>File
     llvm
         %##nreg##file pointer## = alloca i8*, align 8
-        %##nreg##file name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##file name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##file name pointer## = inttoptr i64 %##reg##file name pointer i64## to i64*
         %##nreg##file name length pointer## = getelementptr i64, i64* %##reg##file name pointer##, i64 1
         %##nreg##file name chars i64*## = getelementptr i64, i64* %##reg##file name pointer##, i64 2
         %##nreg##file name length## = load i64, i64* %##reg##file name length pointer##, align 8
         %##nreg##file name chars## = bitcast i64* %##reg##file name chars i64*## to i16*
-        %##nreg##c mode i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##c mode i64## = extractvalue {i64, i32} %1, 0
         %##nreg##c mode## = trunc i64 %##reg##c mode i64## to i32
         %##nreg##allOk## = call i1 @shar__open__file(i64 %##reg##file name length##, i16* %##reg##file name chars##, i32 %##reg##c mode##, i8** %##reg##file pointer##)
         br i1 %##reg##allOk##, label %##reg##allOk label##, label %##reg##end label##
@@ -238,17 +238,17 @@ def unsafe_os_openFile(fileName, mode $Any) <>File
         %##nreg##file pointer in result memory## = getelementptr i64, i64* %##reg##result memory##, i64 1
         store i64 %##reg##file i64##, i64* %##reg##file pointer in result memory##, align 8
         %##nreg##result memory as i64## = ptrtoint i64* %##reg##result memory## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::File##, i64 0], i64 %##reg##result memory as i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::File##}, i64 %##reg##result memory as i64##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function gets the size of the file at the specified path.
 //@If the function was unable to get the file size, then "Nothing" is returned as a result.
 #alwaysinline nothrow
 export def getFileSize(fileName String) <>Int
     llvm
-        %##nreg##file name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##file name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##file name pointer## = inttoptr i64 %##reg##file name pointer i64## to i64*
         %##nreg##file name length pointer## = getelementptr i64, i64* %##reg##file name pointer##, i64 1
         %##nreg##file name chars i64*## = getelementptr i64, i64* %##reg##file name pointer##, i64 2
@@ -258,23 +258,23 @@ export def getFileSize(fileName String) <>Int
         %##nreg##result i64 >= 0## = icmp sge i64 %##reg##result i64##, 0
         br i1 %##reg##result i64 >= 0##, label %##reg##int label##, label %##reg##nothing label##
         ##nreg##int label##:
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##nothing label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function renames the file.
 //@If the renaming was successful, then the function returns "true", otherwise "false".
 #alwaysinline nothrow
 export def renameFile(oldName, newName String) Bool
     llvm
-        %##nreg##old file name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##old file name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##old file name pointer## = inttoptr i64 %##reg##old file name pointer i64## to i64*
         %##nreg##old file name length pointer## = getelementptr i64, i64* %##reg##old file name pointer##, i64 1
         %##nreg##old file name chars i64*## = getelementptr i64, i64* %##reg##old file name pointer##, i64 2
         %##nreg##old file name length## = load i64, i64* %##reg##old file name length pointer##, align 8
         %##nreg##old file name chars## = bitcast i64* %##reg##old file name chars i64*## to i16*
-        %##nreg##new file name pointer i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##new file name pointer i64## = extractvalue {i64, i32} %1, 0
         %##nreg##new file name pointer## = inttoptr i64 %##reg##new file name pointer i64## to i64*
         %##nreg##new file name length pointer## = getelementptr i64, i64* %##reg##new file name pointer##, i64 1
         %##nreg##new file name chars i64*## = getelementptr i64, i64* %##reg##new file name pointer##, i64 2
@@ -282,8 +282,8 @@ export def renameFile(oldName, newName String) Bool
         %##nreg##new file name chars## = bitcast i64* %##reg##new file name chars i64*## to i16*
         %##nreg##result i1## = call i1 @shar__file__rename(i64 %##reg##old file name length##, i16* %##reg##old file name chars##, i64 %##reg##new file name length##, i16* %##reg##new file name chars##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function loads the entire file into an array of bytes.
 //@If the load was not successful, then the function returns "Nothing".
@@ -312,7 +312,7 @@ export def saveToFile(fileName String, bytes Bytes) Bool
 export def unsafe_LoadLib(fileName String) <>Int
     llvm
         %##nreg##lib pointer## = alloca i8*, align 8
-        %##nreg##file name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##file name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##file name pointer## = inttoptr i64 %##reg##file name pointer i64## to i64*
         %##nreg##file name length pointer## = getelementptr i64, i64* %##reg##file name pointer##, i64 1
         %##nreg##file name chars i64*## = getelementptr i64, i64* %##reg##file name pointer##, i64 2
@@ -323,19 +323,19 @@ export def unsafe_LoadLib(fileName String) <>Int
         ##nreg##allOk label##:
         %##nreg##lib## = load i8*, i8** %##reg##lib pointer##, align 8
         %##nreg##lib i64## = ptrtoint i8* %##reg##lib## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##lib i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##lib i64##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function loads an object from the library and, if the load is successful, returns a number that can be used to work with the loaded object.
 #alwaysinline nothrow
 export def unsafe_GetObjectFromLib(lib Int, objectName String) <>Int
     llvm
         %##nreg##object pointer## = alloca i8*, align 8
-        %##nreg##lib i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##lib i64## = extractvalue {i64, i32} %0, 0
         %##nreg##lib## = inttoptr i64 %##reg##lib i64## to i8*
-        %##nreg##object name pointer i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##object name pointer i64## = extractvalue {i64, i32} %1, 0
         %##nreg##object name pointer## = inttoptr i64 %##reg##object name pointer i64## to i64*
         %##nreg##object name length pointer## = getelementptr i64, i64* %##reg##object name pointer##, i64 1
         %##nreg##object name chars i64*## = getelementptr i64, i64* %##reg##object name pointer##, i64 2
@@ -346,21 +346,21 @@ export def unsafe_GetObjectFromLib(lib Int, objectName String) <>Int
         ##nreg##allOk label##:
         %##nreg##object## = load i8*, i8** %##reg##object pointer##, align 8
         %##nreg##object i64## = ptrtoint i8* %##reg##object## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##object i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##object i64##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function unloads the library. If the unloading was successful, the function returns "true", otherwise "false".
 #alwaysinline nothrow
 export def unsafe_UnloadLib(lib Int) Bool
     llvm
-        %##nreg##lib i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##lib i64## = extractvalue {i64, i32} %0, 0
         %##nreg##lib## = inttoptr i64 %##reg##lib i64## to i8*
         %##nreg##allOk## = call i1 @shar__unload__lib(i8* %##reg##lib##)
         %##nreg##result i64## = zext i1 %##reg##allOk## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function returns the contents of the directory as a array of STD::FSObject.
 //@Directories "." and ".." are not added to the returned array.
@@ -414,7 +414,7 @@ export def listDirectory(directoryName String, recursive Bool) <>Array
 def unsafe_os_openDirectory(directoryName $Any) <>Int
     llvm
         %##nreg##result mem## = alloca i64, align 8
-        %##nreg##name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##name pointer## = inttoptr i64 %##reg##name pointer i64## to i64*
         %##nreg##name length pointer## = getelementptr i64, i64* %##reg##name pointer##, i64 1
         %##nreg##name chars i64*## = getelementptr i64, i64* %##reg##name pointer##, i64 2
@@ -422,17 +422,17 @@ def unsafe_os_openDirectory(directoryName $Any) <>Int
         %##nreg##name chars## = bitcast i64* %##reg##name chars i64*## to i16*
         %##nreg##opened?## = call i1 @shar__open__directory(i64 %##reg##name length##, i16* %##reg##name chars##, i64* %##reg##result mem##)
         %##nreg##dir result i64## = load i64, i64* %##reg##result mem##, align 8
-        %##nreg##dir result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##dir result i64##, 1
-        %##nreg##result## = select i1 %##reg##opened?##, [2 x i64] %##reg##dir result##, [2 x i64] zeroinitializer
-        ret [2 x i64] %##reg##result##
+        %##nreg##dir result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##dir result i64##, 0
+        %##nreg##result## = select i1 %##reg##opened?##, {i64, i32} %##reg##dir result##, {i64, i32} zeroinitializer
+        ret {i64, i32} %##reg##result##
 
 #alwaysinline nothrow unsafewrite
 def unsafe_os_readDirectory(directory, write type $Any) String
     llvm
         %##nreg##length pointer## = alloca i64, align 8
         %##nreg##chars pointer## = alloca i16*, align 8
-        %##nreg##directory## = extractvalue [2 x i64] %0, 1
-        %##nreg##type pointer i64*## = getelementptr [2 x i64], [2 x i64]* %1, i64 0, i32 1
+        %##nreg##directory## = extractvalue {i64, i32} %0, 0
+        %##nreg##type pointer i64*## = getelementptr {i64, i32}, {i64, i32}* %1, i64 0, i32 0
         %##nreg##type pointer## = bitcast i64* %##reg##type pointer i64*## to i8*
         %##nreg##readed?## = call i1 @shar__read__directory(i64 %##reg##directory##, i64 16, i64* %##reg##length pointer##, i16** %##reg##chars pointer##, i8* %##reg##type pointer##)
         br i1 %##reg##readed?##, label %##reg##ok label##, label %##reg##end label##
@@ -444,18 +444,18 @@ def unsafe_os_readDirectory(directory, write type $Any) String
         %##nreg##length in string pointer## = getelementptr i64, i64* %##reg##string##, i64 1
         store i64 %##reg##length##, i64* %##reg##length in string pointer##, align 8
         %##nreg##string i64## = ptrtoint i64* %##reg##string## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::String##, i64 0], i64 %##reg##string i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::String##}, i64 %##reg##string i64##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        %##nreg##empty string## = load [2 x i64], [2 x i64]* @shar.empty.string, align 8
-        ret [2 x i64] %##reg##empty string##
+        %##nreg##empty string## = load {i64, i32}, {i64, i32}* @shar.empty.string, align 8
+        ret {i64, i32} %##reg##empty string##
 
 #alwaysinline nothrow
 def unsafe_os_closeDirectory(directory $Any)
     llvm
-        %##nreg##directory## = extractvalue [2 x i64] %0, 1
+        %##nreg##directory## = extractvalue {i64, i32} %0, 0
         call void @shar__close__directory(i64 %##reg##directory##)
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function creates a directory.
 //@If creation was successful, the function returns "true", otherwise "false".
@@ -463,18 +463,18 @@ def unsafe_os_closeDirectory(directory $Any)
 #alwaysinline nothrow
 export def makeDirectory(directoryName String, ignoreExistedDirectory Bool) Bool
     llvm
-        %##nreg##name pointer i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##name pointer i64## = extractvalue {i64, i32} %0, 0
         %##nreg##name pointer## = inttoptr i64 %##reg##name pointer i64## to i64*
         %##nreg##name length pointer## = getelementptr i64, i64* %##reg##name pointer##, i64 1
         %##nreg##name chars i64*## = getelementptr i64, i64* %##reg##name pointer##, i64 2
         %##nreg##name length## = load i64, i64* %##reg##name length pointer##, align 8
         %##nreg##name chars## = bitcast i64* %##reg##name chars i64*## to i16*
-        %##nreg##ignoreExistedDirectory i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##ignoreExistedDirectory i64## = extractvalue {i64, i32} %1, 0
         %##nreg##ignoreExistedDirectory## = trunc i64 %##reg##ignoreExistedDirectory i64## to i1
         %##nreg##result i1## = call i1 @shar__make__directory(i64 %##reg##name length##, i16* %##reg##name chars##, i1 %##reg##ignoreExistedDirectory##)
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function returns the system language code according to the "ISO 639-1" standard
 #alwaysinline nothrow
@@ -486,7 +486,7 @@ export def osLanguage() String
 #alwaysinline nothrow
 def unsafe_os_osLanguage(chars $Any)
     llvm
-        %##nreg##chars## = extractvalue [2 x i64] %0, 1
+        %##nreg##chars## = extractvalue {i64, i32} %0, 0
         %##nreg##char 0 pointer## = inttoptr i64 %##reg##chars## to i16*
         %##nreg##char 1 pointer## = getelementptr i16, i16* %##reg##char 0 pointer##, i64 1
         %##nreg##lang code## = call i16 @shar__get__language__code()
@@ -494,22 +494,22 @@ def unsafe_os_osLanguage(chars $Any)
         %##nreg##char 1## = lshr i16 %##reg##lang code##, 8
         store i16 %##reg##char 0##, i16* %##reg##char 0 pointer##, align 2
         store i16 %##reg##char 1##, i16* %##reg##char 1 pointer##, align 2
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function returns the number of processor cores.
 #alwaysinline nothrow
 export def getCPUCoresNumber() Int
     llvm
         %##nreg##result i64## = call i64 @shar__get__cpu__cores__number()
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function returns the number of running threads.
 export def getActiveThreadsNumber() Int
     llvm
         %##nreg##result i64## = call i64 @shar__get__threads__number()
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function writes the name of the directory used to store temporary files.
 #alwaysinline nothrow
@@ -525,5 +525,5 @@ export def getTmpDirName() String
         %##nreg##length in string## = getelementptr i64, i64* %##reg##string i64*##, i64 1
         store i64 %##reg##length##, i64* %##reg##length in string##, align 8
         %##nreg##string as i64## = ptrtoint i16* %##reg##string## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::String##, i64 0], i64 %##reg##string as i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::String##}, i64 %##reg##string as i64##, 0
+        ret {i64, i32} %##reg##result##

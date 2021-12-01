@@ -81,11 +81,11 @@ def unsafe_bytes_compare(address1, address2, generalLength, length1, length2 $An
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address b1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address b1 i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address b1## = inttoptr i64 %##reg##address b1 i64## to <32 x i8>*
-        %##nreg##address b2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##address b2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##address b2## = inttoptr i64 %##reg##address b2 i64## to <32 x i8>*
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##length## = extractvalue {i64, i32} %2, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
         br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##simd loop##:
@@ -111,8 +111,8 @@ def unsafe_bytes_compare(address1, address2, generalLength, length1, length2 $An
         %##nreg##item from vector b2## = extractelement <32 x i8> %##reg##vector from address b2##, i32 %##reg##vector index##
         %##nreg##simd less## = icmp ult i8 %##reg##item from vector b1##, %##reg##item from vector b2##
         %##nreg##simd result i64## = select i1 %##reg##simd less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##simd result i64##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##simd result i64##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##scalar label##:
         %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
         %##nreg##vector address b1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
@@ -138,17 +138,17 @@ def unsafe_bytes_compare(address1, address2, generalLength, length1, length2 $An
         ##nreg##not equal label##:
         %##nreg##scalar less## = icmp ult i8 %##reg##item from address b1##, %##reg##item from address b2##
         %##nreg##scalar result i64## = select i1 %##reg##scalar less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar result i64##, 1
-        ret [2 x i64] %##reg##scalar result##
+        %##nreg##scalar result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##scalar result i64##, 0
+        ret {i64, i32} %##reg##scalar result##
         ##nreg##end label##:
-        %##nreg##length b1## = extractvalue [2 x i64] %3, 1
-        %##nreg##length b2## = extractvalue [2 x i64] %4, 1
+        %##nreg##length b1## = extractvalue {i64, i32} %3, 0
+        %##nreg##length b2## = extractvalue {i64, i32} %4, 0
         %##nreg##less## = icmp ult i64 %##reg##length b1##, %##reg##length b2##
         %##nreg##equal## = icmp eq i64 %##reg##length b1##, %##reg##length b2##
         %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
         %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 
 attach Bytes to Shar__sugar__less
@@ -329,7 +329,7 @@ attach Bytes to Empty
     #alwaysinline nothrow
     def createEmpty(noread type Bytes) Bytes
         llvm
-            ret [2 x i64] [i64 ##tnum##STD::Bytes##, i64 ptrtoint ([2 x i64]* ##llvmconst##>private unnamed_addr constant [2 x i64] zeroinitializer, align 8<## to i64)]
+            ret {i64, i32} {i64 ptrtoint ([2 x i64]* ##llvmconst##>private unnamed_addr constant [2 x i64] zeroinitializer, align 8<## to i64), i32 ##tnum##STD::Bytes##}
 
 attach Bytes to Put
     //@The result of the function and the new byte are of type "STD::Int", and the byte is stored in the first eight bits of the integer.
@@ -456,11 +456,11 @@ def unsafe_bytes_countFromAtoB(address, item, length $Any) Int
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##item## = trunc i64 %##reg##item 64## to i8
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##length## = extractvalue {i64, i32} %2, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
@@ -503,8 +503,8 @@ def unsafe_bytes_countFromAtoB(address, item, length $Any) Int
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
         %##nreg##result 4## = phi i64 [%##reg##result 2##, %##reg##scalar label##], [%##reg##new result 3##, %##reg##scalar loop##]
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result 4##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result 4##, 0
+        ret {i64, i32} %##reg##result##
 
 #override(STD) inline
 def countPartFromAtoB(bytes, part Bytes, a, b Int) Int
@@ -553,13 +553,13 @@ def unsafe_bytes_lookNFromAtoB(address, item, n, a, b $Any) <>Int
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##item## = trunc i64 %##reg##item 64## to i8
-        %##nreg##n## = extractvalue [2 x i64] %2, 1
-        %##nreg##a## = extractvalue [2 x i64] %3, 1
-        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##n## = extractvalue {i64, i32} %2, 0
+        %##nreg##a## = extractvalue {i64, i32} %3, 0
+        %##nreg##b## = extractvalue {i64, i32} %4, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
         %##nreg##use simd## = icmp uge i64 %##reg##range size##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
@@ -593,8 +593,8 @@ def unsafe_bytes_lookNFromAtoB(address, item, n, a, b $Any) <>Int
         %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain items 1##
         %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
         %##nreg##full simd index## = add i64 %##reg##start index##, %##reg##offset##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full simd index##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##continue simd search##:
         %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
         %##nreg##new simd address## = getelementptr <32 x i8>, <32 x i8>* %##reg##address 1##, i64 1
@@ -625,10 +625,10 @@ def unsafe_bytes_lookNFromAtoB(address, item, n, a, b $Any) <>Int
         ##nreg##final found item label##:
         %##nreg##scalar offset## = sub i64 %##reg##range size##, %##reg##remain items 3##
         %##nreg##full scalar index## = add i64 %##reg##scalar offset##, %##reg##a##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full scalar index##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) inline
 def lookNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
@@ -670,12 +670,12 @@ def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##item## = trunc i64 %##reg##item 64## to i8
-        %##nreg##a## = extractvalue [2 x i64] %2, 1
-        %##nreg##b## = extractvalue [2 x i64] %3, 1
+        %##nreg##a## = extractvalue {i64, i32} %2, 0
+        %##nreg##b## = extractvalue {i64, i32} %3, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
         %##nreg##use simd## = icmp uge i64 %##reg##range size##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
@@ -694,14 +694,14 @@ def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
         ##nreg##simd add indexes##:
         %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain items 1##
         %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
-        %##nreg##start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##start index##, 1
+        %##nreg##start index arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##start index##, 0
         ##llvmdeclare##llvm.ctpop.i32##declare i32 @llvm.ctpop.i32(i32)##
         %##nreg##count of items in vector## = call i32 @llvm.ctpop.i32(i32 %##reg##vector compare result i32##)
         %##nreg##count of items in vector i64## = zext i32 %##reg##count of items in vector## to i64
-        %##nreg##count of items in vector arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##count of items in vector i64##, 1
+        %##nreg##count of items in vector arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##count of items in vector i64##, 0
         %##nreg##vector compare result i64## = zext i32 %##reg##vector compare result i32## to i64
-        %##nreg##vector compare result arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##vector compare result i64##, 1
-        %##nreg##unneeded 1## = call [2 x i64] ##ancntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndexes_SIMD##([2 x i64] %##reg##start index arg##, [2 x i64] %##reg##count of items in vector arg##, [2 x i64] %##reg##vector compare result arg##, [2 x i64]* %4)
+        %##nreg##vector compare result arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##vector compare result i64##, 0
+        %##nreg##unneeded 1## = call {i64, i32} ##ancntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndexes_SIMD##({i64, i32} %##reg##start index arg##, {i64, i32} %##reg##count of items in vector arg##, {i64, i32} %##reg##vector compare result arg##, {i64, i32}* %4)
         br label %##reg##simd continue search##
         ##nreg##simd continue search##:
         %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
@@ -723,8 +723,8 @@ def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
         ##nreg##scalar add index##:
         %##nreg##offset## = sub i64 %##reg##range size##, %##reg##remain items 3##
         %##nreg##scalar start index## = add i64 %##reg##a##, %##reg##offset##
-        %##nreg##scalar start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar start index##, 1
-        %##nreg##unneeded 2## = call [2 x i64] ##ancntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndex_scalar##([2 x i64] %##reg##scalar start index arg##, [2 x i64]* %4)
+        %##nreg##scalar start index arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##scalar start index##, 0
+        %##nreg##unneeded 2## = call {i64, i32} ##ancntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndex_scalar##({i64, i32} %##reg##scalar start index arg##, {i64, i32}* %4)
         br label %##reg##scalar continue search##
         ##nreg##scalar continue search##:
         %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
@@ -732,7 +732,7 @@ def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        %##nreg##result pointer of pointer## = getelementptr [2 x i64], [2 x i64]* %4, i64 0, i64 1
+        %##nreg##result pointer of pointer## = getelementptr {i64, i32}, {i64, i32}* %4, i64 0, i32 0
         %##nreg##result pointer i64## = load i64, i64* %##reg##result pointer of pointer##, align 8
         %##nreg##result pointer## = inttoptr i64 %##reg##result pointer i64## to i64*
         %##nreg##result length pointer## = getelementptr i64, i64* %##reg##result pointer##, i64 1
@@ -741,7 +741,7 @@ def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
         %##nreg##length == 0## = icmp eq i64 %##reg##result length##, 0
         %##nreg##result new item type## = select i1 %##reg##length == 0##, i64 ##tnum##STD::Nothing##, i64 ##tnum##STD::Int##
         store i64 %##reg##result new item type##, i64* %##reg##result type pointer##, align 8
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #alwaysinline nothrow
 def unsafe_bytes_lookAllFromAtoB_addIndexes_SIMD(startIndex, countOfNewIndexes, itemsAsBits Int, write indexes Array)
@@ -806,13 +806,13 @@ def unsafe_bytes_lookBackNFromAtoB(address, item, n, a, b $Any) <>Int
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##item## = trunc i64 %##reg##item 64## to i8
-        %##nreg##n## = extractvalue [2 x i64] %2, 1
-        %##nreg##a## = extractvalue [2 x i64] %3, 1
-        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##n## = extractvalue {i64, i32} %2, 0
+        %##nreg##a## = extractvalue {i64, i32} %3, 0
+        %##nreg##b## = extractvalue {i64, i32} %4, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
         %##nreg##use simd## = icmp uge i64 %##reg##range size##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
@@ -851,8 +851,8 @@ def unsafe_bytes_lookBackNFromAtoB(address, item, n, a, b $Any) <>Int
         ##nreg##simd found label##:
         %##nreg##start index## = add i64 %##reg##remain items 1##, %##reg##a##
         %##nreg##full simd index## = sub i64 %##reg##start index##, %##reg##offset##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full simd index##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##scalar label##:
         %##nreg##remain items 2## = phi i64 [%##reg##range size##, %##reg##start##], [%##reg##new remain items 1##, %##reg##continue simd search##]
         %##nreg##n 2## = phi i64 [%##reg##n##, %##reg##start##], [%##reg##n in simd look##, %##reg##continue simd search##]
@@ -878,10 +878,10 @@ def unsafe_bytes_lookBackNFromAtoB(address, item, n, a, b $Any) <>Int
         ##nreg##final found item label##:
         %##nreg##full scalar index + 1## = add i64 %##reg##remain items 3##, %##reg##a##
         %##nreg##full scalar index## = sub i64 %##reg##full scalar index + 1##, 1
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full scalar index##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) inline
 def lookBackNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
@@ -964,15 +964,15 @@ def unsafe_bytes_replace$(destination, source, oldItem, newItem, length $Any)
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to <32 x i8>*
-        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source i64## = extractvalue {i64, i32} %1, 0
         %##nreg##source## = inttoptr i64 %##reg##source i64## to <32 x i8>*
-        %##nreg##old item 64## = extractvalue [2 x i64] %2, 1
+        %##nreg##old item 64## = extractvalue {i64, i32} %2, 0
         %##nreg##old item## = trunc i64 %##reg##old item 64## to i8
-        %##nreg##new item 64## = extractvalue [2 x i64] %3, 1
+        %##nreg##new item 64## = extractvalue {i64, i32} %3, 0
         %##nreg##new item## = trunc i64 %##reg##new item 64## to i8
-        %##nreg##length## = extractvalue [2 x i64] %4, 1
+        %##nreg##length## = extractvalue {i64, i32} %4, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
@@ -1016,7 +1016,7 @@ def unsafe_bytes_replace$(destination, source, oldItem, newItem, length $Any)
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline nothrow
 def replace(write bytes Bytes, oldItem, newItem Int)
@@ -1031,13 +1031,13 @@ def unsafe_bytes_replace(address, oldItem, newItem, length $Any)
     llvm
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##old item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##old item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##old item## = trunc i64 %##reg##old item 64## to i8
-        %##nreg##new item 64## = extractvalue [2 x i64] %2, 1
+        %##nreg##new item 64## = extractvalue {i64, i32} %2, 0
         %##nreg##new item## = trunc i64 %##reg##new item 64## to i8
-        %##nreg##length## = extractvalue [2 x i64] %3, 1
+        %##nreg##length## = extractvalue {i64, i32} %3, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
@@ -1075,7 +1075,7 @@ def unsafe_bytes_replace(address, oldItem, newItem, length $Any)
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline
 def insert$(bytes Bytes, index, newItem Int) Bytes
@@ -1215,8 +1215,8 @@ def reverseFromAtoB(write bytes Bytes, a, b Int)
 def unsafe_bytes_simdReverseAndSwapParts(part1, part2 $Any)
     llvm
         ##llvmdeclare##llvm.bswap.i256##declare i256 @llvm.bswap.i256(i256)##
-        %##nreg##part1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##part2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##part1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##part2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##part1 pointer## = inttoptr i64 %##reg##part1 i64## to i256*
         %##nreg##part2 pointer## = inttoptr i64 %##reg##part2 i64## to i256*
         %##nreg##part1## = load i256, i256* %##reg##part1 pointer##, align 1
@@ -1225,4 +1225,4 @@ def unsafe_bytes_simdReverseAndSwapParts(part1, part2 $Any)
         %##nreg##reversed part2## = call i256 @llvm.bswap.i256(i256 %##reg##part2##)
         store i256 %##reg##reversed part1##, i256* %##reg##part2 pointer##, align 1
         store i256 %##reg##reversed part2##, i256* %##reg##part1 pointer##, align 1
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer

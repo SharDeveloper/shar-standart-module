@@ -9,8 +9,9 @@ def shar__rc_free(list List)
     if counter > 1
         list.unsafe_setI64(0, counter - 1)
     elif counter == 1
+        const items Int = list.unsafe_offsetI64(2)
         for :(index Int = 0) index < list.length~(); index++
-            list.unsafe_list_getItem(index).shar__rc_free()
+            items.unsafe_getPackedObject(index)
         list.unsafe_free()
 
 #override(STD) alwaysinline
@@ -22,8 +23,9 @@ def shar__rc_use(list List)
 #override(STD) alwaysinline
 def shar__to_const(list List)
     if list.unsafe_getI64(0) !=0
+        const items Int = list.unsafe_offsetI64(2)
         for :(index Int = 0) index < list.length~(); index++
-            list.unsafe_list_getItem(index).shar__to_const()
+            items.unsafe_getPackedObject(index).shar__to_const()
         list.unsafe_setI64(0, 0)
 
 #override(STD) alwaysinline nothrow
@@ -76,11 +78,9 @@ def partsEqual?(list1 List, from1 Int, list2 List, from2, length Int) Bool
     }
     if result
         for :(offset Int = 0) offset < length; offset++
-            const item1TypeNumber Int = list1.unsafe_getI64((from1 + offset + 1) * 2)
-            const item1Value Int = list1.unsafe_getI64((from1 + offset + 1) * 2 + 1)
-            const item2TypeNumber Int = list2.unsafe_getI64((from2 + offset + 1) * 2)
-            const item2Value Int = list2.unsafe_getI64((from2 + offset + 1) * 2 + 1)
-            result = item1TypeNumber == item2TypeNumber && item1TypeNumber.unsafe_inEqualGroup?() && unsafe_equal(item1TypeNumber, item1Value, item2TypeNumber, item2Value)
+            const item1 $Any = list1[from1 + offset]
+            const item2 $Any = list2[from2 + offset]
+            result = item1.type?(item2) && item1.inGroups?(Equal) && item1 == item2
             if !result
                 end offset
     return result
@@ -116,8 +116,7 @@ attach List to Shar__sugar__getItem
 
 #alwaysinline nothrow
 def unsafe_list_getItem(list, index $Any) $Any
-    const offset Int = index * 2 + 2
-    const result $Any = unsafe_object(list.unsafe_getI64(offset), list.unsafe_getI64(offset + 1))
+    const result $Any = list.unsafe_offsetI64(2).unsafe_getPackedObject(index)
     result.shar__rc_use()
     return result
 
@@ -142,7 +141,7 @@ attach List to Shar__sugar__addSet
         const startListLength Int = list.length~()
         const newLength Int = startListLength + addedList.length~()
         list.unsafe_setI64(1, newLength)
-        list.unsafe_realloc((newLength + 1) * 16)
+        list.unsafe_realloc(16 + newLength * 12)
         parse offset, item = addedList
             list.unsafe_list_setItemInDummy(startListLength + offset, item)
 
@@ -246,7 +245,7 @@ attach List to Container
             list = newList
         else
             list.unsafe_setI64(1, newLength)
-            list.unsafe_realloc((newLength + 1) * 16)
+            list.unsafe_realloc(16 + newLength * 12)
         list.unsafe_list_setItemInDummy(oldLength, newItem)
 
     #inline nothrow
@@ -260,13 +259,13 @@ attach List to Container
 #alwaysinline nothrow
 def unsafe_list_setItem(list, index, newItem $Any)
     newItem.shar__rc_use()
-    const offset Int = index * 2 + 2
-    unsafe_object(list.unsafe_getI64(offset), list.unsafe_getI64(offset + 1))
-    list.unsafe_set2xI64(index + 1, newItem)
+    const items Int = list.unsafe_offsetI64(2)
+    items.unsafe_getPackedObject(index)
+    items.unsafe_setPackedObject(index, newItem)
 
 #alwaysinline nothrow
 def unsafe_list_createDummy(length $Any) List
-    const result List = unsafe_object(List.typeNumber~(), unsafe_malloc(length * 16 + 16))
+    const result List = unsafe_object(List.typeNumber~(), unsafe_malloc(length * 12 + 16))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, length)
     return result
@@ -274,23 +273,31 @@ def unsafe_list_createDummy(length $Any) List
 #alwaysinline nothrow
 def unsafe_list_setItemInDummy(list, index, item $Any)
     item.shar__rc_use()
-    list.unsafe_set2xI64(index + 1, item)
+    list.unsafe_offsetI64(2).unsafe_setPackedObject(index, item)
 
 #override(STD) alwaysinline
-def swap(write list List, position1, position2 Int)
+def swap(write list List, index1, index2 Int)
     inthrow
-        if !(position1.inRange?(0, list.length~()) && position2.inRange?(0, list.length~()))
+        if !(index1.inRange?(0, list.length~()) && index2.inRange?(0, list.length~()))
             throw(enum::error_outOfRange, "Out of range.", nothing)
     if list.use?()
         list = list.clone()
-    const item1Address Int = list.unsafe_offsetI64(2 * (position1 + 1))
-    const item2Address Int = list.unsafe_offsetI64(2 * (position2 + 1))
-    const tmpItem1Type Int = item1Address.unsafe_getI64(0)
-    const tmpItem1Value Int = item1Address.unsafe_getI64(1)
-    item1Address.unsafe_setI64(0, item2Address.unsafe_getI64(0))
-    item1Address.unsafe_setI64(1, item2Address.unsafe_getI64(1))
-    item2Address.unsafe_setI64(0, tmpItem1Type)
-    item2Address.unsafe_setI64(1, tmpItem1Value)
+    unsafe_list_swap(list.unsafe_offsetI64(2), index1, index2)
+
+#alwaysinline nothrow
+def unsafe_list_swap(items, index1, index2 Int)
+    llvm
+        %##nreg##items i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##index1## = extractvalue {i64, i32} %1, 0
+        %##nreg##index2## = extractvalue {i64, i32} %2, 0
+        %##nreg##items## = inttoptr i64 %##reg##items i64## to <{i64, i32}>*
+        %##nreg##item 1 pointer## = getelementptr <{i64, i32}>, <{i64, i32}>* %##reg##items##, i64 %##reg##index1##
+        %##nreg##item 2 pointer## = getelementptr <{i64, i32}>, <{i64, i32}>* %##reg##items##, i64 %##reg##index2##
+        %##nreg##item 1## = load <{i64, i32}>, <{i64, i32}>* %##reg##item 1 pointer##, align 4
+        %##nreg##item 2## = load <{i64, i32}>, <{i64, i32}>* %##reg##item 2 pointer##, align 4
+        store <{i64, i32}> %##reg##item 2##, <{i64, i32}>* %##reg##item 1 pointer##, align 4
+        store <{i64, i32}> %##reg##item 1##, <{i64, i32}>* %##reg##item 2 pointer##, align 4
+        ret {i64, i32} zeroinitializer
 
 #override(STD)
 def delete$(list List, from, count Int) List
@@ -332,12 +339,12 @@ def delete(write list List, from, count Int)
         const edge Int = from + count
         for :(index Int = from) index < edge; index++
             list.unsafe_list_getItem(index).shar__rc_free()
-        const lastPartIndex Int = edge * 2
-        const lastPartLength Int = oldLength * 2 - lastPartIndex
+        const lastPartIndex Int = edge * 3
+        const lastPartLength Int = oldLength * 3 - lastPartIndex
         const listItems Int = list.unsafe_offsetI64(2)
-        unsafe_memmoveI64(listItems.unsafe_offsetI64(from * 2), listItems.unsafe_offsetI64(lastPartIndex), lastPartLength)
+        unsafe_memmoveI32(listItems.unsafe_offsetI32(from * 3), listItems.unsafe_offsetI32(lastPartIndex), lastPartLength)
         list.unsafe_setI64(1, newLength)
-        list.unsafe_realloc((newLength + 1) * 16)
+        list.unsafe_realloc(16 + newLength * 12)
 
 #override(STD) inline
 def insert$(list List, index Int, newItem $Any) List
@@ -371,9 +378,9 @@ def insert(write list List, index Int, newItem $Any)
         list = newList
     else
         list.unsafe_setI64(1, newLength)
-        list.unsafe_realloc((newLength + 1) * 16)
+        list.unsafe_realloc(16 + newLength * 12)
         const listItems Int = list.unsafe_offsetI64(2)
-        unsafe_memmoveI64(listItems.unsafe_offsetI64(index * 2 + 2), listItems.unsafe_offsetI64(index * 2), (oldLength - index) * 2)
+        unsafe_memmoveI32(listItems.unsafe_offsetI32((index + 1) * 3), listItems.unsafe_offsetI32(index * 3), (oldLength - index) * 3)
         list.unsafe_list_setItemInDummy(index, newItem)
 
 #override(STD) inline
@@ -416,9 +423,9 @@ def insertPart(write list List, index Int, addedList List)
         list = newList
     else
         list.unsafe_setI64(1, newLength)
-        list.unsafe_realloc((newLength + 1) * 16)
+        list.unsafe_realloc(16 + newLength * 12)
         const listItems Int = list.unsafe_offsetI64(2)
-        unsafe_memmoveI64(listItems.unsafe_offsetI64((index + addedLength) * 2), listItems.unsafe_offsetI64(index * 2), (oldLength - index) * 2)
+        unsafe_memmoveI32(listItems.unsafe_offsetI32((index + addedLength) * 3), listItems.unsafe_offsetI32(index * 3), (oldLength - index) * 3)
         parse offset, item = addedList
             list.unsafe_list_setItemInDummy(index + offset, item)
 
@@ -444,48 +451,6 @@ def repeatPart(part List, count Int) List
         parse offset, item = part
             result.unsafe_list_setItemInDummy(index + offset, item)
     return result
-
-#override(STD) alwaysinline
-def reverseFromAtoB(write list List, a, b Int)
-    inthrow
-        if !(a >= 0 && a <= b && b <= list.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    var mutA Int = a * 2
-    var mutB Int = b * 2
-    if list.use?()
-        list = list.clone()
-    const listItems Int = list.unsafe_offsetI64(2)
-    for mutB - mutA >= 8
-        const aAddress Int = listItems.unsafe_offsetI64(mutA)
-        mutA += 4
-        mutB -= 4
-        const bAddress Int = listItems.unsafe_offsetI64(mutB)
-        unsafe_list_simdReverseAndSwapParts(aAddress, bAddress)
-    mutB -= 2
-    for mutB > mutA
-        const typeA Int = listItems.unsafe_getI64(mutA)
-        const valueA Int = listItems.unsafe_getI64(mutA + 1)
-        listItems.unsafe_setI64(mutA, listItems.unsafe_getI64(mutB))
-        listItems.unsafe_setI64(mutA + 1, listItems.unsafe_getI64(mutB + 1))
-        listItems.unsafe_setI64(mutB, typeA)
-        listItems.unsafe_setI64(mutB + 1, valueA)
-        mutA += 2
-        mutB -= 2
-
-#alwaysinline nothrow
-def unsafe_list_simdReverseAndSwapParts(part1, part2 $Any)
-    llvm
-        %##nreg##part1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##part2 i64## = extractvalue [2 x i64] %1, 1
-        %##nreg##part1 pointer## = inttoptr i64 %##reg##part1 i64## to <4 x i64>*
-        %##nreg##part2 pointer## = inttoptr i64 %##reg##part2 i64## to <4 x i64>*
-        %##nreg##part1## = load <4 x i64>, <4 x i64>* %##reg##part1 pointer##, align 8
-        %##nreg##part2## = load <4 x i64>, <4 x i64>* %##reg##part2 pointer##, align 8
-        %##nreg##reversed part1## = shufflevector <4 x i64> %##reg##part1##, <4 x i64> undef, <4 x i32> <i32 2, i32 3, i32 0, i32 1>
-        %##nreg##reversed part2## = shufflevector <4 x i64> %##reg##part2##, <4 x i64> undef, <4 x i32> <i32 2, i32 3, i32 0, i32 1>
-        store <4 x i64> %##reg##reversed part1##, <4 x i64>* %##reg##part2 pointer##, align 8
-        store <4 x i64> %##reg##reversed part2##, <4 x i64>* %##reg##part1 pointer##, align 8
-        ret [2 x i64] zeroinitializer
 
 attach List to Shar__sugar__patternMatch
     #alwaysinline
