@@ -72,16 +72,16 @@ def constant?(map Map) Bool
 
 #alwaysinline nothrow
 def unsafe_map_slotsCount(map $Any) Int
-    return map.unsafe_getI64(4)
+    return map.unsafe_getI64(3)
 
 #alwaysinline nothrow
 def unsafe_map_slotAddress(map, index $Any) Int
-    return map.unsafe_offsetI64(4 * index + 5)
+    return map.unsafe_offsetI64(4 * (index + 1))
 
 #override(STD) nothrow
 def clone(map Map) Map
     const slotsCount Int = map.unsafe_map_slotsCount()
-    const memSizeI64 Int = 5 + 4 * slotsCount
+    const memSizeI64 Int = 4 * (slotsCount + 1)
     const result Map = unsafe_object(Map.typeNumber~(), unsafe_malloc(memSizeI64 * 8))
     unsafe_memcpyI64(result, map, memSizeI64)
     result.unsafe_map_setCounter(1)
@@ -121,7 +121,7 @@ attach Map to Empty
     #alwaysinline nothrow
     def createEmpty(noread type Map) Map
         llvm
-            ret {i64, i32} {i64 ptrtoint ([5 x i64]* ##llvmconst##>private unnamed_addr constant [5 x i64] zeroinitializer, align 8<## to i64), i32 ##tnum##STD::Map##}
+            ret {i64, i32} {i64 ptrtoint ([4 x i64]* ##llvmconst##>private unnamed_addr constant [4 x i64] zeroinitializer, align 8<## to i64), i32 ##tnum##STD::Map##}
 
 attach Map to Long
     #alwaysinline nothrow
@@ -231,13 +231,13 @@ attach Map to Put
 
 #alwaysinline nothrow
 def unsafe_map_create(slotsCount, keyTypeNumber, valueTypeNumber Int) Map
-    const result Map = unsafe_object(Map.typeNumber~(), unsafe_malloc(slotsCount * 32 + 40))
+    const result Map = unsafe_object(Map.typeNumber~(), unsafe_malloc((slotsCount + 1) * 32))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, 0)
-    result.unsafe_setI64(2, keyTypeNumber)
-    result.unsafe_setI64(3, valueTypeNumber)
-    result.unsafe_setI64(4, slotsCount)
-    result.unsafe_offsetI64(5).unsafe_memsetI64(0, slotsCount * 4)
+    result.unsafe_setI32(4, keyTypeNumber)
+    result.unsafe_setI32(5, valueTypeNumber)
+    result.unsafe_setI64(3, slotsCount)
+    result.unsafe_offsetI64(4).unsafe_memsetI64(0, slotsCount * 4)
     return result
 
 #nothrow
@@ -388,9 +388,9 @@ attach Map to AArray
 attach Map to KeyTypeNumber
     #alwaysinline nothrow
     def keyTypeNumber~(map Map) Int
-        return map.unsafe_getI64(2)
+        return map.unsafe_getI32(4)
 
 attach Map to Map
     #alwaysinline nothrow
     def valueTypeNumber~(map Map) Int
-        return map.unsafe_getI64(3)
+        return map.unsafe_getI32(5)
