@@ -57,6 +57,7 @@ def testDict(write ok Int, write errorsCoordinates List)
     testDict_Part2(ok, errorsCoordinates)
     testDict_Part3(ok, errorsCoordinates)
     testDict_Part4(ok, errorsCoordinates)
+    testDict_Part5(ok, errorsCoordinates)
     testDict_Dump(ok, errorsCoordinates)
 
 #noinline
@@ -292,7 +293,6 @@ def testDict_Part1(write ok Int, write errorsCoordinates List)
     var s String = "123".clone()
     test: ok, errorsCoordinates
         ed.length~() == 0
-        ed.keyTypeNumber~() == Nothing.typeNumber~()
         ed[12].nothing?()
         ed[0].nothing?()
         ed["asdf"].nothing?()
@@ -300,33 +300,19 @@ def testDict_Part1(write ok Int, write errorsCoordinates List)
         ed['c'].nothing?()
         d.put(0, 72).nothing?()
         d.length~() == 1
-        d.keyTypeNumber~() == Int.typeNumber~()
         d[12].nothing?()
         d[0] == 72
-        d["asdf"] : error_invalidType
-        d[""]: error_invalidType
-        d['c'] : error_invalidType
-        d.put("", 123) : error_invalidType
         d.put(0, "Ha") == 72
         d.length~() == 1
-        d.keyTypeNumber~() == Int.typeNumber~()
         d[12].nothing?()
         d[0] == "Ha"
-        d["asdf"] : error_invalidType
-        d[""]: error_invalidType
-        d['c'] : error_invalidType
         d.put(-1, "").nothing?()
         d.length~() == 2
-        d.keyTypeNumber~() == Int.typeNumber~()
         d[12].nothing?()
         d[0] == "Ha"
         d[-1] == ""
-        d["asdf"] : error_invalidType
-        d[""]: error_invalidType
-        d['c'] : error_invalidType
         d.put(3589, 'c').nothing?()
         d.length~() == 3
-        d.keyTypeNumber~() == Int.typeNumber~()
         d[-2].nothing?()
         d[0] == "Ha"
         d[-1] == ""
@@ -335,7 +321,6 @@ def testDict_Part1(write ok Int, write errorsCoordinates List)
         d.put(-1, "2") == ""
         d.put(3589, "some") == 'c'
         d.length~() == 3
-        d.keyTypeNumber~() == Int.typeNumber~()
         d[-2].nothing?()
         d[0] == "One"
         d[-1] == "2"
@@ -343,26 +328,22 @@ def testDict_Part1(write ok Int, write errorsCoordinates List)
         s.unsafe_getI64(0) == 1
         d.put(17, s).nothing?()
         d.length~() == 4
-        d.keyTypeNumber~() == Int.typeNumber~()
         d[17] == s
         s.unsafe_getI64(0) == 2
         d.put(-1, nothing) == "2"
         d.length~() == 3
-        d.keyTypeNumber~() == Int.typeNumber~()
         d[0] == "One"
         d[-1].nothing?()
         d[3589] == "some"
         d[17] == s
         d.put(3589, nothing) == "some"
         d.length~() == 2
-        d.keyTypeNumber~() == Int.typeNumber~()
         d[0] == "One"
         d[-1].nothing?()
         d[3589].nothing?()
         d[17] == s
         d.put(17, nothing) == s
         d.length~() == 1
-        d.keyTypeNumber~() == Int.typeNumber~()
         d[0] == "One"
         d[-1].nothing?()
         d[3589].nothing?()
@@ -370,25 +351,20 @@ def testDict_Part1(write ok Int, write errorsCoordinates List)
         s.unsafe_getI64(0) == 1
         d.put(0, nothing) == "One"
         d.length~() == 0
-        d.keyTypeNumber~() == Nothing.typeNumber~()
         d[0].nothing?()
         d[-1].nothing?()
         d[3589].nothing?()
         d[17].nothing?()
         d.put(s, s).nothing?()
         d.length~() == 1
-        d.keyTypeNumber~() == String.typeNumber~()
         s.unsafe_getI64(0) == 3
-        d[0] : error_invalidType
         d[s] == s
         d[""].nothing?()
         d["1230"].nothing?()
         d["122"].nothing?()
         d.put("fg", "44").nothing?()
         d.length~() == 2
-        d.keyTypeNumber~() == String.typeNumber~()
         s.unsafe_getI64(0) == 3
-        d[0] : error_invalidType
         d[s] == s
         d["fg"] == "44"
         d[""].nothing?()
@@ -396,9 +372,7 @@ def testDict_Part1(write ok Int, write errorsCoordinates List)
         d["122"].nothing?()
         d.put(s, nothing) == s
         d.length~() == 1
-        d.keyTypeNumber~() == String.typeNumber~()
         s.unsafe_getI64(0) == 1
-        d[0] : error_invalidType
         d["fg"] == "44"
         d[s].nothing?()
         d[""].nothing?()
@@ -406,7 +380,6 @@ def testDict_Part1(write ok Int, write errorsCoordinates List)
         d["122"].nothing?()
         d.put("fg", nothing) == "44"
         d.length~() == 0
-        d.keyTypeNumber~() == Nothing.typeNumber~()
         s.unsafe_getI64(0) == 1
         d[0].nothing?()
         d["fg"].nothing?()
@@ -648,6 +621,55 @@ def testDict_Part4(write ok Int, write errorsCoordinates List)
     try
         for :(index Int = 1) index < 200; index += 2
             allOk = d.put(index.dict_toBad(), nothing) == (index << 1)
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 0
+
+#noinline
+def testDict_Part5(write ok Int, write errorsCoordinates List)
+    var d Dict = Dict()
+    var a Array = []
+    for :(index Int = 0) index < 200; index++
+        a += [Int.getRandom(), Int.getRandom()]
+    var allOk Bool = false
+    try
+        for :(index Int = 0) index < 200; index++
+            if (index & 1) == 1
+                allOk = d.put(a[index * 2], a[index * 2 + 1].toString()).nothing?()
+            else
+                allOk = d.put(a[index * 2].toString(), a[index * 2 + 1]).nothing?()
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            if (index & 1) == 1
+                allOk = d.put(a[index * 2], index.toString()) == a[index * 2 + 1].toString()
+            else
+                allOk = d.put(a[index * 2].toString(), index) == a[index * 2 + 1]
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length~() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            if (index & 1) == 1
+                allOk = d.put(a[index * 2], nothing) == index.toString()
+            else
+                allOk = d.put(a[index * 2].toString(), nothing) == index
             if !allOk
                 end index
     catch

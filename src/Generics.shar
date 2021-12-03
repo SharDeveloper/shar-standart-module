@@ -7,8 +7,7 @@ export group Put
     //@If the function returns an error, the first argument to the function remains unchanged.
     put(write This, $Any, $Any) $Any
 
-
-//@The group exists so that members of the "STD::Dict" group and the "STD::Map" group can use the "STD::keyTypeNumber~" function.
+//@The group exists so that members of the "STD::AArray" group can use the "STD::keyTypeNumber~" function.
 export group KeyTypeNumber
     //@The function returns the key type number.
     //@The function cannot return any errors.
