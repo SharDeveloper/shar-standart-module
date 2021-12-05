@@ -199,6 +199,10 @@ attach String to Shar__sugar__getItem
 attach String to Shar__sugar__add
     #inline nothrow
     def shar__sugar__add(string, addedString String) String
+        if addedString.empty?()
+            return string
+        if string.empty?()
+            return addedString
         var result String = unsafe_string_createDummy(string.length~() + addedString.length~())
         unsafe_memcpyI16(result.unsafe_offsetI16(8), string.unsafe_offsetI16(8), string.length~())
         unsafe_memcpyI16(result.unsafe_offsetI16(8 + string.length~()), addedString.unsafe_offsetI16(8), addedString.length~())
@@ -207,6 +211,11 @@ attach String to Shar__sugar__add
 attach String to Shar__sugar__addSet
     #inline nothrow
     def shar__sugar__addSet(write string, addedString String)
+        if addedString.empty?()
+            return
+        if string.empty?()
+            string = addedString
+            return
         if string.use?()
             string = string + addedString
         elif !addedString.empty?()

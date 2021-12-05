@@ -206,6 +206,10 @@ attach Bytes to Shar__sugar__getItem
 attach Bytes to Shar__sugar__add
     #inline nothrow
     def shar__sugar__add(bytes, addedBytes Bytes) Bytes
+        if addedBytes.empty?()
+            return bytes
+        if bytes.empty?()
+            return addedBytes
         var result Bytes = unsafe_bytes_createDummy(bytes.length~() + addedBytes.length~())
         copy(result, 0, bytes, 0, bytes.length~())
         copy(result, bytes.length~(), addedBytes, 0, addedBytes.length~())
@@ -214,6 +218,11 @@ attach Bytes to Shar__sugar__add
 attach Bytes to Shar__sugar__addSet
     #inline nothrow
     def shar__sugar__addSet(write bytes, addedBytes Bytes)
+        if addedBytes.empty?()
+            return
+        if bytes.empty?()
+            bytes = addedBytes
+            return
         if bytes.use?()
             bytes = bytes + addedBytes
         elif !addedBytes.empty?()

@@ -123,6 +123,10 @@ def unsafe_list_getItem(list, index $Any) $Any
 attach List to Shar__sugar__add
     #inline nothrow
     def shar__sugar__add(list, addedList List) List
+        if addedList.empty?()
+            return list
+        if list.empty?()
+            return addedList
         var result List = unsafe_list_createDummy(list.length~() + addedList.length~())
         parse index, item = list
             result.unsafe_list_setItemInDummy(index, item)
@@ -134,6 +138,9 @@ attach List to Shar__sugar__addSet
     #inline nothrow
     def shar__sugar__addSet(write list, addedList List)
         if addedList.empty?()
+            return
+        if list.empty?()
+            list = addedList
             return
         if list.use?()
             list = list + addedList
