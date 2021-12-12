@@ -1,26 +1,14 @@
 module STD
 
-//@The group exists so that members of the "STD::Container" group and the "STD::AArray" group can use the "STD::put" function.
+//@Members of the "STD::Put" group contain objects that can be accessed by some identifier.
 export group Put
-    //@The function returns the item with the index or key passed by the second function argument, and in its place it writes the third function argument.
-    //@If the first argument of the function has a type that is a member of the "STD::Container" group and there is no item with the specified index, then the function returns an error with the code "enum::STD::error_outOfRange".
+    //@The function returns the object by the specified identifier, passed as the second function argument, and writes the third function argument instead.
     //@If the function returns an error, the first argument to the function remains unchanged.
     put(write This, $Any, $Any) $Any
 
-//@The group exists so that members of the "STD::AArray" group can use the "STD::keyTypeNumber~" function.
-export group KeyTypeNumber
-    //@The function returns the key type number.
-    //@The function cannot return any errors.
-    keyTypeNumber~(This) Int
-
-//@The group exists so that members of the "STD::Container" group and the "STD::Set" group can use the "STD::itemTypeNumber~" function.
+//@A group contains objects that store objects of the same type.
 export group ItemTypeNumber
     //@The function returns the type number of the items.
     //@The function cannot return any errors.
     itemTypeNumber~(This) Int
 
-export group Push
-    push(This, $Any)
-
-export group Pop
-    pop(This) $Any

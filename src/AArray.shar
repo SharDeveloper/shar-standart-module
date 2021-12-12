@@ -5,3 +5,15 @@ module STD
 //@If the first argument to the "STD::put" function is an object with a type that is a member of the "STD::AArray" group and "Nothing" is specified as a new value, then the function removes the value by key from the array and returns it as a result.
 //@If the first argument of the "STD::shar__sugar__getItem" function is an object with a type that is a member of the "STD::AArray" group, then this function searches for the value by the key in the array, if the value is found, the function returns the found value, otherwise "Nothing" is returned.
 export group AArray: Iterable, Empty, Put, Shar__sugar__getItem
+
+//@The group contains objects that are associative arrays, all keys of which are of the same type.
+export group KeyTypeNumber: AArray
+    //@The function returns the key type number.
+    //@The function cannot return any errors.
+    keyTypeNumber~(This) Int
+
+//@The group contains objects that are associative arrays, all values of which are of the same type.
+export group ValueTypeNumber: AArray
+    //@The function returns the value type number.
+    //@The function cannot return any errors.
+    valueTypeNumber~(This) Int

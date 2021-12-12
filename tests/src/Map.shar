@@ -285,6 +285,7 @@ def testMap_Part1(write ok Int, write errorsCoordinates List)
         ed.length~() == 0
         ed.keyTypeNumber~() == Nothing.typeNumber~()
         ed.valueTypeNumber~() == Nothing.typeNumber~()
+        ed.itemTypeNumber~() == ed.valueTypeNumber~()
         ed[12].nothing?()
         ed[0].nothing?()
         ed["asdf"].nothing?()
@@ -294,6 +295,7 @@ def testMap_Part1(write ok Int, write errorsCoordinates List)
         d.length~() == 1
         d.keyTypeNumber~() == Int.typeNumber~()
         d.valueTypeNumber~() == String.typeNumber~()
+        d.itemTypeNumber~() == d.valueTypeNumber~()
         d[12].nothing?()
         d[0] == "72"
         d["asdf"] : error_invalidType
@@ -304,6 +306,7 @@ def testMap_Part1(write ok Int, write errorsCoordinates List)
         d.length~() == 1
         d.keyTypeNumber~() == Int.typeNumber~()
         d.valueTypeNumber~() == String.typeNumber~()
+        d.itemTypeNumber~() == d.valueTypeNumber~()
         d[12].nothing?()
         d[0] == "Ha"
         d["asdf"] : error_invalidType

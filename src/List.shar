@@ -211,6 +211,7 @@ attach List to Empty
         return {}
 
 attach List to Put
+    //@If the index is less than zero, or greater than the index of the last item, then the function returns an error with the code "enum::STD::error_outOfRange".
     #alwaysinline
     def put(write list List, index Int, newItem $Any) $Any
         const oldItem $Any = list[index]

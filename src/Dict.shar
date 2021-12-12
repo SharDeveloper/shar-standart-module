@@ -1,9 +1,6 @@
 module STD
 
-//@Members of the "STD::Dict" group are types whose objects are associative arrays, in which all keys and values can be of different types.
-export group Dict: AArray
-
-//@A type that is a member of the "STD::Dict" group.
+//@Objects of type "STD::Dict" are associative arrays, in which all keys and values can be of different types.
 export primitive Dict
 
 //@The function creates an empty associative array of the "STD::Dict" type.
@@ -390,5 +387,3 @@ attach Dict to Iterable
         return result
 
 attach Dict to AArray
-
-attach Dict to Dict

@@ -341,6 +341,7 @@ attach Bytes to Empty
             ret {i64, i32} {i64 ptrtoint ([2 x i64]* ##llvmconst##>private unnamed_addr constant [2 x i64] zeroinitializer, align 8<## to i64), i32 ##tnum##STD::Bytes##}
 
 attach Bytes to Put
+    //@If the index is less than zero, or greater than the index of the last item, then the function returns an error with the code "enum::STD::error_outOfRange".
     //@The result of the function and the new byte are of type "STD::Int", and the byte is stored in the first eight bits of the integer.
     #alwaysinline
     def put(write bytes Bytes, index, newByte Int) Int

@@ -1,12 +1,6 @@
 module STD
 
-//@Members of the "STD::Map" group are types whose objects are associative arrays in which all keys have the same type, and all values have the same type.
-export group Map: AArray, KeyTypeNumber
-    //@The function returns the value type number.
-    //@The function cannot return any errors.
-    valueTypeNumber~(This) Int
-
-//@A type that is a member of the "STD::Map" group.
+//@Objects of type "STD::Map" are associative arrays, all keys of which are of the same type, as well as values of the same type.
 export primitive Map
 
 //@The function creates an empty associative array of the "STD::Map" type.
@@ -390,7 +384,12 @@ attach Map to KeyTypeNumber
     def keyTypeNumber~(map Map) Int
         return map.unsafe_getI32(4)
 
-attach Map to Map
+attach Map to ValueTypeNumber
     #alwaysinline nothrow
     def valueTypeNumber~(map Map) Int
+        return map.unsafe_getI32(5)
+
+attach Map to ItemTypeNumber
+    #alwaysinline nothrow
+    def itemTypeNumber~(map Map) Int
         return map.unsafe_getI32(5)

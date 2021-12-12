@@ -9,6 +9,12 @@ export primitive PipelineOut
 //@The type for sending data to workers.
 export primitive PipelineIn
 
+export group Push
+    push(This, $Any)
+
+export group Pop
+    pop(This) $Any
+
 #alwaysinline
 export def Pipeline() Pipeline
     llvm
