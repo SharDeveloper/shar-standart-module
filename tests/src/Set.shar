@@ -51,6 +51,59 @@ def set_toBad(int Int) TestSet_BadInt
 def unsafe_set_getCounter(set $Any) Int
     return set.unsafe_getI64(0)
 
+type TestSet
+
+def TestSet(set Set) TestSet
+    return TestSet.fromList({set})
+
+def toSet(testSet TestSet) Set
+    return testSet.typeGetItem(0)
+
+attach TestSet to Empty
+    def createEmpty(noread type TestSet) TestSet
+        return TestSet(Set())
+
+attach TestSet to Long
+    def length~(set TestSet) Int
+        return set.toSet().length~()
+
+attach TestSet to Shar__sugar__getItem
+    def shar__sugar__getItem(set TestSet, item ${Equal, Hashable}) Bool
+        return set.toSet()[item]
+
+attach TestSet to Set
+    def add(write set TestSet, item ${Equal, Hashable}) Bool
+        var set_ Set = set.toSet()
+        const result Bool = set_.add(item)
+        set = TestSet(set_)
+        return result
+
+    def remove(write set TestSet, item ${Equal, Hashable}) Bool
+        var set_ Set = set.toSet()
+        const result Bool = set_.remove(item)
+        set = TestSet(set_)
+        return result
+
+attach TestSet to Iterable
+    def parse__init(set TestSet) Array
+        return set.toSet().parse__init()
+
+    def parse__predicate(set TestSet, index Array) Bool
+        return set.toSet().parse__predicate(index)
+
+    def parse__next(set TestSet, write index Array)
+        set.toSet().parse__next(index)
+
+    def parse__get__key(set TestSet, index Array) $Any
+        return set.toSet().parse__get__key(index)
+
+    def parse__get__item(set TestSet, index Array) $Any
+        return set.toSet().parse__get__item(index)
+
+attach TestSet to ItemTypeNumber
+    def itemTypeNumber~(set TestSet) Int
+        return set.toSet().itemTypeNumber~()
+
 def testSet(write ok Int, write errorsCoordinates List)
     testSet_MemoryManagement(ok, errorsCoordinates)
     testSet_Part1(ok, errorsCoordinates)
@@ -58,6 +111,7 @@ def testSet(write ok Int, write errorsCoordinates List)
     testSet_Part3(ok, errorsCoordinates)
     testSet_Part4(ok, errorsCoordinates)
     testSet_Dump(ok, errorsCoordinates)
+    testSet_Serialize(ok, errorsCoordinates)
 
 #noinline
 def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -618,3 +672,63 @@ def testSet_Dump(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         d.dump(0) == "Type: STD::Set = [\n  Type: STD::Int = 12\n]\n"
         d.dump(1) == "  Type: STD::Set = [\n    Type: STD::Int = 12\n  ]\n"
+
+#noinline
+def testSet_Serialize(write ok Int, write errorsCoordinates List)
+    var s TestSet = TestSet(Set())
+    s.add("10")
+    s.add("1")
+    s.add("7")
+    s.add("1fg")
+    s.add("sse")
+    s.add("123")
+    s.add("fb4")
+    var b Bytes = Bytes()
+    test: ok, errorsCoordinates
+        s.serializeSet(b).nothing?()
+    s = TestSet(Set())
+    var p Int = 0
+    s = TestSet.deserializeSet(b, p, String)
+    test: ok, errorsCoordinates
+        p == b.length~()
+        s.length~() == 7
+        s["10"]
+        s["1"]
+        s["7"]
+        s["1fg"]
+        s["sse"]
+        s["123"]
+        s["fb4"]
+        !s[""]
+        !s["222"]
+    b = Bytes()
+    test: ok, errorsCoordinates
+        TestSet(Set()).serializeSet(b).nothing?()
+    p = 0
+    s = TestSet.deserializeSet(b, p, String)
+    test: ok, errorsCoordinates
+        p == b.length~()
+        s.length~() == 0
+    s.add(123)
+    s.add(3)
+    s.add(8)
+    s.add(33)
+    s.add(1233)
+    s.add(66)
+    b = Bytes()
+    test: ok, errorsCoordinates
+        s.serializeSet(b).nothing?()
+    s = TestSet(Set())
+    p = 0
+    s = TestSet.deserializeSet(b, p, Int)
+    test: ok, errorsCoordinates
+        p == b.length~()
+        s.length~() == 6
+        s[123]
+        s[3]
+        s[8]
+        s[33]
+        s[1233]
+        s[66]
+        !s[-1]
+        !s[-21]

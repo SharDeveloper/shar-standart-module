@@ -1575,3 +1575,24 @@ export def uniq$(container This) This
     else
         throw(enum::error_invalidType, "Invalid type.", nothing)
     return result
+
+#this(Container, ItemTypeNumber)
+export def serializeContainer(container This, write bytes Bytes)
+    const startLength Int = bytes.length~()
+    container.length~().serialize(bytes)
+    parse _, item = container
+        try
+            item.serialize(bytes)
+        catch id, message, data
+            bytes.delete(startLength, bytes.length~() - startLength)
+            throw(id, message, data)
+
+#this(Container, ItemTypeNumber)
+export def deserializeContainer(noread type This, bytes Bytes, write position Int, noread itemType $BinarySerializable) This
+    var currentPosition Int = position
+    var result This = This.createEmpty()
+    const length Int = Int.deserialize(bytes, currentPosition)
+    for :(counter Int = 0) counter < length; counter++
+        result.addItem(itemType.deserialize(bytes, currentPosition))
+    position = currentPosition
+    return result

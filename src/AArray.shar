@@ -17,3 +17,25 @@ export group ValueTypeNumber: AArray
     //@The function returns the value type number.
     //@The function cannot return any errors.
     valueTypeNumber~(This) Int
+
+#this(KeyTypeNumber, ValueTypeNumber)
+export def serializeAArray(aArray This, write bytes Bytes)
+    const startLength Int = bytes.length~()
+    aArray.length~().serialize(bytes)
+    parse key, value = aArray
+        try
+            key.serialize(bytes)
+            value.serialize(bytes)
+        catch id, message, data
+            bytes.delete(startLength, bytes.length~() - startLength)
+            throw(id, message, data)
+
+#this(KeyTypeNumber, ValueTypeNumber)
+export def deserializeAArray(noread type This, bytes Bytes, write position Int, noread keyType, noread valueType $BinarySerializable) This
+    var currentPosition Int = position
+    var result This = This.createEmpty()
+    const length Int = Int.deserialize(bytes, currentPosition)
+    for :(counter Int = 0) counter < length; counter++
+        result.put(keyType.deserialize(bytes, currentPosition), valueType.deserialize(bytes, currentPosition))
+    position = currentPosition
+    return result

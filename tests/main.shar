@@ -4,6 +4,7 @@ def main()
     var ok Int = 0
     var errorsCoordinates List = {}
     testAny(ok, errorsCoordinates)
+    testAArray(ok, errorsCoordinates)
     testArray(ok, errorsCoordinates)
     testBool(ok, errorsCoordinates)
     testBytes(ok, errorsCoordinates)

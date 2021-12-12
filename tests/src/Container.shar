@@ -350,6 +350,7 @@ def testContainer(write ok Int, write errorsCoordinates List)
     testContainer_Join(ok, errorsCoordinates)
     testContainer_Uniq$(ok, errorsCoordinates)
     testContainer_Uniq(ok, errorsCoordinates)
+    testContainer_Serialize(ok, errorsCoordinates)
 
 #noinline
 def testContainer_Swap(write ok Int, write errorsCoordinates List)
@@ -6413,3 +6414,19 @@ def testContainer_Uniq(write ok Int, write errorsCoordinates List)
     c = arrayToSortableContainer([Map()])
     test: ok, errorsCoordinates
         c.uniq() : error_invalidType
+
+#noinline
+def testContainer_Serialize(write ok Int, write errorsCoordinates List)
+    var bytes Bytes = Bytes()
+    var position Int = 0
+    test: ok, errorsCoordinates
+        arrayToSortableContainer([]).serializeContainer(bytes).nothing?()
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes)
+        arrayToSortableContainer([1, 2, 3, 4]).serializeContainer(bytes).nothing?()
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes)
+        SortableContainer.deserializeContainer(bytes, position, Int) == arrayToSortableContainer([])
+        position == 8
+        SortableContainer.deserializeContainer(bytes, position, Int) == arrayToSortableContainer([1, 2, 3, 4])
+        position == 48
+        SortableContainer.deserializeContainer(bytes, position, Int) : error_outOfRange
+        position == 48

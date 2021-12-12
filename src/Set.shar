@@ -350,3 +350,24 @@ attach Set to ItemTypeNumber
     #alwaysinline nothrow
     def itemTypeNumber~(set Set) Int
         return set.unsafe_getI64(2)
+
+#this(Set)
+export def serializeSet(set This, write bytes Bytes)
+    const startLength Int = bytes.length~()
+    set.length~().serialize(bytes)
+    parse _, item = set
+        try
+            item.serialize(bytes)
+        catch id, message, data
+            bytes.delete(startLength, bytes.length~() - startLength)
+            throw(id, message, data)
+
+#this(Set)
+export def deserializeSet(noread type This, bytes Bytes, write position Int, noread itemType $BinarySerializable) This
+    var currentPosition Int = position
+    var result This = This.createEmpty()
+    const length Int = Int.deserialize(bytes, currentPosition)
+    for :(counter Int = 0) counter < length; counter++
+        result.add(itemType.deserialize(bytes, currentPosition))
+    position = currentPosition
+    return result
