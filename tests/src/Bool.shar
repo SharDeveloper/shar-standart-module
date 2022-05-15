@@ -1,5 +1,11 @@
 module Main
 
+def intArrayToBytes_Bool(array Array) Bytes
+    var result Bytes = Bytes()
+    parse _, int Int = array
+        result.addItem(intToByte(int))
+    return result
+
 def testBool(write ok Int, write errorsCoordinates List)
     testBool_Any(ok, errorsCoordinates)
     testBool_Equal(ok, errorsCoordinates)
@@ -8,6 +14,7 @@ def testBool(write ok Int, write errorsCoordinates List)
     testBool_StringReader(ok, errorsCoordinates)
     testBool_Hashed(ok, errorsCoordinates)
     testBool_BinarySerializable(ok, errorsCoordinates)
+    testBool_PrepareForThreads(ok, errorsCoordinates)
 
 #noinline
 def testBool_Any(write ok Int, write errorsCoordinates List)
@@ -71,20 +78,20 @@ def testBool_StringReader(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         Bool.fromString("true")
         !Bool.fromString("false")
-        Bool.fromString("") : error_readFromString
-        Bool.fromString("true ") : error_readFromString
-        Bool.fromString(" true") : error_readFromString
-        Bool.fromString("false ") : error_readFromString
-        Bool.fromString(" false") : error_readFromString
-        Bool.fromString("f") : error_readFromString
-        Bool.fromString("t") : error_readFromString
-        Bool.fromString("fals") : error_readFromString
-        Bool.fromString("alse") : error_readFromString
-        Bool.fromString("tru") : error_readFromString
-        Bool.fromString("rue") : error_readFromString
-        Bool.fromString("False") : error_readFromString
-        Bool.fromString("True") : error_readFromString
-        Bool.fromString("dfsdfEsdf") : error_readFromString
+        Bool.fromString("") : eid_readFromString
+        Bool.fromString("true ") : eid_readFromString
+        Bool.fromString(" true") : eid_readFromString
+        Bool.fromString("false ") : eid_readFromString
+        Bool.fromString(" false") : eid_readFromString
+        Bool.fromString("f") : eid_readFromString
+        Bool.fromString("t") : eid_readFromString
+        Bool.fromString("fals") : eid_readFromString
+        Bool.fromString("alse") : eid_readFromString
+        Bool.fromString("tru") : eid_readFromString
+        Bool.fromString("rue") : eid_readFromString
+        Bool.fromString("False") : eid_readFromString
+        Bool.fromString("True") : eid_readFromString
+        Bool.fromString("dfsdfEsdf") : eid_readFromString
 
 #noinline
 def testBool_Hashed(write ok Int, write errorsCoordinates List)
@@ -100,26 +107,32 @@ def testBool_BinarySerializable(write ok Int, write errorsCoordinates List)
     var position Int = 0
     test: ok, errorsCoordinates
         false.serialize(bytes).nothing?()
-        bytes == [0].repackTo(Bytes)
+        bytes == [0].intArrayToBytes_Bool()
         true.serialize(bytes).nothing?()
-        bytes == [0, 1].repackTo(Bytes)
+        bytes == [0, 1].intArrayToBytes_Bool()
         !Bool.deserialize(bytes, position)
         position == 1
         Bool.deserialize(bytes, position)
         position == 2
-        Bool.deserialize(bytes, position) : error_outOfRange
-        Bool.deserialize([0, 1, 254].repackTo(Bytes), position)
+        Bool.deserialize(bytes, position) : eid_outOfRange
+        Bool.deserialize([0, 1, 254].intArrayToBytes_Bool(), position)
         position == 3
     position = 0
     test: ok, errorsCoordinates
-        Bool.deserialize(Bytes(), position) : error_outOfRange
+        Bool.deserialize(Bytes(), position) : eid_outOfRange
         position == 0
     position = -1
     test: ok, errorsCoordinates
-        Bool.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        Bool.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Bool(), position) : eid_outOfRange
     position = -9223372036854775808
     test: ok, errorsCoordinates
-        Bool.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        Bool.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Bool(), position) : eid_outOfRange
     position = 9223372036854775807
     test: ok, errorsCoordinates
-        Bool.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        Bool.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Bool(), position) : eid_outOfRange
+
+#noinline
+def testBool_PrepareForThreads(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        true.prepareForThreads()
+        !false.prepareForThreads()

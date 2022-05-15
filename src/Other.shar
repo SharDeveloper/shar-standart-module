@@ -10,5 +10,4 @@ export group Put
 export group ItemTypeNumber
     //@The function returns the type number of the items.
     //@The function cannot return any errors.
-    itemTypeNumber~(This) Int
-
+    itemTypeNumber(This) Int

@@ -10,27 +10,29 @@ export group AArray: Iterable, Empty, Put, Shar__sugar__getItem
 export group KeyTypeNumber: AArray
     //@The function returns the key type number.
     //@The function cannot return any errors.
-    keyTypeNumber~(This) Int
+    keyTypeNumber(This) Int
 
 //@The group contains objects that are associative arrays, all values of which are of the same type.
 export group ValueTypeNumber: AArray
     //@The function returns the value type number.
     //@The function cannot return any errors.
-    valueTypeNumber~(This) Int
+    valueTypeNumber(This) Int
 
-#this(KeyTypeNumber, ValueTypeNumber)
+//@If an error occurs while the function is running, the bytes remain unchanged.
+#this(KeyTypeNumber, ValueTypeNumber) alwaysinline
 export def serializeAArray(aArray This, write bytes Bytes)
-    const startLength Int = bytes.length~()
-    aArray.length~().serialize(bytes)
+    const startLength Int = bytes.length()
+    aArray.length().serialize(bytes)
     parse key, value = aArray
         try
             key.serialize(bytes)
             value.serialize(bytes)
         catch id, message, data
-            bytes.delete(startLength, bytes.length~() - startLength)
+            bytes.delete(startLength, bytes.length() - startLength)
             throw(id, message, data)
 
-#this(KeyTypeNumber, ValueTypeNumber)
+//@If an error occurs while the function is running, the position remains unchanged.
+#this(KeyTypeNumber, ValueTypeNumber) alwaysinline
 export def deserializeAArray(noread type This, bytes Bytes, write position Int, noread keyType, noread valueType $BinarySerializable) This
     var currentPosition Int = position
     var result This = This.createEmpty()

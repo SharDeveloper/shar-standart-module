@@ -1,39 +1,40 @@
 module Main
 
 type OrderedMember
+    i Int
 
 attach OrderedMember to Equal
 
 attach OrderedMember to Shar__sugar__equal
     def shar__sugar__equal(a ,b OrderedMember) Bool
-        return a.typeGetItem(0).type!(Int) == b.typeGetItem(0)
+        return a.i~() == b.i~()
 
 attach OrderedMember to Shar__sugar__notEqual
     def shar__sugar__notEqual(a ,b OrderedMember) Bool
-        return a.typeGetItem(0).type!(Int) != b.typeGetItem(0)
+        return a.i~() != b.i~()
 
 attach OrderedMember to Shar__sugar__less
     def shar__sugar__less(a ,b OrderedMember) Bool
-        return a.typeGetItem(0).type!(Int) < b.typeGetItem(0)
+        return a.i~() < b.i~()
 
 attach OrderedMember to Shar__sugar__great
     def shar__sugar__great(a ,b OrderedMember) Bool
-        return a.typeGetItem(0).type!(Int) > b.typeGetItem(0)
+        return a.i~() > b.i~()
 
 attach OrderedMember to Shar__sugar__greatOrEqual
     def shar__sugar__greatOrEqual(a ,b OrderedMember) Bool
-        return a.typeGetItem(0).type!(Int) >= b.typeGetItem(0)
+        return a.i~() >= b.i~()
 
 attach OrderedMember to Shar__sugar__lessOrEqual
     def shar__sugar__lessOrEqual(a ,b OrderedMember) Bool
-        return a.typeGetItem(0).type!(Int) <= b.typeGetItem(0)
+        return a.i~() <= b.i~()
 
 attach OrderedMember to Ordered
-    def compare(a ,b OrderedMember) Int
-        return a.typeGetItem(0).type!(Int).compare(b.typeGetItem(0))
+    def compare(a ,b OrderedMember) CompareResult
+        return a.i~().compare(b.i~())
 
 def iToOM(i Int) OrderedMember
-    return OrderedMember.fromList({i})
+    return OrderedMember{i : i}
 
 def testOrdered(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
@@ -52,22 +53,22 @@ def testOrdered(write ok Int, write errorsCoordinates List)
         !iToOM(22).inRange?(iToOM(100), iToOM(-110))
         !iToOM(22).inRange?(iToOM(23), iToOM(21))
         !iToOM(22).inRange?(iToOM(23), iToOM(22))
-        max(iToOM(0), iToOM(0)).typeGetItem(0) == 0
-        max(iToOM(0), iToOM(1)).typeGetItem(0) == 1
-        max(iToOM(1), iToOM(0)).typeGetItem(0) == 1
-        max(iToOM(-1), iToOM(0)).typeGetItem(0) == 0
-        max(iToOM(0), iToOM(-1)).typeGetItem(0) == 0
-        max(iToOM(-1), iToOM(-2)).typeGetItem(0) == -1
-        max(iToOM(-2), iToOM(-1)).typeGetItem(0) == -1
-        max(iToOM(1), iToOM(2)).typeGetItem(0) == 2
-        max(iToOM(2), iToOM(1)).typeGetItem(0) == 2
-        min(iToOM(0), iToOM(0)).typeGetItem(0) == 0
-        min(iToOM(0), iToOM(1)).typeGetItem(0) == 0
-        min(iToOM(1), iToOM(0)).typeGetItem(0) == 0
-        min(iToOM(-1), iToOM(0)).typeGetItem(0) == -1
-        min(iToOM(0), iToOM(-1)).typeGetItem(0) == -1
-        min(iToOM(-1), iToOM(-2)).typeGetItem(0) == -2
-        min(iToOM(-2), iToOM(-1)).typeGetItem(0) == -2
-        min(iToOM(1), iToOM(2)).typeGetItem(0) == 1
-        min(iToOM(2), iToOM(1)).typeGetItem(0) == 1
+        max(iToOM(0), iToOM(0)).i~() == 0
+        max(iToOM(0), iToOM(1)).i~() == 1
+        max(iToOM(1), iToOM(0)).i~() == 1
+        max(iToOM(-1), iToOM(0)).i~() == 0
+        max(iToOM(0), iToOM(-1)).i~() == 0
+        max(iToOM(-1), iToOM(-2)).i~() == -1
+        max(iToOM(-2), iToOM(-1)).i~() == -1
+        max(iToOM(1), iToOM(2)).i~() == 2
+        max(iToOM(2), iToOM(1)).i~() == 2
+        min(iToOM(0), iToOM(0)).i~() == 0
+        min(iToOM(0), iToOM(1)).i~() == 0
+        min(iToOM(1), iToOM(0)).i~() == 0
+        min(iToOM(-1), iToOM(0)).i~() == -1
+        min(iToOM(0), iToOM(-1)).i~() == -1
+        min(iToOM(-1), iToOM(-2)).i~() == -2
+        min(iToOM(-2), iToOM(-1)).i~() == -2
+        min(iToOM(1), iToOM(2)).i~() == 1
+        min(iToOM(2), iToOM(1)).i~() == 1
 

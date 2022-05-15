@@ -15,8 +15,8 @@ def shar__rc_free(map Map)
     if counter > 1
         map.unsafe_map_setCounter(counter - 1)
     elif counter == 1
-        const keyTypeNumber Int = map.keyTypeNumber~()
-        const valueTypeNumber Int = map.valueTypeNumber~()
+        const keyTypeNumber Int = map.keyTypeNumber()
+        const valueTypeNumber Int = map.valueTypeNumber()
         const slotsCount Int = map.unsafe_map_slotsCount()
         for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
             const slotAddress Int = map.unsafe_map_slotAddress(slotIndex)
@@ -42,8 +42,8 @@ def shar__rc_use(map Map)
 def shar__to_const(map Map)
     if map.unsafe_map_getCounter() != 0
         map.unsafe_map_setCounter(0)
-        const keyTypeNumber Int = map.keyTypeNumber~()
-        const valueTypeNumber Int = map.valueTypeNumber~()
+        const keyTypeNumber Int = map.keyTypeNumber()
+        const valueTypeNumber Int = map.valueTypeNumber()
         const slotsCount Int = map.unsafe_map_slotsCount()
         for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
             const slotAddress Int = map.unsafe_map_slotAddress(slotIndex)
@@ -76,11 +76,11 @@ def unsafe_map_slotAddress(map, index $Any) Int
 def clone(map Map) Map
     const slotsCount Int = map.unsafe_map_slotsCount()
     const memSizeI64 Int = 4 * (slotsCount + 1)
-    const result Map = unsafe_object(Map.typeNumber~(), unsafe_malloc(memSizeI64 * 8))
+    const result Map = unsafe_object(Map.typeNumber(), unsafe_malloc(memSizeI64 * 8))
     unsafe_memcpyI64(result, map, memSizeI64)
     result.unsafe_map_setCounter(1)
-    const keyTypeNumber Int = result.keyTypeNumber~()
-    const valueTypeNumber Int = result.valueTypeNumber~()
+    const keyTypeNumber Int = result.keyTypeNumber()
+    const valueTypeNumber Int = result.valueTypeNumber()
     for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
         const resultSlotAddress Int = result.unsafe_map_slotAddress(slotIndex)
         const slotLength Int = resultSlotAddress.unsafe_getI64(0)
@@ -114,55 +114,55 @@ attach Map to Empty
     //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type Map) Map
-        llvm
+        IR
             ret {i64, i32} {i64 ptrtoint ([4 x i64]* ##llvmconst##>private unnamed_addr constant [4 x i64] zeroinitializer, align 8<## to i64), i32 ##tnum##STD::Map##}
 
 attach Map to Long
     #alwaysinline nothrow
-    def length~(map Map) Int
+    def length(map Map) Int
         return map.unsafe_getI64(1)
 
 attach Map to Shar__sugar__getItem
-    //@If the search occurs in an array and the type of the key to be found does not match the type of the existing keys, the function returns an error with the code "enum::STD::error_invalidType".
+    //@If the search occurs in an array and the type of the key to be found does not match the type of the existing keys, the function returns an error with the code "const::STD::eid_invalidType".
     def shar__sugar__getItem(map Map, key ${Equal, Hashable}) $Any
         if map.empty?()
             return nothing
-        const keyTypeNumberInMap Int = map.keyTypeNumber~()
+        const keyTypeNumberInMap Int = map.keyTypeNumber()
         inthrow
-            if keyTypeNumberInMap != key.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.", nothing)
+            if keyTypeNumberInMap != key.typeNumber()
+                throw(const::eid_invalidType, "Invalid type.", nothing)
         const slotAddress Int = map.unsafe_map_slotAddress(key.getShortRandomizedHash() & (map.unsafe_map_slotsCount() - 1))
         const slotLength Int = slotAddress.unsafe_getI64(0)
         var result $Any = nothing
         if slotLength != 0
             if unsafe_equal(keyTypeNumberInMap, slotAddress.unsafe_getI64(1), keyTypeNumberInMap, key)
-                result = unsafe_object(map.valueTypeNumber~(), slotAddress.unsafe_getI64(2))
+                result = unsafe_object(map.valueTypeNumber(), slotAddress.unsafe_getI64(2))
                 result.shar__rc_use()
             else
                 const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
                 for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 2; keyIndex += 2
                     if unsafe_equal(keyTypeNumberInMap, otherKeysAndValues.unsafe_getI64(keyIndex), keyTypeNumberInMap, key)
-                        result = unsafe_object(map.valueTypeNumber~(), otherKeysAndValues.unsafe_getI64(keyIndex + 1))
+                        result = unsafe_object(map.valueTypeNumber(), otherKeysAndValues.unsafe_getI64(keyIndex + 1))
                         result.shar__rc_use()
                         end keyIndex
         return result
 
 attach Map to Put
-    //@If the search occurs in an array and the type of the key to be found does not correspond to the type of existing keys, or the type value differs from the type of existing values, the function returns an error with the code “enum::STD::error_invalidType”.
+    //@If the search occurs in an array and the type of the key to be found does not correspond to the type of existing keys, or the type value differs from the type of existing values, the function returns an error with the code “const::STD::eid_invalidType”.
     def put(write map Map, key ${Equal, Hashable}, newValue $Any) $Any
         if newValue.nothing?()
             return deleteKVFromMap(map, key)
-        const keyTypeNumberInMap Int = map.keyTypeNumber~()
-        const valueTypeNumberInMap Int = map.valueTypeNumber~()
+        const keyTypeNumberInMap Int = map.keyTypeNumber()
+        const valueTypeNumberInMap Int = map.valueTypeNumber()
         inthrow
-            if (keyTypeNumberInMap != key.typeNumber~() || valueTypeNumberInMap != newValue.typeNumber~()) && keyTypeNumberInMap != Nothing.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.", nothing)
+            if (keyTypeNumberInMap != key.typeNumber() || valueTypeNumberInMap != newValue.typeNumber()) && keyTypeNumberInMap != Nothing.typeNumber()
+                throw(const::eid_invalidType, "Invalid type.", nothing)
         const slotsCount Int = map.unsafe_map_slotsCount()
-        const needToEnlarge Bool = map.length~() == slotsCount && slotsCount != 0x100000000
+        const needToEnlarge Bool = map.length() == slotsCount && slotsCount != 0x100000000
         var result $Any = nothing
         if needToEnlarge || map.use?()
             const newSlotsCount Int = map.empty?().select(16, needToEnlarge.select(slotsCount * 2, slotsCount))
-            const newMap Map = unsafe_map_create(newSlotsCount, key.typeNumber~(), newValue.typeNumber~())
+            const newMap Map = unsafe_map_create(newSlotsCount, key.typeNumber(), newValue.typeNumber())
             parse keyInMap, valueInMap = map
                 if keyInMap == key
                     result = valueInMap
@@ -225,7 +225,7 @@ attach Map to Put
 
 #alwaysinline nothrow
 def unsafe_map_create(slotsCount, keyTypeNumber, valueTypeNumber Int) Map
-    const result Map = unsafe_object(Map.typeNumber~(), unsafe_malloc((slotsCount + 1) * 32))
+    const result Map = unsafe_object(Map.typeNumber(), unsafe_malloc((slotsCount + 1) * 32))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, 0)
     result.unsafe_setI32(4, keyTypeNumber)
@@ -262,11 +262,11 @@ def unsafe_map_addNotExistedKV(map, key, value $Any)
 def deleteKVFromMap(write map Map, key ${Equal, Hashable}) $Any
     if map.empty?()
         return nothing
-    const keyTypeNumberInMap Int = map.keyTypeNumber~()
-    const valueTypeNumberInMap Int = map.valueTypeNumber~()
+    const keyTypeNumberInMap Int = map.keyTypeNumber()
+    const valueTypeNumberInMap Int = map.valueTypeNumber()
     inthrow
-        if keyTypeNumberInMap != key.typeNumber~()
-            throw(enum::error_invalidType, "Invalid type.", nothing)
+        if keyTypeNumberInMap != key.typeNumber()
+            throw(const::eid_invalidType, "Invalid type.", nothing)
     var result $Any = nothing
     const slotsCount Int = map.unsafe_map_slotsCount()
     const slotAddress Int = map.unsafe_map_slotAddress(key.getShortRandomizedHash() & (slotsCount - 1))
@@ -282,7 +282,7 @@ def deleteKVFromMap(write map Map, key ${Equal, Hashable}) $Any
                     resultKeyIndex = keyIndex + 2
                     end keyIndex
     if resultKeyIndex != -1
-        if map.length~() == 1
+        if map.length() == 1
             result = unsafe_object(valueTypeNumberInMap, slotAddress.unsafe_getI64(2))
             result.shar__rc_use()
             map = Map()
@@ -342,7 +342,7 @@ attach Map to Iterable
     def parse__predicate(map Map, index Array) Bool
         return index[0] < map.unsafe_map_slotsCount()
 
-    #alwaysinline unsafewrite nothrow
+    #alwaysinline nothrow
     def parse__next(map Map, write index Array)
         const slotsCount Int = map.unsafe_map_slotsCount()
         const currentSlotIndex Int = index[0]
@@ -364,7 +364,7 @@ attach Map to Iterable
         const slotAddress Int = map.unsafe_map_slotAddress(index[0])
         const keyIndex Int = index[1]
         const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
-        const result $Any = unsafe_object(map.keyTypeNumber~(), (keyIndex == 0).select(slotAddress.unsafe_getI64(1), otherKeysAndValues.unsafe_getI64((keyIndex - 1) * 2)))
+        const result $Any = unsafe_object(map.keyTypeNumber(), (keyIndex == 0).select(slotAddress.unsafe_getI64(1), otherKeysAndValues.unsafe_getI64((keyIndex - 1) * 2)))
         result.shar__rc_use()
         return result
 
@@ -373,7 +373,7 @@ attach Map to Iterable
         const slotAddress Int = map.unsafe_map_slotAddress(index[0])
         const keyIndex Int = index[1]
         const otherKeysAndValues Int = slotAddress.unsafe_getI64(3)
-        const result $Any = unsafe_object(map.valueTypeNumber~(), (keyIndex == 0).select(slotAddress.unsafe_getI64(2), otherKeysAndValues.unsafe_getI64(keyIndex * 2 - 1)))
+        const result $Any = unsafe_object(map.valueTypeNumber(), (keyIndex == 0).select(slotAddress.unsafe_getI64(2), otherKeysAndValues.unsafe_getI64(keyIndex * 2 - 1)))
         result.shar__rc_use()
         return result
 
@@ -381,15 +381,15 @@ attach Map to AArray
 
 attach Map to KeyTypeNumber
     #alwaysinline nothrow
-    def keyTypeNumber~(map Map) Int
+    def keyTypeNumber(map Map) Int
         return map.unsafe_getI32(4)
 
 attach Map to ValueTypeNumber
     #alwaysinline nothrow
-    def valueTypeNumber~(map Map) Int
+    def valueTypeNumber(map Map) Int
         return map.unsafe_getI32(5)
 
 attach Map to ItemTypeNumber
     #alwaysinline nothrow
-    def itemTypeNumber~(map Map) Int
+    def itemTypeNumber(map Map) Int
         return map.unsafe_getI32(5)

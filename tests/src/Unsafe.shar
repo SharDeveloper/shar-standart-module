@@ -30,14 +30,14 @@ def testUnsafe_unsafe_getI8(write ok Int, write errorsCoordinates List)
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(1) == 0
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(8) == 3
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(9) == 0
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(16) == (Int.typeNumber~() & 0xff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(17) == ((Int.typeNumber~() >> 8) & 0xff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(18) == ((Int.typeNumber~() >> 16) & 0xff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(19) == ((Int.typeNumber~() >> 24) & 0xff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(20) == ((Int.typeNumber~() >> 32) & 0xff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(21) == ((Int.typeNumber~() >> 40) & 0xff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(22) == ((Int.typeNumber~() >> 48) & 0xff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(23) == ((Int.typeNumber~() >> 56) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(16) == (Int.typeNumber() & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(17) == ((Int.typeNumber() >> 8) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(18) == ((Int.typeNumber() >> 16) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(19) == ((Int.typeNumber() >> 24) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(20) == ((Int.typeNumber() >> 32) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(21) == ((Int.typeNumber() >> 40) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(22) == ((Int.typeNumber() >> 48) & 0xff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(23) == ((Int.typeNumber() >> 56) & 0xff)
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(24) == 0xef
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(25) == 0xcd
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI8(26) == 0xab
@@ -70,10 +70,10 @@ def testUnsafe_unsafe_getI16(write ok Int, write errorsCoordinates List)
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(1) == 0
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(4) == 3
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(5) == 0
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(8) == (Int.typeNumber~() & 0xffff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(9) == ((Int.typeNumber~() >> 16) & 0xffff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(10) == ((Int.typeNumber~() >> 32) & 0xffff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(11) == ((Int.typeNumber~() >> 48) & 0xffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(8) == (Int.typeNumber() & 0xffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(9) == ((Int.typeNumber() >> 16) & 0xffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(10) == ((Int.typeNumber() >> 32) & 0xffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(11) == ((Int.typeNumber() >> 48) & 0xffff)
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(12) == 0xcdef
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(13) == 0x89ab
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI16(14) == 0x4567
@@ -94,8 +94,8 @@ def testUnsafe_unsafe_getI32(write ok Int, write errorsCoordinates List)
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(1) == 0
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(2) == 3
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(3) == 0
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(4) == (Int.typeNumber~() & 0xffffffff)
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(5) == ((Int.typeNumber~() >> 32) & 0xffffffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(4) == (Int.typeNumber() & 0xffffffff)
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(5) == ((Int.typeNumber() >> 32) & 0xffffffff)
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(6) == 0x89abcdef
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(7) == 0x01234567
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI32(8) == 0xabcdef01
@@ -108,7 +108,7 @@ def testUnsafe_unsafe_getI64(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(0) == 0
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(1) == 3
-        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(2) == Int.typeNumber~()
+        [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(2) == Int.typeNumber()
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(3) == 0x0123456789abcdef
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(4) == 0x23456789abcdef01
         [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].unsafe_getI64(5) == 0x456789abcdef0123
@@ -123,7 +123,7 @@ def testUnsafe_unsafe_getPackedObject(write ok Int, write errorsCoordinates List
 
 #noinline
 def testUnsafe_unsafe_setI8(write ok Int, write errorsCoordinates List)
-    var a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
+    const a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
     a.unsafe_setI8(24, 0x77)
     test: ok, errorsCoordinates
         a == [0x0123456789abcd77, 0x23456789abcdef01, 0x456789abcdef0123]
@@ -145,7 +145,7 @@ def testUnsafe_unsafe_setI8(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testUnsafe_unsafe_setI16(write ok Int, write errorsCoordinates List)
-    var a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
+    const a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
     a.unsafe_setI16(12, 0x7799)
     test: ok, errorsCoordinates
         a == [0x0123456789ab7799, 0x23456789abcdef01, 0x456789abcdef0123]
@@ -167,7 +167,7 @@ def testUnsafe_unsafe_setI16(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testUnsafe_unsafe_setI32(write ok Int, write errorsCoordinates List)
-    var a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
+    const a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
     a.unsafe_setI32(6, 0x66778899)
     test: ok, errorsCoordinates
         a == [0x0123456766778899, 0x23456789abcdef01, 0x456789abcdef0123]
@@ -189,7 +189,7 @@ def testUnsafe_unsafe_setI32(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testUnsafe_unsafe_setI64(write ok Int, write errorsCoordinates List)
-    var a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
+    const a Array = [0x0123456789abcdef, 0x23456789abcdef01, 0x456789abcdef0123].clone()
     a.unsafe_setI64(3, 0x77bbcc00112233ff)
     test: ok, errorsCoordinates
         a == [0x77bbcc00112233ff, 0x23456789abcdef01, 0x456789abcdef0123]
@@ -202,7 +202,7 @@ def testUnsafe_unsafe_setI64(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testUnsafe_unsafe_setPackedObject(write ok Int, write errorsCoordinates List)
-    var a List = {0, 1, 2, 3, 4}.clone()
+    const a List = {0, 1, 2, 3, 4}.clone()
     test: ok, errorsCoordinates
         a.unsafe_offsetI64(2).unsafe_setPackedObject(0, 5).nothing?()
         a == {5, 1, 2, 3, 4}
@@ -259,10 +259,10 @@ def testUnsafe_unsafe_setType(write ok Int, write errorsCoordinates List)
     var m $Any = unsafe_malloc(40)
     m.unsafe_setI64(0, 1)
     m.unsafe_setI64(1, 2)
-    m.unsafe_setI64(2, Int.typeNumber~())
+    m.unsafe_setI64(2, Int.typeNumber())
     m.unsafe_setI64(3, 0x00aa11bb22cc33dd)
     m.unsafe_setI64(4, 0x00aaffbb22cc33dd)
-    m.unsafe_setType(Array.typeNumber~())
+    m.unsafe_setType(Array.typeNumber())
     test: ok, errorsCoordinates
         m == [0x00aa11bb22cc33dd, 0x00aaffbb22cc33dd].clone()
 
@@ -271,13 +271,13 @@ def testUnsafe_unsafe_object(write ok Int, write errorsCoordinates List)
     const s String = "".clone()
     s.shar__rc_use()
     test: ok, errorsCoordinates
-        unsafe_object(Int.typeNumber~(), 12) == 12
-        unsafe_object(Int.typeNumber~(), 0) == 0
-        unsafe_object(Bool.typeNumber~(), true)
-        !unsafe_object(Bool.typeNumber~(), false)
-        unsafe_object(String.typeNumber~(), "Hello") == "Hello"
-        unsafe_object(String.typeNumber~(), "") == ""
-        unsafe_object(String.typeNumber~(), s).unsafe_getI64(0) == 2
+        unsafe_object(Int.typeNumber(), 12) == 12
+        unsafe_object(Int.typeNumber(), 0) == 0
+        unsafe_object(Bool.typeNumber(), true)
+        !unsafe_object(Bool.typeNumber(), false)
+        unsafe_object(String.typeNumber(), "Hello") == "Hello"
+        unsafe_object(String.typeNumber(), "") == ""
+        unsafe_object(String.typeNumber(), s).unsafe_getI64(0) == 2
         s.unsafe_getI64(0) == 1
 
 #noinline
@@ -310,17 +310,17 @@ def testUnsafe_unsafe_offset(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testUnsafe_unsafe_memcpy(write ok Int, write errorsCoordinates List)
-    const a String = unsafe_object(String.typeNumber~(), unsafe_malloc(24))
-    unsafe_memcpyI8(a, "0123", 24)
+    const a String = unsafe_object(String.typeNumber(), unsafe_malloc(32))
+    unsafe_memcpyI8(a, "0123", 32)
     test: ok, errorsCoordinates
         a == "0123"
-    unsafe_memcpyI16(a, "abcd", 12)
+    unsafe_memcpyI16(a, "abcd", 16)
     test: ok, errorsCoordinates
         a == "abcd"
-    unsafe_memcpyI32(a, "0123", 6)
+    unsafe_memcpyI32(a, "0123", 8)
     test: ok, errorsCoordinates
         a == "0123"
-    unsafe_memcpyI64(a, "abcd", 3)
+    unsafe_memcpyI64(a, "abcd", 4)
     test: ok, errorsCoordinates
         a == "abcd"
     unsafe_memcpyI8(a, "0123", 0)
@@ -339,29 +339,29 @@ def testUnsafe_unsafe_memcpy(write ok Int, write errorsCoordinates List)
 #noinline
 def testUnsafe_unsafe_memmove(write ok Int, write errorsCoordinates List)
     var a String = "012345678".clone()
-    unsafe_memmoveI8(a.unsafe_offsetI8(16), a.unsafe_offsetI8(18), 16)
+    unsafe_memmoveI8(a.unsafe_offsetI8(16), a.unsafe_offsetI8(20), 32)
     test: ok, errorsCoordinates
         a == "123456788"
-    unsafe_memmoveI8(a.unsafe_offsetI8(18), a.unsafe_offsetI8(16), 16)
+    unsafe_memmoveI8(a.unsafe_offsetI8(20), a.unsafe_offsetI8(16), 32)
     test: ok, errorsCoordinates
         a == "112345678"
-    unsafe_memmoveI16(a.unsafe_offsetI16(8), a.unsafe_offsetI16(9), 8)
+    unsafe_memmoveI16(a.unsafe_offsetI16(8), a.unsafe_offsetI16(10), 16)
     test: ok, errorsCoordinates
         a == "123456788"
-    unsafe_memmoveI16(a.unsafe_offsetI16(9), a.unsafe_offsetI16(8), 8)
+    unsafe_memmoveI16(a.unsafe_offsetI16(10), a.unsafe_offsetI16(8), 16)
     test: ok, errorsCoordinates
         a == "112345678"
-    unsafe_memmoveI32(a.unsafe_offsetI32(4), a.unsafe_offsetI32(5), 3)
+    unsafe_memmoveI32(a.unsafe_offsetI32(4), a.unsafe_offsetI32(6), 6)
     test: ok, errorsCoordinates
         a == "234567678"
-    unsafe_memmoveI32(a.unsafe_offsetI32(5), a.unsafe_offsetI32(4), 3)
+    unsafe_memmoveI32(a.unsafe_offsetI32(6), a.unsafe_offsetI32(4), 6)
     test: ok, errorsCoordinates
         a == "232345678"
-    unsafe_memmoveI64(a.unsafe_offsetI64(2), a.unsafe_offsetI64(3), 1)
+    unsafe_memmoveI64(a.unsafe_offsetI64(2), a.unsafe_offsetI64(4), 2)
     test: ok, errorsCoordinates
         a == "456745678"
     a = "012345678".clone()
-    unsafe_memmoveI64(a.unsafe_offsetI64(3), a.unsafe_offsetI64(2), 1)
+    unsafe_memmoveI64(a.unsafe_offsetI64(4), a.unsafe_offsetI64(2), 2)
     test: ok, errorsCoordinates
         a == "012301238"
     unsafe_memmoveI8(a, "0123", 0)
@@ -424,6 +424,6 @@ def testUnsafe_unsafe_use_object(write ok Int, write errorsCoordinates List)
     const s String = "".clone()
     test: ok, errorsCoordinates
         s.unsafe_getI64(0) == 1
-        unsafe_use_object(String.typeNumber~(), s.unsafe_getValue()).nothing?()
+        unsafe_use_object(String.typeNumber(), s.unsafe_getValue()).nothing?()
         s.unsafe_getI64(0) == 2
     s.shar__rc_free()

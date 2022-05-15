@@ -1,0 +1,165 @@
+module Main
+
+def intArrayToBytes_Byte(array Array) Bytes
+    var result Bytes = Bytes()
+    parse _, int Int = array
+        result.addItem(intToByte(int))
+    return result
+
+def testByte(write ok Int, write errorsCoordinates List)
+    testByte_Any(ok, errorsCoordinates)
+    testByte_Convert(ok, errorsCoordinates)
+    testByte_Equal(ok, errorsCoordinates)
+    testByte_Ordered(ok, errorsCoordinates)
+    testByte_StringWriter(ok, errorsCoordinates)
+    testByte_StringReader(ok, errorsCoordinates)
+    testByte_BinarySerializable(ok, errorsCoordinates)
+    testByte_PrepareForThreads(ok, errorsCoordinates)
+
+#noinline
+def testByte_Any(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        !intToByte(1).use?()
+        !intToByte(2).constant?()
+        intToByte(1).clone() == intToByte(1)
+        intToByte(255).clone() == intToByte(255)
+        intToByte(1).clone() == intToByte(1)
+        !intToByte(2).clone().use?()
+        !intToByte(1).clone().constant?()
+        intToByte(1).dump(0) == "Type: STD::Byte = 01\n"
+        intToByte(255).dump(1) == "  Type: STD::Byte = FF\n"
+        intToByte(0xaa).dump(0) == "Type: STD::Byte = AA\n"
+
+#noinline
+def testByte_Convert(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        byteToInt(intToByte(10)) == 10
+        byteToInt(intToByte(0)) == 0
+        byteToInt(intToByte(255)) == 255
+        intToByte(-1) : eid_outOfRange
+        intToByte(-9223372036854775808) : eid_outOfRange
+        intToByte(256) : eid_outOfRange
+        intToByte(257) : eid_outOfRange
+        intToByte(9223372036854775807) : eid_outOfRange
+
+#noinline
+def testByte_Equal(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        intToByte(10) == intToByte(10)
+        intToByte(0) == intToByte(0)
+        intToByte(255) == intToByte(255)
+        !(intToByte(11) == intToByte(10))
+        !(intToByte(1) == intToByte(0))
+        !(intToByte(254) == intToByte(255))
+        !(intToByte(10) != intToByte(10))
+        !(intToByte(0) != intToByte(0))
+        !(intToByte(255) != intToByte(255))
+        intToByte(11) != intToByte(10)
+        intToByte(1) != intToByte(0)
+        intToByte(254) != intToByte(255)
+
+#noinline
+def testByte_Ordered(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        intToByte(11) > intToByte(10)
+        intToByte(1) > intToByte(0)
+        intToByte(255) > intToByte(254)
+        !(intToByte(255) > intToByte(255))
+        !(intToByte(11) > intToByte(11))
+        !(intToByte(0) > intToByte(0))
+        !(intToByte(12) > intToByte(13))
+        !(intToByte(0) > intToByte(255))
+        intToByte(11) >= intToByte(10)
+        intToByte(1) >= intToByte(0)
+        intToByte(255) >= intToByte(254)
+        intToByte(255) >= intToByte(255)
+        intToByte(11) >= intToByte(11)
+        intToByte(0) >= intToByte(0)
+        !(intToByte(12) >= intToByte(13))
+        !(intToByte(0) >= intToByte(255))
+        !(intToByte(11) < intToByte(10))
+        !(intToByte(1) < intToByte(0))
+        !(intToByte(255) < intToByte(254))
+        !(intToByte(255) < intToByte(255))
+        !(intToByte(11) < intToByte(11))
+        !(intToByte(0) < intToByte(0))
+        intToByte(12) < intToByte(13)
+        intToByte(0) < intToByte(255)
+        !(intToByte(11) <= intToByte(10))
+        !(intToByte(1) <= intToByte(0))
+        !(intToByte(255) <= intToByte(254))
+        intToByte(255) <= intToByte(255)
+        intToByte(11) <= intToByte(11)
+        intToByte(0) <= intToByte(0)
+        intToByte(12) <= intToByte(13)
+        intToByte(0) <= intToByte(255)
+        compare(intToByte(11), intToByte(11)).enumToInt() == CompareResult[equal].enumToInt()
+        compare(intToByte(0), intToByte(0)).enumToInt() == CompareResult[equal].enumToInt()
+        compare(intToByte(12), intToByte(13)).enumToInt() == CompareResult[less].enumToInt()
+        compare(intToByte(0), intToByte(255)).enumToInt() == CompareResult[less].enumToInt()
+        compare(intToByte(11), intToByte(10)).enumToInt() == CompareResult[great].enumToInt()
+        compare(intToByte(1), intToByte(0)).enumToInt() == CompareResult[great].enumToInt()
+        compare(intToByte(255), intToByte(254)).enumToInt() == CompareResult[great].enumToInt()
+        compare(intToByte(255), intToByte(255)).enumToInt() == CompareResult[equal].enumToInt()
+
+#noinline
+def testByte_StringWriter(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        intToByte(0).toString() == "00"
+        intToByte(10).toString() == "0A"
+        intToByte(255).toString() == "FF"
+
+#noinline
+def testByte_StringReader(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        Byte.fromString("00") == intToByte(0)
+        Byte.fromString("0A") == intToByte(10)
+        Byte.fromString("0a") == intToByte(10)
+        Byte.fromString("aa") == intToByte(0xaa)
+        Byte.fromString("Aa") == intToByte(0xaa)
+        Byte.fromString("aA") == intToByte(0xaa)
+        Byte.fromString("AA") == intToByte(0xaa)
+        Byte.fromString("f") : eid_readFromString
+        Byte.fromString("F") : eid_readFromString
+        Byte.fromString("123") : eid_readFromString
+        Byte.fromString("gf") : eid_readFromString
+        Byte.fromString("fg") : eid_readFromString
+        Byte.fromString("fff") : eid_readFromString
+
+#noinline
+def testByte_BinarySerializable(write ok Int, write errorsCoordinates List)
+    var bytes Bytes = Bytes()
+    var position Int = 0
+    test: ok, errorsCoordinates
+        intToByte(0).serialize(bytes).nothing?()
+        bytes == [0].intArrayToBytes_Byte()
+        intToByte(10).serialize(bytes).nothing?()
+        bytes == [0, 10].intArrayToBytes_Byte()
+        Byte.deserialize(bytes, position) == intToByte(0)
+        position == 1
+        Byte.deserialize(bytes, position) == intToByte(10)
+        position == 2
+        Byte.deserialize(bytes, position) : eid_outOfRange
+        position == 2
+        Byte.deserialize([0, 1, 255].intArrayToBytes_Byte(), position) == intToByte(255)
+        position == 3
+    position = 0
+    test: ok, errorsCoordinates
+        Byte.deserialize(Bytes(), position) : eid_outOfRange
+        position == 0
+    position = -1
+    test: ok, errorsCoordinates
+        Byte.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Byte(), position) : eid_outOfRange
+    position = -9223372036854775808
+    test: ok, errorsCoordinates
+        Byte.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Byte(), position) : eid_outOfRange
+    position = 9223372036854775807
+    test: ok, errorsCoordinates
+        Byte.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Byte(), position) : eid_outOfRange
+
+#noinline
+def testByte_PrepareForThreads(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        intToByte(0).prepareForThreads() == intToByte(0)
+        intToByte(10).prepareForThreads() == intToByte(10)
+        intToByte(255).prepareForThreads() == intToByte(255)

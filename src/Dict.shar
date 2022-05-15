@@ -72,7 +72,7 @@ def unsafe_dict_slotAddress(dict, index $Any) Int
 def clone(dict Dict) Dict
     const slotsCount Int = dict.unsafe_dict_slotsCount()
     const memSizeI64 Int = 5 * slotsCount + 3
-    const result Dict = unsafe_object(Dict.typeNumber~(), unsafe_malloc(memSizeI64 * 8))
+    const result Dict = unsafe_object(Dict.typeNumber(), unsafe_malloc(memSizeI64 * 8))
     unsafe_memcpyI64(result, dict, memSizeI64)
     result.unsafe_dict_setCounter(1)
     for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
@@ -99,7 +99,7 @@ def dump(dict Dict, level Int) String
     if !dict.empty?()
         result += "\n"
         parse key, value = dict
-            result += levelSpaces + "  key:\n" + key.dump(level + 2) + levelSpaces + "  value:\n" + value.dump(level + 2)
+            result += levelSpaces + "  key:" + key.dump(level + 1)[level * 2 + 1:] + levelSpaces + "  value:" + value.dump(level + 1)[level * 2 + 1:]
         result += levelSpaces
     result += "]\n"
     return result
@@ -108,12 +108,12 @@ attach Dict to Empty
     //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type Dict) Dict
-        llvm
+        IR
             ret {i64, i32} {i64 ptrtoint ([3 x i64]* ##llvmconst##>private unnamed_addr constant [3 x i64] zeroinitializer, align 8<## to i64), i32 ##tnum##STD::Dict##}
 
 attach Dict to Long
     #alwaysinline nothrow
-    def length~(dict Dict) Int
+    def length(dict Dict) Int
         return dict.unsafe_getI64(1)
 
 attach Dict to Shar__sugar__getItem
@@ -124,15 +124,15 @@ attach Dict to Shar__sugar__getItem
         const slotLength Int = slotAddress.unsafe_getI64(0)
         var result $Any = nothing
         if slotLength != 0
-            if key.typeNumber~() == slotAddress.unsafe_getI32(6) && unsafe_equal(key.typeNumber~(), slotAddress.unsafe_getI64(1), key.typeNumber~(), key)
+            if key.typeNumber() == slotAddress.unsafe_getI32(6) && unsafe_equal(key.typeNumber(), slotAddress.unsafe_getI64(1), key.typeNumber(), key)
                 result = unsafe_object(slotAddress.unsafe_getI32(7), slotAddress.unsafe_getI64(2))
                 result.shar__rc_use()
             else
                 const otherKeysAndValues Int = slotAddress.unsafe_getI64(4)
                 for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 3; keyIndex += 3
                     if {
-                        key.typeNumber~() == otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_getI32(4) &&
-                        unsafe_equal(key.typeNumber~(), otherKeysAndValues.unsafe_getI64(keyIndex), key.typeNumber~(), key)
+                        key.typeNumber() == otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_getI32(4) &&
+                        unsafe_equal(key.typeNumber(), otherKeysAndValues.unsafe_getI64(keyIndex), key.typeNumber(), key)
                     }
                         result = unsafe_object(otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_getI32(5), otherKeysAndValues.unsafe_getI64(keyIndex + 1))
                         result.shar__rc_use()
@@ -144,7 +144,7 @@ attach Dict to Put
         if newValue.nothing?()
             return deleteKVFromDict(dict, key)
         const slotsCount Int = dict.unsafe_dict_slotsCount()
-        const needToEnlarge Bool = dict.length~() == slotsCount && slotsCount != 0x100000000
+        const needToEnlarge Bool = dict.length() == slotsCount && slotsCount != 0x100000000
         var result $Any = nothing
         if needToEnlarge || dict.use?()
             const newSlotsCount Int = dict.empty?().select(16, needToEnlarge.select(slotsCount * 2, slotsCount))
@@ -165,42 +165,42 @@ attach Dict to Put
                 slotAddress.unsafe_setI64(0, 1)
                 slotAddress.unsafe_setI64(1, key)
                 slotAddress.unsafe_setI64(2, newValue)
-                slotAddress.unsafe_setI32(6, key.typeNumber~())
-                slotAddress.unsafe_setI32(7, newValue.typeNumber~())
+                slotAddress.unsafe_setI32(6, key.typeNumber())
+                slotAddress.unsafe_setI32(7, newValue.typeNumber())
             else
                 var isEqual Bool = false
                 try
-                    isEqual = key.typeNumber~() == slotAddress.unsafe_getI32(6) && unsafe_equal(key.typeNumber~(), slotAddress.unsafe_getI64(1), key.typeNumber~(), key)
+                    isEqual = key.typeNumber() == slotAddress.unsafe_getI32(6) && unsafe_equal(key.typeNumber(), slotAddress.unsafe_getI64(1), key.typeNumber(), key)
                 catch id, message, errorData
                     key.shar__rc_free()
                     newValue.shar__rc_free()
                     throw(id, message, errorData)
                 if isEqual
-                    unsafe_object(key.typeNumber~(), slotAddress.unsafe_getI64(1))
+                    unsafe_object(key.typeNumber(), slotAddress.unsafe_getI64(1))
                     result = unsafe_object(slotAddress.unsafe_getI32(7), slotAddress.unsafe_getI64(2))
                     slotAddress.unsafe_setI64(1, key)
                     slotAddress.unsafe_setI64(2, newValue)
-                    slotAddress.unsafe_setI32(6, key.typeNumber~())
-                    slotAddress.unsafe_setI32(7, newValue.typeNumber~())
+                    slotAddress.unsafe_setI32(6, key.typeNumber())
+                    slotAddress.unsafe_setI32(7, newValue.typeNumber())
                 elif slotLength > 1
                     const otherKeysAndValues Int = slotAddress.unsafe_getI64(4)
                     for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 3; keyIndex += 3
                         try
                             isEqual = {
-                                key.typeNumber~() == otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_getI32(4) &&
-                                unsafe_equal(key.typeNumber~(), otherKeysAndValues.unsafe_getI64(keyIndex), key.typeNumber~(), key)
+                                key.typeNumber() == otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_getI32(4) &&
+                                unsafe_equal(key.typeNumber(), otherKeysAndValues.unsafe_getI64(keyIndex), key.typeNumber(), key)
                             }
                         catch id, message, errorData
                             key.shar__rc_free()
                             newValue.shar__rc_free()
                             throw(id, message, errorData)
                         if isEqual
-                            unsafe_object(key.typeNumber~(), otherKeysAndValues.unsafe_getI64(keyIndex))
+                            unsafe_object(key.typeNumber(), otherKeysAndValues.unsafe_getI64(keyIndex))
                             result = unsafe_object(otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_getI32(5), otherKeysAndValues.unsafe_getI64(keyIndex + 1))
                             otherKeysAndValues.unsafe_setI64(keyIndex, key)
                             otherKeysAndValues.unsafe_setI64(keyIndex + 1, newValue)
-                            otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_setI32(4, key.typeNumber~())
-                            otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_setI32(5, newValue.typeNumber~())
+                            otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_setI32(4, key.typeNumber())
+                            otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_setI32(5, newValue.typeNumber())
                             end keyIndex
                 if result.nothing?()
                     slotAddress.unsafe_setI64(0, slotLength + 1)
@@ -214,15 +214,15 @@ attach Dict to Put
                     const lastKeyIndex Int = (slotLength - 1) * 3
                     otherKeysAndValues.unsafe_setI64(lastKeyIndex, key)
                     otherKeysAndValues.unsafe_setI64(lastKeyIndex + 1, newValue)
-                    otherKeysAndValues.unsafe_offsetI64(lastKeyIndex).unsafe_setI32(4, key.typeNumber~())
-                    otherKeysAndValues.unsafe_offsetI64(lastKeyIndex).unsafe_setI32(5, newValue.typeNumber~())
+                    otherKeysAndValues.unsafe_offsetI64(lastKeyIndex).unsafe_setI32(4, key.typeNumber())
+                    otherKeysAndValues.unsafe_offsetI64(lastKeyIndex).unsafe_setI32(5, newValue.typeNumber())
             if result.nothing?()
                 dict.unsafe_setI64(1, dict.unsafe_getI64(1) + 1)
         return result
 
 #alwaysinline nothrow
 def unsafe_dict_create(slotsCount Int) Dict
-    const result Dict = unsafe_object(Dict.typeNumber~(), unsafe_malloc(slotsCount * 40 + 24))
+    const result Dict = unsafe_object(Dict.typeNumber(), unsafe_malloc(slotsCount * 40 + 24))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, 0)
     result.unsafe_setI64(2, slotsCount)
@@ -239,8 +239,8 @@ def unsafe_dict_addNotExistedKV(dict, key, value $Any)
         slotAddress.unsafe_setI64(0, 1)
         slotAddress.unsafe_setI64(1, key)
         slotAddress.unsafe_setI64(2, value)
-        slotAddress.unsafe_setI32(6, key.typeNumber~())
-        slotAddress.unsafe_setI32(7, value.typeNumber~())
+        slotAddress.unsafe_setI32(6, key.typeNumber())
+        slotAddress.unsafe_setI32(7, value.typeNumber())
     else
         slotAddress.unsafe_setI64(0, slotLength + 1)
         if slotLength == 1
@@ -253,8 +253,8 @@ def unsafe_dict_addNotExistedKV(dict, key, value $Any)
         const lastKeyIndex Int = (slotLength - 1) * 3
         otherKeysAndValues.unsafe_setI64(lastKeyIndex, key)
         otherKeysAndValues.unsafe_setI64(lastKeyIndex + 1, value)
-        otherKeysAndValues.unsafe_offsetI64(lastKeyIndex).unsafe_setI32(4, key.typeNumber~())
-        otherKeysAndValues.unsafe_offsetI64(lastKeyIndex).unsafe_setI32(5, value.typeNumber~())
+        otherKeysAndValues.unsafe_offsetI64(lastKeyIndex).unsafe_setI32(4, key.typeNumber())
+        otherKeysAndValues.unsafe_offsetI64(lastKeyIndex).unsafe_setI32(5, value.typeNumber())
     dict.unsafe_setI64(1, dict.unsafe_getI64(1) + 1)
 
 #noinline
@@ -267,19 +267,19 @@ def deleteKVFromDict(write dict Dict, key ${Equal, Hashable}) $Any
     const slotLength Int = slotAddress.unsafe_getI64(0)
     var resultKeyIndex Int = -1
     if slotLength != 0
-        if key.typeNumber~() == slotAddress.unsafe_getI32(6) && unsafe_equal(key.typeNumber~(), slotAddress.unsafe_getI64(1), key.typeNumber~(), key)
+        if key.typeNumber() == slotAddress.unsafe_getI32(6) && unsafe_equal(key.typeNumber(), slotAddress.unsafe_getI64(1), key.typeNumber(), key)
             resultKeyIndex = 0
         elif slotLength != 1
             const otherKeysAndValues Int = slotAddress.unsafe_getI64(4)
             for :(keyIndex Int = 0) keyIndex < (slotLength - 1) * 3; keyIndex += 3
                 if {
-                    key.typeNumber~() == otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_getI32(4) &&
-                    unsafe_equal(key.typeNumber~(), otherKeysAndValues.unsafe_getI64(keyIndex), key.typeNumber~(), key)
+                    key.typeNumber() == otherKeysAndValues.unsafe_offsetI64(keyIndex).unsafe_getI32(4) &&
+                    unsafe_equal(key.typeNumber(), otherKeysAndValues.unsafe_getI64(keyIndex), key.typeNumber(), key)
                 }
                     resultKeyIndex = keyIndex + 3
                     end keyIndex
     if resultKeyIndex != -1
-        if dict.length~() == 1
+        if dict.length() == 1
             result = unsafe_object(slotAddress.unsafe_getI32(7), slotAddress.unsafe_getI64(2))
             result.shar__rc_use()
             dict = Dict()
@@ -287,7 +287,7 @@ def deleteKVFromDict(write dict Dict, key ${Equal, Hashable}) $Any
             dict.unsafe_setI64(1, dict.unsafe_getI64(1) - 1)
             slotAddress.unsafe_setI64(0, slotLength - 1)
             if resultKeyIndex == 0
-                unsafe_object(key.typeNumber~(), slotAddress.unsafe_getI64(1))
+                unsafe_object(key.typeNumber(), slotAddress.unsafe_getI64(1))
                 result = unsafe_object(slotAddress.unsafe_getI32(7), slotAddress.unsafe_getI64(2))
             if slotLength != 1
                 var otherKeysAndValues Int = slotAddress.unsafe_getI64(4)
@@ -298,7 +298,7 @@ def deleteKVFromDict(write dict Dict, key ${Equal, Hashable}) $Any
                     slotAddress.unsafe_setI64(3, otherKeysAndValues.unsafe_getI64(lastKeyIndex + 2))
                 else
                     resultKeyIndex -= 3
-                    unsafe_object(key.typeNumber~(), otherKeysAndValues.unsafe_getI64(resultKeyIndex))
+                    unsafe_object(key.typeNumber(), otherKeysAndValues.unsafe_getI64(resultKeyIndex))
                     result = unsafe_object(otherKeysAndValues.unsafe_offsetI64(resultKeyIndex).unsafe_getI32(5), otherKeysAndValues.unsafe_getI64(resultKeyIndex + 1))
                     if lastKeyIndex != resultKeyIndex
                         otherKeysAndValues.unsafe_setI64(resultKeyIndex, otherKeysAndValues.unsafe_getI64(lastKeyIndex))
@@ -341,7 +341,7 @@ attach Dict to Iterable
     def parse__predicate(dict Dict, index Array) Bool
         return index[0] < dict.unsafe_dict_slotsCount()
 
-    #alwaysinline unsafewrite nothrow
+    #alwaysinline nothrow
     def parse__next(dict Dict, write index Array)
         const slotsCount Int = dict.unsafe_dict_slotsCount()
         const currentSlotIndex Int = index[0]

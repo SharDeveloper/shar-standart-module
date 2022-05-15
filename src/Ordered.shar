@@ -7,15 +7,15 @@ module STD
 //@If the first argument of the "STD::shar__sugar__greatOrEqual" function is an object with a type that is a member of the "STD::Ordered" group, then this function returns "true" if the first argument is greater than or equal to the second, otherwise the function returns "false".
 export group Ordered: Equal, Shar__sugar__less, Shar__sugar__great, Shar__sugar__lessOrEqual, Shar__sugar__greatOrEqual
     //@The function compares two objects and returns one of the following values:
-    //@enum::STD::ord_equal - objects are equal
-    //@enum::STD::ord_less - the first object is less than a second
-    //@enum::STD::ord_great - the first object is greater than a second
-    compare(This, This) Int
+    //@CompareResult[equal]- objects are equal
+    //@CompareResult[less]- the first object is less than a second
+    //@CompareResult[great]- the first object is greater than a second
+    compare(This, This) CompareResult
 
-export enum
-    ord_equal
-    ord_less
-    ord_great
+export enum CompareResult
+    equal
+    less
+    great
 
 //@If the first argument of the function is not less than the second, but less than the third, then the function returns "true", otherwise the function returns "false".
 #this(Ordered) alwaysinline

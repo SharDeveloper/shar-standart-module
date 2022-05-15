@@ -8,7 +8,7 @@ export def cold()
 
 #alwaysinline nothrow
 export def unsafe_getI8(address, offset $Any) Int
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i8*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -20,7 +20,7 @@ export def unsafe_getI8(address, offset $Any) Int
 
 #alwaysinline nothrow
 export def unsafe_getI16(address, offset $Any) Int
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i16*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -32,7 +32,7 @@ export def unsafe_getI16(address, offset $Any) Int
 
 #alwaysinline nothrow
 export def unsafe_getI32(address, offset $Any) Int
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i32*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -44,7 +44,7 @@ export def unsafe_getI32(address, offset $Any) Int
 
 #alwaysinline nothrow
 export def unsafe_getI64(address, offset $Any) Int
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i64*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -53,9 +53,9 @@ export def unsafe_getI64(address, offset $Any) Int
         %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result value##, 0
         ret {i64, i32} %##reg##result##
 
-#alwaysinline unsafewrite nothrow
+#alwaysinline nothrow
 export def unsafe_getPackedObject(address, offset $Any) $Any
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <{i64, i32}>*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -69,7 +69,7 @@ export def unsafe_getPackedObject(address, offset $Any) $Any
 
 #alwaysinline nothrow
 export def unsafe_setI8(address, offset, value $Any)
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i8*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -81,7 +81,7 @@ export def unsafe_setI8(address, offset, value $Any)
 
 #alwaysinline nothrow
 export def unsafe_setI16(address, offset, value $Any)
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i16*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -93,7 +93,7 @@ export def unsafe_setI16(address, offset, value $Any)
 
 #alwaysinline nothrow
 export def unsafe_setI32(address, offset, value $Any)
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i32*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -105,7 +105,7 @@ export def unsafe_setI32(address, offset, value $Any)
 
 #alwaysinline nothrow
 export def unsafe_setI64(address, offset, value $Any)
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i64*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -116,7 +116,7 @@ export def unsafe_setI64(address, offset, value $Any)
 
 #alwaysinline nothrow
 export def unsafe_setPackedObject(address, offset, object $Any)
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <{i64, i32}>*
         %##nreg##offset## = extractvalue {i64, i32} %1, 0
@@ -130,7 +130,7 @@ export def unsafe_setPackedObject(address, offset, object $Any)
 
 #alwaysinline nothrow
 export def unsafe_malloc(sizeInBytes $Any) Int
-    llvm
+    IR
         %##nreg##memory size## = extractvalue {i64, i32} %0, 0
         %##nreg##memory## = call i64* @shar.malloc(i64 %##reg##memory size##)
         %##nreg##memory i64## = ptrtoint i64* %##reg##memory## to i64
@@ -139,7 +139,7 @@ export def unsafe_malloc(sizeInBytes $Any) Int
 
 #alwaysinline unsafewrite nothrow
 export def unsafe_realloc(write address, newSizeInBytes $Any)
-    llvm
+    IR
         %##nreg##memory pointer i64## = getelementptr {i64, i32}, {i64, i32}* %0, i64 0, i32 0
         %##nreg##memory i64## = load i64, i64* %##reg##memory pointer i64##, align 8
         %##nreg##memory## = inttoptr i64 %##reg##memory i64## to i64*
@@ -151,7 +151,7 @@ export def unsafe_realloc(write address, newSizeInBytes $Any)
 
 #alwaysinline nothrow
 export def unsafe_free(address $Any)
-    llvm
+    IR
         %##nreg##memory i64## = extractvalue {i64, i32} %0, 0
         %##nreg##memory## = inttoptr i64 %##reg##memory i64## to i64*
         call void @shar.free(i64* %##reg##memory##)
@@ -159,7 +159,7 @@ export def unsafe_free(address $Any)
 
 #alwaysinline unsafewrite nothrow
 export def unsafe_setType(write variable, newTypeNumber $Any)
-    llvm
+    IR
         %##nreg##variable type pointer## = getelementptr {i64, i32}, {i64, i32}* %0, i64 0, i32 1
         %##nreg##new type i64## = extractvalue {i64, i32} %1, 0
         %##nreg##new type## = trunc i64 %##reg##new type i64## to i32
@@ -168,13 +168,13 @@ export def unsafe_setType(write variable, newTypeNumber $Any)
 
 #alwaysinline nothrow
 export def unsafe_getValue(type $Any) Int
-    llvm
+    IR
         %##nreg##result## = insertvalue {i64, i32} %0, i32 ##tnum##STD::Int##, 1
         ret {i64, i32} %##reg##result##
 
 #alwaysinline unsafewrite nothrow
 export def unsafe_setValue(write object, value $Any)
-    llvm
+    IR
         %##nreg##object value pointer## = getelementptr {i64, i32}, {i64, i32}* %0, i64 0, i32 0
         %##nreg##value## = extractvalue {i64, i32} %1, 0
         store i64 %##reg##value##, i64* %##reg##object value pointer##, align 8
@@ -182,7 +182,7 @@ export def unsafe_setValue(write object, value $Any)
 
 #alwaysinline nothrow
 export def unsafe_object(typeNumber, value $Any) $Any
-    llvm
+    IR
         %##nreg##type number i64## = extractvalue {i64, i32} %0, 0
         %##nreg##type number## = trunc i64 %##reg##type number i64## to i32
         %##nreg##value## = extractvalue {i64, i32} %1, 0
@@ -192,7 +192,7 @@ export def unsafe_object(typeNumber, value $Any) $Any
 
 #alwaysinline nothrow
 export def unsafe_memcpyI8(destination, source, count $Any)
-    llvm
+    IR
         %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i8*
         %##nreg##source i64## = extractvalue {i64, i32} %1, 0
@@ -204,7 +204,7 @@ export def unsafe_memcpyI8(destination, source, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memcpyI16(destination, source, count $Any)
-    llvm
+    IR
         %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i16*
         %##nreg##source i64## = extractvalue {i64, i32} %1, 0
@@ -217,7 +217,7 @@ export def unsafe_memcpyI16(destination, source, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memcpyI32(destination, source, count $Any)
-    llvm
+    IR
         %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i32*
         %##nreg##source i64## = extractvalue {i64, i32} %1, 0
@@ -230,7 +230,7 @@ export def unsafe_memcpyI32(destination, source, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memcpyI64(destination, source, count $Any)
-    llvm
+    IR
         %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i64*
         %##nreg##source i64## = extractvalue {i64, i32} %1, 0
@@ -243,7 +243,7 @@ export def unsafe_memcpyI64(destination, source, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memmoveI8(destination, source, count $Any)
-    llvm
+    IR
         %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i8*
         %##nreg##source i64## = extractvalue {i64, i32} %1, 0
@@ -255,7 +255,7 @@ export def unsafe_memmoveI8(destination, source, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memmoveI16(destination, source, count $Any)
-    llvm
+    IR
         %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i16*
         %##nreg##source i64## = extractvalue {i64, i32} %1, 0
@@ -268,7 +268,7 @@ export def unsafe_memmoveI16(destination, source, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memmoveI32(destination, source, count $Any)
-    llvm
+    IR
         %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i32*
         %##nreg##source i64## = extractvalue {i64, i32} %1, 0
@@ -281,7 +281,7 @@ export def unsafe_memmoveI32(destination, source, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memmoveI64(destination, source, count $Any)
-    llvm
+    IR
         %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to i64*
         %##nreg##source i64## = extractvalue {i64, i32} %1, 0
@@ -294,7 +294,7 @@ export def unsafe_memmoveI64(destination, source, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memsetI8(address, value, count $Any)
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i8*
         %##nreg##value i64## = extractvalue {i64, i32} %1, 0
@@ -306,7 +306,7 @@ export def unsafe_memsetI8(address, value, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memsetI16(address, value, count $Any)
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
@@ -344,7 +344,7 @@ export def unsafe_memsetI16(address, value, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memsetI32(address, value, count $Any)
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
@@ -382,7 +382,7 @@ export def unsafe_memsetI32(address, value, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_memsetI64(address, value, count $Any)
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
@@ -419,7 +419,7 @@ export def unsafe_memsetI64(address, value, count $Any)
 
 #alwaysinline nothrow
 export def unsafe_offsetI8(address, index $Any) Int
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i8*
         %##nreg##index## = extractvalue {i64, i32} %1, 0
@@ -430,7 +430,7 @@ export def unsafe_offsetI8(address, index $Any) Int
 
 #alwaysinline nothrow
 export def unsafe_offsetI16(address, index $Any) Int
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i16*
         %##nreg##index## = extractvalue {i64, i32} %1, 0
@@ -441,7 +441,7 @@ export def unsafe_offsetI16(address, index $Any) Int
 
 #alwaysinline nothrow
 export def unsafe_offsetI32(address, index $Any) Int
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i32*
         %##nreg##index## = extractvalue {i64, i32} %1, 0
@@ -452,7 +452,7 @@ export def unsafe_offsetI32(address, index $Any) Int
 
 #alwaysinline nothrow
 export def unsafe_offsetI64(address, index $Any) Int
-    llvm
+    IR
         %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to i64*
         %##nreg##index## = extractvalue {i64, i32} %1, 0
@@ -464,18 +464,18 @@ export def unsafe_offsetI64(address, index $Any) Int
 
 #alwaysinline nothrow
 export def unsafe_use_object(typeNumber, value $Any)
-    llvm
+    IR
         %##nreg##type number i64## = extractvalue {i64, i32} %0, 0
         %##nreg##type number## = trunc i64 %##reg##type number i64## to i32
         %##nreg##value## = extractvalue {i64, i32} %1, 0
         %##nreg##half object## = insertvalue {i64, i32} undef, i64 %##reg##value##, 0
         %##nreg##object## = insertvalue {i64, i32} %##reg##half object##, i32 %##reg##type number##, 1
-        %##nreg##unneeded## = call {i64, i32} ##ancntfunc##STD::shar__rc_use##({i64, i32} %##reg##object##)
+        %##nreg##unneeded## = call {i64, i32} ##ntfunc##STD::shar__rc_use##({i64, i32} %##reg##object##, i8* %2, i1 0)
         ret {i64, i32} zeroinitializer
 
 #alwaysinline
 def unsafe_equal(typeNumber1, value1, typeNumber2, value2 $Any) Bool
-    llvm
+    IR
         %##nreg##type number 1 i64## = extractvalue {i64, i32} %0, 0
         %##nreg##type number 1## = trunc i64 %##reg##type number 1 i64## to i32
         %##nreg##value 1## = extractvalue {i64, i32} %1, 0
@@ -486,12 +486,12 @@ def unsafe_equal(typeNumber1, value1, typeNumber2, value2 $Any) Bool
         %##nreg##value 2## = extractvalue {i64, i32} %3, 0
         %##nreg##half object 2## = insertvalue {i64, i32} undef, i64 %##reg##value 2##, 0
         %##nreg##object 2## = insertvalue {i64, i32} %##reg##half object 2##, i32 %##reg##type number 2##, 1
-        %##nreg##result## = call {i64, i32} ##func##STD::shar__sugar__equal##({i64, i32} %##reg##object 1##, {i64, i32} %##reg##object 2##)
+        %##nreg##result## = call {i64, i32} ##func##STD::shar__sugar__equal##({i64, i32} %##reg##object 1##, {i64, i32} %##reg##object 2##, i8* %4, i1 1)
         ret {i64, i32} %##reg##result##
 
 #alwaysinline
 def unsafe_less(typeNumber1, value1, typeNumber2, value2 $Any) Bool
-    llvm
+    IR
         %##nreg##type number 1 i64## = extractvalue {i64, i32} %0, 0
         %##nreg##type number 1## = trunc i64 %##reg##type number 1 i64## to i32
         %##nreg##value 1## = extractvalue {i64, i32} %1, 0
@@ -502,12 +502,12 @@ def unsafe_less(typeNumber1, value1, typeNumber2, value2 $Any) Bool
         %##nreg##value 2## = extractvalue {i64, i32} %3, 0
         %##nreg##half object 2## = insertvalue {i64, i32} undef, i64 %##reg##value 2##, 0
         %##nreg##object 2## = insertvalue {i64, i32} %##reg##half object 2##, i32 %##reg##type number 2##, 1
-        %##nreg##result## = call {i64, i32} ##func##STD::shar__sugar__less##({i64, i32} %##reg##object 1##, {i64, i32} %##reg##object 2##)
+        %##nreg##result## = call {i64, i32} ##func##STD::shar__sugar__less##({i64, i32} %##reg##object 1##, {i64, i32} %##reg##object 2##, i8* %4, i1 1)
         ret {i64, i32} %##reg##result##
 
 #alwaysinline
 def unsafe_lessOrEqual(typeNumber1, value1, typeNumber2, value2 $Any) Bool
-    llvm
+    IR
         %##nreg##type number 1 i64## = extractvalue {i64, i32} %0, 0
         %##nreg##type number 1## = trunc i64 %##reg##type number 1 i64## to i32
         %##nreg##value 1## = extractvalue {i64, i32} %1, 0
@@ -518,12 +518,12 @@ def unsafe_lessOrEqual(typeNumber1, value1, typeNumber2, value2 $Any) Bool
         %##nreg##value 2## = extractvalue {i64, i32} %3, 0
         %##nreg##half object 2## = insertvalue {i64, i32} undef, i64 %##reg##value 2##, 0
         %##nreg##object 2## = insertvalue {i64, i32} %##reg##half object 2##, i32 %##reg##type number 2##, 1
-        %##nreg##result## = call {i64, i32} ##func##STD::shar__sugar__lessOrEqual##({i64, i32} %##reg##object 1##, {i64, i32} %##reg##object 2##)
+        %##nreg##result## = call {i64, i32} ##func##STD::shar__sugar__lessOrEqual##({i64, i32} %##reg##object 1##, {i64, i32} %##reg##object 2##, i8* %4, i1 1)
         ret {i64, i32} %##reg##result##
 
 #alwaysinline
 def unsafe_inEqualGroup?(typeNumber $Any) Bool
-    llvm
+    IR
         %##nreg##type number i64## = extractvalue {i64, i32} %0, 0
         %##nreg##type number## = trunc i64 %##reg##type number i64## to i32
         %##nreg##result i1## = call i1 ##ingroups##STD::Any,STD::Equal,STD::Shar__sugar__equal,STD::Shar__sugar__notEqual##(i32 %##reg##type number##)
@@ -533,7 +533,7 @@ def unsafe_inEqualGroup?(typeNumber $Any) Bool
 
 #alwaysinline
 def unsafe_inOrderedGroup?(typeNumber $Any) Bool
-    llvm
+    IR
         %##nreg##type number i64## = extractvalue {i64, i32} %0, 0
         %##nreg##type number## = trunc i64 %##reg##type number i64## to i32
         %##nreg##result i1## = call i1 ##ingroups##STD::Any,STD::Equal,STD::Ordered,STD::Shar__sugar__equal,STD::Shar__sugar__great,STD::Shar__sugar__greatOrEqual,STD::Shar__sugar__less,STD::Shar__sugar__lessOrEqual,STD::Shar__sugar__notEqual##(i32 %##reg##type number##)
@@ -543,7 +543,7 @@ def unsafe_inOrderedGroup?(typeNumber $Any) Bool
 
 #alwaysinline
 def unsafe_inHashableGroup?(typeNumber $Any) Bool
-    llvm
+    IR
         %##nreg##type number i64## = extractvalue {i64, i32} %0, 0
         %##nreg##type number## = trunc i64 %##reg##type number i64## to i32
         %##nreg##result i1## = call i1 ##ingroups##STD::Any,STD::Hashable##(i32 %##reg##type number##)

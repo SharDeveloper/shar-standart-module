@@ -5,30 +5,6 @@ export primitive Bool
 
 attach Bool to Independent
 
-#override(STD) alwaysinline
-def shar__rc_free(boolean Bool)
-    return nothing
-
-#override(STD) alwaysinline
-def shar__rc_use(boolean Bool)
-    return nothing
-
-#override(STD) alwaysinline
-def shar__to_const(boolean Bool)
-    return nothing
-
-#override(STD) alwaysinline nothrow
-def use?(boolean Bool) Bool
-    return false
-
-#override(STD) alwaysinline nothrow
-def constant?(boolean Bool) Bool
-    return false
-
-#override(STD) alwaysinline nothrow
-def clone(boolean Bool) Bool
-    return boolean
-
 #override(STD) nothrow
 def dump(bool Bool, level Int) String
     return "  ".repeatPart(level) + "Type: STD::Bool = " + bool.toString() + "\n"
@@ -38,7 +14,7 @@ attach Bool to Equal
 attach Bool to Shar__sugar__equal
     #alwaysinline nothrow
     def shar__sugar__equal(boolean1, boolean2 Bool) Bool
-        llvm
+        IR
             %##nreg##boolean1 i64## = extractvalue {i64, i32} %0, 0
             %##nreg##boolean2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##boolean1## = trunc i64 %##reg##boolean1 i64## to i1
@@ -51,7 +27,7 @@ attach Bool to Shar__sugar__equal
 attach Bool to Shar__sugar__notEqual
     #alwaysinline nothrow
     def shar__sugar__notEqual(boolean1, boolean2 Bool) Bool
-        llvm
+        IR
             %##nreg##boolean1 i64## = extractvalue {i64, i32} %0, 0
             %##nreg##boolean2 i64## = extractvalue {i64, i32} %1, 0
             %##nreg##boolean1## = trunc i64 %##reg##boolean1 i64## to i1
@@ -65,7 +41,7 @@ attach Bool to Shar__sugar__neg
     //@The function changes the value of its argument to the opposite.
     #alwaysinline nothrow
     def shar__sugar__neg(boolean Bool) Bool
-        llvm
+        IR
             %##nreg##boolean i64## = extractvalue {i64, i32} %0, 0
             %##nreg##result i64## = xor i64 %##reg##boolean i64##, 1
             %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
@@ -75,7 +51,7 @@ attach Bool to Shar__sugar__and
     //@The function performs a logical "and" on its two arguments.
     #alwaysinline nothrow
     def shar__sugar__and(boolean1, boolean2 Bool) Bool
-        llvm
+        IR
             %##nreg##boolean1## = extractvalue {i64, i32} %0, 0
             %##nreg##boolean2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = and i64 %##reg##boolean1##, %##reg##boolean2##
@@ -86,7 +62,7 @@ attach Bool to Shar__sugar__xor
     //@The function performs a logical "exclusive or" on its two arguments.
     #alwaysinline nothrow
     def shar__sugar__xor(boolean1, boolean2 Bool) Bool
-        llvm
+        IR
             %##nreg##boolean1## = extractvalue {i64, i32} %0, 0
             %##nreg##boolean2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = xor i64 %##reg##boolean1##, %##reg##boolean2##
@@ -97,7 +73,7 @@ attach Bool to Shar__sugar__or
     //@The function performs a logical "or" on its two arguments.
     #alwaysinline nothrow
     def shar__sugar__or(boolean1, boolean2 Bool) Bool
-        llvm
+        IR
             %##nreg##boolean1## = extractvalue {i64, i32} %0, 0
             %##nreg##boolean2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i64## = or i64 %##reg##boolean1##, %##reg##boolean2##
@@ -132,7 +108,7 @@ attach Bool to StringReader
             return true
         if string == "false"
             return false
-        throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
+        throw(const::eid_readFromString, "Reading from the string caused an error.", nothing)
 
 attach Bool to Hashable
     #alwaysinline nothrow
@@ -146,11 +122,11 @@ attach Bool to Hashable
 attach Bool to BinarySerializable
     #alwaysinline nothrow
     def serialize(bool Bool, write bytes Bytes)
-        bytes.addItem(bool.select(1, 0))
+        bytes.addItem(intToByte(bool.select(1, 0)))
 
     #alwaysinline
     def deserialize(noread type Bool, bytes Bytes, write position Int) Bool
-        const result Bool = bytes[position] != 0
+        const result Bool = bytes[position] != intToByte(0)
         position++
         return result
 

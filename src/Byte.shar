@@ -1,0 +1,182 @@
+module STD
+
+//@8 bits of data.
+//@The type is used to work with the "STD::Bytes" type.
+export primitive Byte
+
+attach Byte to Independent
+
+//@The function converts an object of type "STD::Byte" to type "STD::Int".
+#alwaysinline nothrow
+export def byteToInt(byte Byte) Int
+    return unsafe_object(Int.typeNumber(), byte)
+
+//@The function converts an object of type "STD::Int" to type "STD::Byte".
+//@If the number value is outside the range of possible values of type "STD::Byte", the function returns an error with the code "const::STD::eid_outOfRange".
+#alwaysinline
+export def intToByte(int Int) Byte
+    inthrow
+        if !int.inRange?(0, 256)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    return unsafe_object(Byte.typeNumber(), int)
+
+#override(STD) nothrow
+def dump(byte Byte, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::Byte = " + byte.toString() + "\n"
+
+attach Byte to Equal
+
+attach Byte to Shar__sugar__equal
+    #alwaysinline nothrow
+    def shar__sugar__equal(byte1, byte2 Byte) Bool
+        IR
+            %##nreg##byte1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##byte2 i64## = extractvalue {i64, i32} %1, 0
+            %##nreg##byte1## = trunc i64 %##reg##byte1 i64## to i8
+            %##nreg##byte2## = trunc i64 %##reg##byte2 i64## to i8
+            %##nreg##result i1## = icmp eq i8 %##reg##byte1##, %##reg##byte2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
+
+attach Byte to Shar__sugar__notEqual
+    #alwaysinline nothrow
+    def shar__sugar__notEqual(byte1, byte2 Byte) Bool
+        IR
+            %##nreg##byte1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##byte2 i64## = extractvalue {i64, i32} %1, 0
+            %##nreg##byte1## = trunc i64 %##reg##byte1 i64## to i8
+            %##nreg##byte2## = trunc i64 %##reg##byte2 i64## to i8
+            %##nreg##result i1## = icmp ne i8 %##reg##byte1##, %##reg##byte2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
+
+attach Byte to Ordered
+    #alwaysinline nothrow
+    def compare(byte1, byte2 Byte) CompareResult
+        if byte1 < byte2
+            return CompareResult[less]
+        if byte1 > byte2
+            return CompareResult[great]
+        return CompareResult[equal]
+
+attach Byte to Shar__sugar__great
+    #alwaysinline nothrow
+    def shar__sugar__great(byte1, byte2 Byte) Bool
+        IR
+            %##nreg##byte1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##byte2 i64## = extractvalue {i64, i32} %1, 0
+            %##nreg##byte1## = trunc i64 %##reg##byte1 i64## to i8
+            %##nreg##byte2## = trunc i64 %##reg##byte2 i64## to i8
+            %##nreg##result i1## = icmp ugt i8 %##reg##byte1##, %##reg##byte2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
+
+attach Byte to Shar__sugar__greatOrEqual
+    #alwaysinline nothrow
+    def shar__sugar__greatOrEqual(byte1, byte2 Byte) Bool
+        IR
+            %##nreg##byte1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##byte2 i64## = extractvalue {i64, i32} %1, 0
+            %##nreg##byte1## = trunc i64 %##reg##byte1 i64## to i8
+            %##nreg##byte2## = trunc i64 %##reg##byte2 i64## to i8
+            %##nreg##result i1## = icmp uge i8 %##reg##byte1##, %##reg##byte2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
+
+attach Byte to Shar__sugar__less
+    #alwaysinline nothrow
+    def shar__sugar__less(byte1, byte2 Byte) Bool
+        IR
+            %##nreg##byte1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##byte2 i64## = extractvalue {i64, i32} %1, 0
+            %##nreg##byte1## = trunc i64 %##reg##byte1 i64## to i8
+            %##nreg##byte2## = trunc i64 %##reg##byte2 i64## to i8
+            %##nreg##result i1## = icmp ult i8 %##reg##byte1##, %##reg##byte2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
+
+attach Byte to Shar__sugar__lessOrEqual
+    #alwaysinline nothrow
+    def shar__sugar__lessOrEqual(byte1, byte2 Byte) Bool
+        IR
+            %##nreg##byte1 i64## = extractvalue {i64, i32} %0, 0
+            %##nreg##byte2 i64## = extractvalue {i64, i32} %1, 0
+            %##nreg##byte1## = trunc i64 %##reg##byte1 i64## to i8
+            %##nreg##byte2## = trunc i64 %##reg##byte2 i64## to i8
+            %##nreg##result i1## = icmp ule i8 %##reg##byte1##, %##reg##byte2##
+            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
+            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+            ret {i64, i32} %##reg##result##
+
+attach Byte to StringWriter
+    #nothrow
+    def toString(byte Byte) String
+        var result String = ""
+        var char1 Int = 0
+        var char2 Int = 0
+        var bits Int = byteToInt(byte) >> 4
+        switch bits
+        case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+            char1 = bits + charToInt('0')
+        case 10, 11, 12, 13, 14, 15
+            char1 = bits + charToInt('A') - 10
+        bits = byteToInt(byte) & 0xf
+        switch bits
+        case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+            char2 = bits + charToInt('0')
+        case 10, 11, 12, 13, 14, 15
+            char2 = bits + charToInt('A') - 10
+        result.addItem(intToChar(char1))
+        result.addItem(intToChar(char2))
+        return result
+
+attach Byte to StringReader
+    def fromString(noread type Byte, string String) Byte
+        do :(code)
+            if string.length() == 2
+                var result Int = 0
+                var char Char = string[0]
+                switch char
+                case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+                    result = charToInt(char) - charToInt('0')
+                case 'a', 'b', 'c', 'd', 'e', 'f'
+                    result = charToInt(char) - charToInt('a') + 10
+                case 'A', 'B', 'C', 'D', 'E', 'F'
+                    result = charToInt(char) - charToInt('A') + 10
+                default
+                    end code
+                result <<= 4
+                char = string[1]
+                switch char
+                case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+                    result |= charToInt(char) - charToInt('0')
+                case 'a', 'b', 'c', 'd', 'e', 'f'
+                    result |= charToInt(char) - charToInt('a') + 10
+                case 'A', 'B', 'C', 'D', 'E', 'F'
+                    result |= charToInt(char) - charToInt('A') + 10
+                default
+                    end code
+                return intToByte(result)
+        throw(const::eid_readFromString, "Reading from the string caused an error.", nothing)
+
+
+attach Byte to BinarySerializable
+    #alwaysinline nothrow
+    def serialize(byte Byte, write bytes Bytes)
+        bytes.addItem(byte)
+
+    #alwaysinline
+    def deserialize(noread type Byte, bytes Bytes, write position Int) Byte
+        const result Byte = bytes[position]
+        position++
+        return result
+
+attach Byte to Multithreaded
+    #alwaysinline nothrow
+    def prepareForThreads(byte Byte) Byte
+        return byte

@@ -1,58 +1,55 @@
 module Main
 
 type TestAArray
+    m Map
 
 def TestAArray(map Map) TestAArray
-    return TestAArray.fromList({map})
-
-def toMap(aa TestAArray) Map
-    return aa.typeGetItem(0)
+    return TestAArray{m: map}
 
 attach TestAArray to Empty
     def createEmpty(noread type TestAArray) TestAArray
         return TestAArray(Map())
 
 attach TestAArray to Long
-    #alwaysinline nothrow
-    def length~(map TestAArray) Int
-        return map.toMap().length~()
+    def length(map TestAArray) Int
+        return map.m~().length()
 
 attach TestAArray to Shar__sugar__getItem
     def shar__sugar__getItem(map TestAArray, key ${Equal, Hashable}) $Any
-        return map.toMap()[key]
+        return map.m~()[key]
 
 attach TestAArray to Put
     def put(write map TestAArray, key ${Equal, Hashable}, newValue $Any) $Any
-        var map_ Map = map.toMap()
+        var map_ Map = map.m`(Map())
         const result $Any = map_.put(key, newValue)
-        map = TestAArray(map_)
+        map.m`(map_)
         return result
 
 attach TestAArray to Iterable
     def parse__init(map TestAArray) Array
-        return map.toMap().parse__init()
+        return map.m~().parse__init()
 
     def parse__predicate(map TestAArray, index Array) Bool
-        return map.toMap().parse__predicate(index)
+        return map.m~().parse__predicate(index)
 
     def parse__next(map TestAArray, write index Array)
-        map.toMap().parse__next(index)
+        map.m~().parse__next(index)
 
     def parse__get__key(map TestAArray, index Array) $Any
-        return map.toMap().parse__get__key(index)
+        return map.m~().parse__get__key(index)
 
     def parse__get__item(map TestAArray, index Array) $Any
-        return map.toMap().parse__get__item(index)
+        return map.m~().parse__get__item(index)
 
 attach TestAArray to AArray
 
 attach TestAArray to KeyTypeNumber
-    def keyTypeNumber~(map TestAArray) Int
-        return map.toMap().keyTypeNumber~()
+    def keyTypeNumber(map TestAArray) Int
+        return map.m~().keyTypeNumber()
 
 attach TestAArray to ValueTypeNumber
-    def valueTypeNumber~(map TestAArray) Int
-        return map.toMap().valueTypeNumber~()
+    def valueTypeNumber(map TestAArray) Int
+        return map.m~().valueTypeNumber()
 
 def testAArray(write ok Int, write errorsCoordinates List)
     testArray_Serialize(ok, errorsCoordinates)
@@ -74,8 +71,8 @@ def testArray_Serialize(write ok Int, write errorsCoordinates List)
     var p Int = 0
     aa = TestAArray.deserializeAArray(b, p, String, Int)
     test: ok, errorsCoordinates
-        p == b.length~()
-        aa.length~() == 7
+        p == b.length()
+        aa.length() == 7
         aa["10"] == 10
         aa["1"] == 1
         aa["7"] == 7
@@ -91,8 +88,8 @@ def testArray_Serialize(write ok Int, write errorsCoordinates List)
     p = 0
     aa = TestAArray.deserializeAArray(b, p, String, Int)
     test: ok, errorsCoordinates
-        p == b.length~()
-        aa.length~() == 0
+        p == b.length()
+        aa.length() == 0
     aa.put(10, "10")
     aa.put(1, "1")
     aa.put(7, "7")
@@ -107,8 +104,8 @@ def testArray_Serialize(write ok Int, write errorsCoordinates List)
     p = 0
     aa = TestAArray.deserializeAArray(b, p, Int, String)
     test: ok, errorsCoordinates
-        p == b.length~()
-        aa.length~() == 7
+        p == b.length()
+        aa.length() == 7
         aa[10] == "10"
         aa[1] == "1"
         aa[7] == "7"

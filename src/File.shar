@@ -1,8 +1,14 @@
 module STD
 
-const fileBlockSize Int = fileBlockSize()
+export enum FOMode
+    read
+    write
+    append
+    readAndWriteFromBegin
+    readAndWriteNew
+    readAndWriteFromEnd
 
-def fileBlockSize() Int
+const fileBlockSize Int
     var result Int = 0
     const environmentBlockSize <>String = getEnvironmentVariable("SHAR_FILE_BLOCK_SIZE")
     if !environmentBlockSize.nothing?()
@@ -11,232 +17,186 @@ def fileBlockSize() Int
         result = 4194288
     return result
 
-export primitive File
+export type File
+    name   String
+    handle Int
 
 export type FileReader
-    // file               File
-    // buffer             Bytes
-    // position in buffer Int
-    // position in file   Int
-    // file size          Int
+    hide file             <>File
+    hide buffer           Bytes
+    hide positionInBuffer Int
+    hide positionInFile   Int
+    hide fileSize         Int
 
 export type FileWriter
-    // file   File
-    // buffer Bytes
+    hide file   <>File
+    hide buffer Bytes
+
+#alwaysinline
+def sharModeToCMode(sharFOMode FOMode) Int
+    eSwitch sharFOMode
+    case read
+        return 25202
+    case write
+        return 25207
+    case append
+        return 25185
+    case readAndWriteFromBegin
+        return 6433650
+    case readAndWriteNew
+        return 6433655
+    case readAndWriteFromEnd
+        return 6433633
 
 #override(STD)
 def shar__rc_free(writer FileWriter)
-    const counter Int = writer.unsafe_getI64(0)
+    const counter Int = writer.unsafe_getI64(0) & 0xffffffffff
     if counter > 1
-        writer.unsafe_setI64(0, counter - 1)
+        writer.unsafe_setI64(0, (writer.unsafe_getI64(0) & 0xffffff0000000000) | (counter - 1))
     elif counter == 1
-        var file File = writer.typeGetItem(0)
-        const buffer Bytes = writer.typeGetItem(1)
+        const file File = writer.file~()
+        const buffer Bytes = writer.buffer~()
         file.shar__rc_free()
         buffer.shar__rc_free()
         writer.unsafe_free()
         if !buffer.empty?()
-            writeDataToFile(file, buffer.length~(), buffer)
+            writeDataToFile(file, buffer.length(), buffer)
         flushFile(file)
-
-export enum
-    fmode_read
-    fmode_write
-    fmode_append
-    fmode_readAndWriteFromBegin
-    fmode_readAndWriteNew
-    fmode_readAndWriteFromEnd
-
-#alwaysinline
-def sharModeToCMode(sharFMode Int) Int
-    eSwitch sharFMode
-    case fmode_read
-        return 25202
-    case fmode_write
-        return 25207
-    case fmode_append
-        return 25185
-    case fmode_readAndWriteFromBegin
-        return 6433650
-    case fmode_readAndWriteNew
-        return 6433655
-    case fmode_readAndWriteFromEnd
-        return 6433633
-    inthrow
-        throw(enum::error_invalidFileMode, "Invalid file open mode.", nothing)
 
 #override(STD) alwaysinline
 def shar__rc_free(file File)
-    const counter Int = file.unsafe_getI64(0)
+    const counter Int = file.unsafe_getI64(0) & 0xffffffffff
     if counter > 1
-        file.unsafe_setI64(0, counter - 1)
+        file.unsafe_setI64(0, (file.unsafe_getI64(0) & 0xffffff0000000000) | (counter - 1))
     elif counter == 1
-        unsafe_file_closeFile(file)
+        unsafe_fileHandle_closeFile(file.handle~())
+        file.name~().shar__rc_free()
         file.unsafe_free()
-
-#override(STD) alwaysinline
-def shar__rc_use(file File)
-    const counter Int = file.unsafe_getI64(0)
-    if counter != 0
-        file.unsafe_setI64(0, counter + 1)
-
-#override(STD)
-def shar__to_const(file File)
-    if file.unsafe_getI64(0) != 0
-        file.unsafe_setI64(0, 0)
-
-#override(STD) alwaysinline nothrow
-def use?(file File) Bool
-    return file.unsafe_getI64(0) != 1
-
-#override(STD) alwaysinline nothrow
-def constant?(file File) Bool
-    return file.unsafe_getI64(0) == 0
 
 #override(STD) cold
 def clone(file File) File
-    throw(enum::error_clone, "Files cannot be cloned.", nothing)
+    throw(const::eid_clone, "Files cannot be cloned.", nothing)
 
 #override(STD) nothrow
 def dump(file File, level Int) String
-    return "  ".repeatPart(level) + "Type: STD::File\n"
+    return "  ".repeatPart(level) + "Type: STD::File(" + file.name~() + ")\n"
+
+#override(STD) nothrow
+def dump(reader FileReader, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::FileReader(" + reader.file~().name~() + ")\n"
+
+#override(STD) nothrow
+def dump(writer FileWriter, level Int) String
+    return "  ".repeatPart(level) + "Type: STD::FileWriter(" + writer.file~().name~() + ")\n"
 
 //@The function flushes the output buffer.
 //@If the flushed was successful, then the function returns "true", otherwise "false".
 #alwaysinline nothrow
 export def flushFile(file File) Bool
-    llvm
-        %##nreg##file memory## = extractvalue {i64, i32} %0, 0
-        %##nreg##file memory i64*## = inttoptr i64 %##reg##file memory## to  i64*
-        %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory i64*##, i64 1
-        %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
-        %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
-        %##nreg##result i1## = call i1 @shar__flush__file(i8* %##reg##file##)
-        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+    return unsafe_fileHandle_flush(file.handle~())
+
+#alwaysinline nothrow
+def unsafe_fileHandle_flush(handle $Any) Bool
+    IR
+        %##nreg##handle i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##handle## = inttoptr i64 %##reg##handle i64## to i8*
+        %##nreg##result## = call {i64, i32} @fs__flush_file(i8* %##reg##handle##)
         ret {i64, i32} %##reg##result##
 
 //The function flushes the output buffer and close the file.
 #alwaysinline nothrow
-def unsafe_file_closeFile(file $Any)
-    llvm
-        %##nreg##file memory## = extractvalue {i64, i32} %0, 0
-        %##nreg##file memory i64*## = inttoptr i64 %##reg##file memory## to  i64*
-        %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory i64*##, i64 1
-        %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
-        %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
-        %##nreg##unneeded## = call i1 @shar__close__file(i8* %##reg##file##)
+def unsafe_fileHandle_closeFile(handle $Any)
+    IR
+        %##nreg##handle i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##handle## = inttoptr i64 %##reg##handle i64## to i8*
+        %##nreg##unneeded## = call {i64, i32} @fs__close_file(i8* %##reg##handle##)
         ret {i64, i32} zeroinitializer
 
 //@The function reads the specified number of bytes from the file into the third argument of the function and returns the number of bytes that were actually read.
 //@If there is not enough space in the third argument to read the specified number of bytes, then the array of bytes in the third argument is expanded to the required size.
 //@If the function has read less data than it needs, then the content of the unused data in the third argument is undefined.
-//@If the specified number of bytes is less than zero, the function returns an error with the "enum::STD::error_outOfRange" code.
-//@If the first argument is in several places in the program, then the function returns an error with the code "enum::STD::error_notASingleCopy".
+//@If the specified number of bytes is less than zero, the function returns an error with the "const::STD::eid_outOfRange" code.
+//@If the first argument is in several places in the program, then the function returns an error with the code "const::STD::eid_notASingleCopy".
 #alwaysinline
 export def readDataFromFile(file File, countOfBytes Int, write buffer Bytes) Int
     inthrow
         if file.use?()
-            throw(enum::error_notASingleCopy, "Not a single copy.", nothing)
+            throw(const::eid_notASingleCopy, "Not a single copy.", nothing)
         if countOfBytes < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    if buffer.length~() < countOfBytes
-        if buffer.use?()
-            buffer = Bytes.repeat(0, countOfBytes)
-        else
-            buffer.unsafe_realloc(countOfBytes + 16)
-    elif buffer.use?()
-        buffer = Bytes.repeat(0, buffer.length~())
-    return unsafe_file_readDataFromFile(file, countOfBytes, buffer)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    if buffer.use?()
+        buffer = intToByte(0).repeat(max(countOfBytes, buffer.length()), Bytes)
+    elif buffer.length() < countOfBytes
+        buffer.unsafe_realloc(countOfBytes + 16)
+    return unsafe_fileHandle_readDataFromFile(file.handle~(), countOfBytes, buffer)
 
 #alwaysinline nothrow
-def unsafe_file_readDataFromFile(file, countOfBytes, buffer $Any) Int
-    llvm
-        %##nreg##file memory pointer i64## = extractvalue {i64, i32} %0, 0
-        %##nreg##file memory pointer## = inttoptr i64 %##reg##file memory pointer i64## to i64*
-        %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory pointer##, i64 1
-        %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
-        %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
-        %##nreg##count of bytes## = extractvalue {i64, i32} %1, 0
+def unsafe_fileHandle_readDataFromFile(handle, countOfBytes, buffer $Any) Int
+    IR
+        %##nreg##handle i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##handle## = inttoptr i64 %##reg##handle i64## to i8*
         %##nreg##buffer with counter and length i64## = extractvalue {i64, i32} %2, 0
         %##nreg##buffer with counter and length## = inttoptr i64 %##reg##buffer with counter and length i64## to i8*
         %##nreg##buffer## = getelementptr i8, i8* %##reg##buffer with counter and length##, i64 16
-        %##nreg##result i64## = call i64 @shar__read__from__file(i8* %##reg##file##, i64 %##reg##count of bytes##, i8* %##reg##buffer##)
-        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        %##nreg##result## = call {i64, i32} @fs__read_from_file(i8* %##reg##handle##, {i64, i32} %1, i8* %##reg##buffer##)
         ret {i64, i32} %##reg##result##
 
 //@The function writes the specified number of bytes from the byte array in the third argument to the function to a file and returns the number of bytes that were actually written.
-//@If the specified number of bytes is less than zero, the function returns an error with the "enum::STD::error_outOfRange" code.
-//@If the first argument is in several places in the program, then the function returns an error with the code "enum::STD::error_notASingleCopy".
+//@If the specified number of bytes is less than zero, the function returns an error with the "const::STD::eid_outOfRange" code.
+//@If the first argument is in several places in the program, then the function returns an error with the code "const::STD::eid_notASingleCopy".
 #alwaysinline
 export def writeDataToFile(file File, countOfBytes Int, buffer Bytes) Int
     inthrow
         if file.use?()
-            throw(enum::error_notASingleCopy, "Not a single copy.", nothing)
+            throw(const::eid_notASingleCopy, "Not a single copy.", nothing)
         if countOfBytes < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    return unsafe_file_writeDataToFile(file, countOfBytes, buffer)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    return unsafe_fileHandle_writeDataToFile(file.handle~(), countOfBytes, buffer)
 
 #alwaysinline nothrow
-def unsafe_file_writeDataToFile(file, countOfBytes, buffer $Any) Int
-    llvm
-        %##nreg##file memory pointer i64## = extractvalue {i64, i32} %0, 0
-        %##nreg##file memory pointer## = inttoptr i64 %##reg##file memory pointer i64## to i64*
-        %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory pointer##, i64 1
-        %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
-        %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
-        %##nreg##count of bytes## = extractvalue {i64, i32} %1, 0
+def unsafe_fileHandle_writeDataToFile(handle, countOfBytes, buffer $Any) Int
+    IR
+        %##nreg##handle i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##handle## = inttoptr i64 %##reg##handle i64## to i8*
         %##nreg##buffer with counter and length i64## = extractvalue {i64, i32} %2, 0
         %##nreg##buffer with counter and length## = inttoptr i64 %##reg##buffer with counter and length i64## to i8*
         %##nreg##buffer## = getelementptr i8, i8* %##reg##buffer with counter and length##, i64 16
-        %##nreg##result i64## = call i64 @shar__write__to__file(i8* %##reg##file##, i64 %##reg##count of bytes##, i8* %##reg##buffer##)
-        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        %##nreg##result## = call {i64, i32} @fs__write_to_file(i8* %##reg##handle##, {i64, i32} %1, i8* %##reg##buffer##)
         ret {i64, i32} %##reg##result##
 
 //@The function returns the current position in the file.
 //@If the function was unable to get the current file position, then "Nothing" is returned as a result.
 #alwaysinline nothrow
-export def getCurrentFilePosition(file File) <>Int
-    llvm
-        %##nreg##file memory## = extractvalue {i64, i32} %0, 0
-        %##nreg##file memory i64*## = inttoptr i64 %##reg##file memory## to  i64*
-        %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory i64*##, i64 1
-        %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
-        %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
-        %##nreg##result i64## = call i64 @shar__get__position__in__file(i8* %##reg##file##)
-        %##nreg##result i64 >= 0## = icmp sge i64 %##reg##result i64##, 0
-        br i1 %##reg##result i64 >= 0##, label %##reg##int label##, label %##reg##nothing label##
-        ##nreg##int label##:
-        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+export def getFilePosition(file File) <>Int
+    return unsafe_fileHandle_getFilePosition(file.handle~())
+
+#alwaysinline nothrow
+def unsafe_fileHandle_getFilePosition(handle $Any) <>Int
+    IR
+        %##nreg##handle i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##handle## = inttoptr i64 %##reg##handle i64## to i8*
+        %##nreg##result## = call {i64, i32} @fs__get_position_in_file(i8* %##reg##handle##)
         ret {i64, i32} %##reg##result##
-        ##nreg##nothing label##:
-        ret {i64, i32} zeroinitializer
 
 //@The function sets the current position in the file.
 //@If the setting was successful, then the function returns "true", otherwise "false".
-//@If the position is less than zero, the function returns an error with the "enum::STD::error_outOfRange" code.
-//@If the first argument is in several places in the program, then the function returns an error with the code "enum::STD::error_notASingleCopy"
+//@If the position is less than zero, the function returns an error with the "const::STD::eid_outOfRange" code.
+//@If the first argument is in several places in the program, then the function returns an error with the code "const::STD::eid_notASingleCopy"
 #alwaysinline
 export def setFilePosition(file File, position Int) Bool
     inthrow
         if file.use?()
-            throw(enum::error_notASingleCopy, "Not a single copy.", nothing)
+            throw(const::eid_notASingleCopy, "Not a single copy.", nothing)
         if position < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    return unsafe_file_setFilePosition(file, position)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    return unsafe_fileHandle_setFilePosition(file.handle~(), position)
 
 #alwaysinline nothrow
-def unsafe_file_setFilePosition(file, position $Any) Bool
-    llvm
-        %##nreg##file memory## = extractvalue {i64, i32} %0, 0
-        %##nreg##file memory i64*## = inttoptr i64 %##reg##file memory## to  i64*
-        %##nreg##file pointer## = getelementptr i64, i64* %##reg##file memory i64*##, i64 1
-        %##nreg##file i64## = load i64, i64* %##reg##file pointer##, align 8
-        %##nreg##file## = inttoptr i64 %##reg##file i64## to i8*
-        %##nreg##position## = extractvalue {i64, i32} %1, 0
-        %##nreg##result i1## = call i1 @shar__set__position__in__file(i8* %##reg##file##, i64 %##reg##position##)
-        %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
+def unsafe_fileHandle_setFilePosition(file, position $Any) Bool
+    IR
+        %##nreg##handle i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##handle## = inttoptr i64 %##reg##handle i64## to i8*
+        %##nreg##result## = call {i64, i32} @fs__set_position_in_file(i8* %##reg##handle##, {i64, i32} %1)
         ret {i64, i32} %##reg##result##
 
 //@The function opens the file for reading it in parts.
@@ -245,35 +205,47 @@ export def FileReader(fileName String) <>FileReader
     const fileSize <>Int = getFileSize(fileName)
     if fileSize.nothing?()
         return nothing
-    const file <>File = openFile(fileName, enum::fmode_read)
+    const file <>File = openFile(fileName, FOMode[read])
     if file.nothing?()
         return nothing
-    return FileReader.fromList({file, Bytes(), 0, 0, fileSize})
+    return FileReader{{
+        file             : file,
+        buffer           : Bytes(),
+        positionInBuffer : 0,
+        positionInFile   : 0,
+        fileSize         : fileSize
+    }}
 
 attach FileReader to Reader
     def readData(write reader FileReader, noread type $BinarySerializable) <>$BinarySerializable
         if reader.use?()
-            throw(enum::error_notASingleCopy, "Not a single copy.", nothing)
-        const file File = reader.typePut(0, nothing)
-        var buffer Bytes = reader.typePut(1, nothing)
-        var positionInBuffer Int = reader.typeGetItem(2)
-        var positionInFile Int = reader.typeGetItem(3)
-        const fileSize Int = reader.typeGetItem(4)
-        if fileSize == positionInFile && positionInBuffer == buffer.length~()
-            reader.typePut(0, file).type!(Nothing)
-            reader.typePut(1, buffer).type!(Nothing)
+            throw(const::eid_notASingleCopy, "Not a single copy.", nothing)
+        const file File = reader.file`(nothing)
+        var buffer Bytes = reader.buffer`(Bytes())
+        var positionInBuffer Int = reader.positionInBuffer~()
+        var positionInFile Int = reader.positionInFile~()
+        const fileSize Int = reader.fileSize~()
+        if fileSize == positionInFile && positionInBuffer == buffer.length()
+            reader.file`(file)
+            reader.buffer`(buffer)
             return nothing
-        if positionInBuffer == buffer.length~()
+        if positionInBuffer == buffer.length()
             const remainDataSize Int = fileSize - positionInFile
-            const deltaDataSize Int = buffer.length~() - remainDataSize
+            const deltaDataSize Int = buffer.length() - remainDataSize
             if deltaDataSize > 0
                 buffer.delete(remainDataSize, deltaDataSize)
             elif deltaDataSize < 0 && positionInBuffer == 0
                 buffer = unsafe_bytes_createDummy(min(const::fileBlockSize, remainDataSize))
-            if readDataFromFile(file, buffer.length~(), buffer) != buffer.length~()
-                reader = FileReader.fromList({file, buffer, positionInBuffer, positionInFile, fileSize})
-                throw(enum::error_cantReadFromFile, "Error reading from file.", nothing)
-            positionInFile += buffer.length~()
+            if readDataFromFile(file, buffer.length(), buffer) != buffer.length()
+                reader = FileReader{{
+                    file             : file,
+                    buffer           : buffer,
+                    positionInBuffer : positionInBuffer,
+                    positionInFile   : positionInFile,
+                    fileSize         : fileSize
+                }}
+                throw(const::eid_cantReadFromFile, "Error reading from file.", nothing)
+            positionInFile += buffer.length()
             positionInBuffer = 0
         var result $BinarySerializable = 0
         for :(loop)
@@ -281,34 +253,46 @@ attach FileReader to Reader
                 result = type.deserialize(buffer, positionInBuffer)
                 end loop
             catch id, message, errorData
-                if id != enum::error_outOfRange
-                    reader = FileReader.fromList({file, buffer, positionInBuffer, positionInFile, fileSize})
+                if id != const::eid_outOfRange
+                    reader = FileReader{{
+                        file             : file,
+                        buffer           : buffer,
+                        positionInBuffer : positionInBuffer,
+                        positionInFile   : positionInFile,
+                        fileSize         : fileSize
+                    }}
                     throw(id, message, errorData)
                 const remainDataSize Int = fileSize - positionInFile
                 if remainDataSize <= 0
                     throw(id, message, errorData)
-                const addedBufferSize Int = min(buffer.length~(), remainDataSize)
+                const addedBufferSize Int = min(buffer.length(), remainDataSize)
                 var addedBuffer Bytes = unsafe_bytes_createDummy(addedBufferSize)
                 if readDataFromFile(file, addedBufferSize, addedBuffer) != addedBufferSize
-                    reader = FileReader.fromList({file, buffer, positionInBuffer, positionInFile, fileSize})
-                    throw(enum::error_cantReadFromFile, "Error reading from file.", nothing)
+                    reader = FileReader{{
+                        file             : file,
+                        buffer           : buffer,
+                        positionInBuffer : positionInBuffer,
+                        positionInFile   : positionInFile,
+                        fileSize         : fileSize
+                    }}
+                    throw(const::eid_cantReadFromFile, "Error reading from file.", nothing)
                 positionInFile += addedBufferSize
                 if positionInBuffer != 0
                     buffer.delete(0, positionInBuffer)
                     positionInBuffer = 0
                 buffer += addedBuffer
-        reader.typePut(0, file).type!(Nothing)
-        reader.typePut(1, buffer).type!(Nothing)
-        reader.typePut(2, positionInBuffer).type!(Int)
-        reader.typePut(3, positionInFile).type!(Int)
+        reader.file`(file)
+        reader.buffer`(buffer)
+        reader.positionInBuffer`(positionInBuffer)
+        reader.positionInFile`(positionInFile)
         return result
 
     #alwaysinline nothrow
     def end?(reader FileReader) Bool
-        const bufferSize Int = reader.typeGetItem(1).type!(Bytes).length~()
-        const positionInBuffer Int = reader.typeGetItem(2)
-        const positionInFile Int = reader.typeGetItem(3)
-        const fileSize Int = reader.typeGetItem(4)
+        const bufferSize Int = reader.buffer~().length()
+        const positionInBuffer Int = reader.positionInBuffer~()
+        const positionInFile Int = reader.positionInFile~()
+        const fileSize Int = reader.fileSize~()
         return fileSize == positionInFile && positionInBuffer == bufferSize
 
 //@The function opens a file for writing data in parts.
@@ -317,38 +301,41 @@ attach FileReader to Reader
 //@If the second argument of the function is "true" and the file exists, then the data will be written to the end of the existing ones.
 //@If the second argument of the function is "false" and the file exists, then all existing data from the file will be deleted.
 export def FileWriter(fileName String, append Bool) <>FileWriter
-    const file <>File = openFile(fileName, append.select(enum::fmode_append, enum::fmode_write))
+    const file <>File = openFile(fileName, append.select(FOMode[append], FOMode[write]))
     if file.nothing?()
         return nothing
-    return FileWriter.fromList({file, Bytes()})
+    return FileWriter{{
+        file  : file,
+        buffer : Bytes()
+    }}
 
 attach FileWriter to Writer
     def write(write writer FileWriter, data $BinarySerializable)
         if writer.use?()
-            throw(enum::error_notASingleCopy, "Not a single copy.", nothing)
-        const file File = writer.typePut(0, nothing)
-        var buffer Bytes = writer.typePut(1, nothing)
-        const oldBufferSize Int = buffer.length~()
+            throw(const::eid_notASingleCopy, "Not a single copy.", nothing)
+        const file File = writer.file`(nothing)
+        var buffer Bytes = writer.buffer`(Bytes())
+        const oldBufferSize Int = buffer.length()
         data.serialize(buffer)
-        if buffer.length~() >= const::fileBlockSize
-            if writeDataToFile(file, buffer.length~(), buffer) != buffer.length~()
-                buffer.delete(oldBufferSize, buffer.length~() - oldBufferSize)
-                writer = FileWriter.fromList({file, buffer})
-                throw(enum::error_cantWriteToFile, "Error writing to file.", nothing)
-            buffer.delete(0, buffer.length~())
-        writer.typePut(0, file).type!(Nothing)
-        writer.typePut(1, buffer).type!(Nothing)
+        if buffer.length() >= const::fileBlockSize
+            if writeDataToFile(file, buffer.length(), buffer) != buffer.length()
+                buffer.delete(oldBufferSize, buffer.length() - oldBufferSize)
+                writer = FileWriter{file : file, buffer : buffer}
+                throw(const::eid_cantWriteToFile, "Error writing to file.", nothing)
+            buffer.delete(0, buffer.length())
+        writer.file`(file)
+        writer.buffer`(buffer)
 
     def flush(write writer FileWriter)
         if writer.use?()
-            throw(enum::error_notASingleCopy, "Not a single copy.", nothing)
-        const file File = writer.typePut(0, nothing)
-        var buffer Bytes = writer.typePut(1, nothing)
+            throw(const::eid_notASingleCopy, "Not a single copy.", nothing)
+        const file File = writer.file`(nothing)
+        var buffer Bytes = writer.buffer`(Bytes())
         if !buffer.empty?()
-            if writeDataToFile(file, buffer.length~(), buffer) != buffer.length~()
-                writer = FileWriter.fromList({file, buffer})
-                throw(enum::error_cantWriteToFile, "Error writing to file.", nothing)
-            buffer.delete(0, buffer.length~())
+            if writeDataToFile(file, buffer.length(), buffer) != buffer.length()
+                writer = FileWriter{file : file, buffer : buffer}
+                throw(const::eid_cantWriteToFile, "Error writing to file.", nothing)
+            buffer.delete(0, buffer.length())
         flushFile(file)
-        writer.typePut(0, file).type!(Nothing)
-        writer.typePut(1, Bytes()).type!(Nothing)
+        writer.file`(file)
+        writer.buffer`(buffer)

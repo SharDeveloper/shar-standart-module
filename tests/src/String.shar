@@ -1,5 +1,11 @@
 module Main
 
+def intArrayToBytes_String(array Array) Bytes
+    var result Bytes = Bytes()
+    parse _, int Int = array
+        result.addItem(intToByte(int))
+    return result
+
 #inline
 def unsafe_string_getCounter(string $Any) Int
     return string.unsafe_getI64(0)
@@ -52,13 +58,13 @@ def testString(write ok Int, write errorsCoordinates List)
     testString_ItemTypeNumber(ok, errorsCoordinates)
     testString_Sort(ok, errorsCoordinates)
     testString_StableSort(ok, errorsCoordinates)
+    testString_PrepareForThreads(ok, errorsCoordinates)
 
 #noinline
 def testString_MemoryManagement(write ok Int, write errorsCoordinates List)
-    var char Char = '1'
-    var string1 String = [char, '2', '3'].repackTo(String)
+    var string1 String = "123".clone()
     var string2 String = string1
-    var string3 String = [char, '2', '3'].repackTo(String)
+    var string3 String = "123".clone()
     test: ok, errorsCoordinates
         unsafe_string_getCounter(string1) == 2
         unsafe_string_getCounter(string2) == 2
@@ -90,8 +96,8 @@ def testString_MemoryManagement(write ok Int, write errorsCoordinates List)
         unsafe_string_getCounter(string1) == 1
         unsafe_string_getCounter(string2) == 0
     string1.shar__to_const()
-    var string4 String = string3
-    var string5 String = "".addItem$('1')
+    const string4 String = string3
+    const string5 String = "".addItem$('1')
     test: ok, errorsCoordinates
         unsafe_string_getCounter(string1) == 0
         unsafe_string_getCounter(string2) == 0
@@ -176,9 +182,9 @@ def testString_MemoryManagement(write ok Int, write errorsCoordinates List)
         nothing
     test: ok, errorsCoordinates
         allOk
-        string1.length~() == 300
-        string2.length~() == 400
-        string3.length~() == 300
+        string1.length() == 300
+        string2.length() == 400
+        string3.length() == 300
 
 #noinline
 def testString_Equal(write ok Int, write errorsCoordinates List)
@@ -381,33 +387,33 @@ def testString_Ordered(write ok Int, write errorsCoordinates List)
         !("123456771234567812345678123456781" >= "123456781234567812345678123456781")
         !("123456781234567812345677123456781" >= "123456781234567812345678123456781")
         !("123456781234567812345678123456780" >= "123456781234567812345678123456781")
-        compare("0234567812345678123456781234567", "1234567812345678123456781234567") == enum::ord_less
-        compare("1234567712345678123456781234567", "1234567812345678123456781234567") == enum::ord_less
-        compare("1234567812345678123456771234567", "1234567812345678123456781234567") == enum::ord_less
-        compare("1234567812345678123456781234566", "1234567812345678123456781234567") == enum::ord_less
-        compare("1234567812345678123456781234567", "1234567812345678123456781234567") == enum::ord_equal
-        compare("2234567812345678123456781234567", "1234567812345678123456781234567") == enum::ord_great
-        compare("1234567912345678123456781234567", "1234567812345678123456781234567") == enum::ord_great
-        compare("1234567812345678123456791234567", "1234567812345678123456781234567") == enum::ord_great
-        compare("1234567812345678123456781234568", "1234567812345678123456781234567") == enum::ord_great
-        compare("02345678123456781234567812345678", "12345678123456781234567812345678") == enum::ord_less
-        compare("12345677123456781234567812345678", "12345678123456781234567812345678") == enum::ord_less
-        compare("12345678123456781234567712345678", "12345678123456781234567812345678") == enum::ord_less
-        compare("12345678123456781234567812345677", "12345678123456781234567812345678") == enum::ord_less
-        compare("12345678123456781234567812345678", "12345678123456781234567812345678") == enum::ord_equal
-        compare("22345678123456781234567812345678", "12345678123456781234567812345678") == enum::ord_great
-        compare("12345679123456781234567812345678", "12345678123456781234567812345678") == enum::ord_great
-        compare("12345678123456781234567912345678", "12345678123456781234567812345678") == enum::ord_great
-        compare("12345678123456781234567812345679", "12345678123456781234567812345678") == enum::ord_great
-        compare("023456781234567812345678123456781", "123456781234567812345678123456781") == enum::ord_less
-        compare("123456771234567812345678123456781", "123456781234567812345678123456781") == enum::ord_less
-        compare("123456781234567812345677123456781", "123456781234567812345678123456781") == enum::ord_less
-        compare("123456781234567812345678123456780", "123456781234567812345678123456781") == enum::ord_less
-        compare("123456781234567812345678123456781", "123456781234567812345678123456781") == enum::ord_equal
-        compare("223456781234567812345678123456781", "123456781234567812345678123456781") == enum::ord_great
-        compare("123456791234567812345678123456781", "123456781234567812345678123456781") == enum::ord_great
-        compare("123456781234567812345679123456781", "123456781234567812345678123456781") == enum::ord_great
-        compare("123456781234567812345678123456782", "123456781234567812345678123456781") == enum::ord_great
+        compare("0234567812345678123456781234567", "1234567812345678123456781234567").enumToInt() == CompareResult[less].enumToInt()
+        compare("1234567712345678123456781234567", "1234567812345678123456781234567").enumToInt() == CompareResult[less].enumToInt()
+        compare("1234567812345678123456771234567", "1234567812345678123456781234567").enumToInt() == CompareResult[less].enumToInt()
+        compare("1234567812345678123456781234566", "1234567812345678123456781234567").enumToInt() == CompareResult[less].enumToInt()
+        compare("1234567812345678123456781234567", "1234567812345678123456781234567").enumToInt() == CompareResult[equal].enumToInt()
+        compare("2234567812345678123456781234567", "1234567812345678123456781234567").enumToInt() == CompareResult[great].enumToInt()
+        compare("1234567912345678123456781234567", "1234567812345678123456781234567").enumToInt() == CompareResult[great].enumToInt()
+        compare("1234567812345678123456791234567", "1234567812345678123456781234567").enumToInt() == CompareResult[great].enumToInt()
+        compare("1234567812345678123456781234568", "1234567812345678123456781234567").enumToInt() == CompareResult[great].enumToInt()
+        compare("02345678123456781234567812345678", "12345678123456781234567812345678").enumToInt() == CompareResult[less].enumToInt()
+        compare("12345677123456781234567812345678", "12345678123456781234567812345678").enumToInt() == CompareResult[less].enumToInt()
+        compare("12345678123456781234567712345678", "12345678123456781234567812345678").enumToInt() == CompareResult[less].enumToInt()
+        compare("12345678123456781234567812345677", "12345678123456781234567812345678").enumToInt() == CompareResult[less].enumToInt()
+        compare("12345678123456781234567812345678", "12345678123456781234567812345678").enumToInt() == CompareResult[equal].enumToInt()
+        compare("22345678123456781234567812345678", "12345678123456781234567812345678").enumToInt() == CompareResult[great].enumToInt()
+        compare("12345679123456781234567812345678", "12345678123456781234567812345678").enumToInt() == CompareResult[great].enumToInt()
+        compare("12345678123456781234567912345678", "12345678123456781234567812345678").enumToInt() == CompareResult[great].enumToInt()
+        compare("12345678123456781234567812345679", "12345678123456781234567812345678").enumToInt() == CompareResult[great].enumToInt()
+        compare("023456781234567812345678123456781", "123456781234567812345678123456781").enumToInt() == CompareResult[less].enumToInt()
+        compare("123456771234567812345678123456781", "123456781234567812345678123456781").enumToInt() == CompareResult[less].enumToInt()
+        compare("123456781234567812345677123456781", "123456781234567812345678123456781").enumToInt() == CompareResult[less].enumToInt()
+        compare("123456781234567812345678123456780", "123456781234567812345678123456781").enumToInt() == CompareResult[less].enumToInt()
+        compare("123456781234567812345678123456781", "123456781234567812345678123456781").enumToInt() == CompareResult[equal].enumToInt()
+        compare("223456781234567812345678123456781", "123456781234567812345678123456781").enumToInt() == CompareResult[great].enumToInt()
+        compare("123456791234567812345678123456781", "123456781234567812345678123456781").enumToInt() == CompareResult[great].enumToInt()
+        compare("123456781234567812345679123456781", "123456781234567812345678123456781").enumToInt() == CompareResult[great].enumToInt()
+        compare("123456781234567812345678123456782", "123456781234567812345678123456781").enumToInt() == CompareResult[great].enumToInt()
 
 #noinline
 def testString_GetFromAToLast(write ok Int, write errorsCoordinates List)
@@ -418,20 +424,20 @@ def testString_GetFromAToLast(write ok Int, write errorsCoordinates List)
         "12"[2:] == ""
         "12"[1:] == "2"
         "12"[0:] == "12"
-        ""[-9223372036854775808:] : error_outOfRange
-        ""[9223372036854775807:] : error_outOfRange
-        ""[-1:] : error_outOfRange
-        ""[1:] : error_outOfRange
-        ""[2:] : error_outOfRange
+        ""[-9223372036854775808:] : eid_outOfRange
+        ""[9223372036854775807:] : eid_outOfRange
+        ""[-1:] : eid_outOfRange
+        ""[1:] : eid_outOfRange
+        ""[2:] : eid_outOfRange
         "123"[0:] == "123"
         "123"[1:] == "23"
         "123"[2:] == "3"
         "123"[3:] == ""
-        "123"[-9223372036854775808:] : error_outOfRange
-        "123"[9223372036854775807:] : error_outOfRange
-        "123"[-1:] : error_outOfRange
-        "123"[4:] : error_outOfRange
-        "123"[5:] : error_outOfRange
+        "123"[-9223372036854775808:] : eid_outOfRange
+        "123"[9223372036854775807:] : eid_outOfRange
+        "123"[-1:] : eid_outOfRange
+        "123"[4:] : eid_outOfRange
+        "123"[5:] : eid_outOfRange
 
 #noinline
 def testString_GetFromFirstToA(write ok Int, write errorsCoordinates List)
@@ -442,20 +448,20 @@ def testString_GetFromFirstToA(write ok Int, write errorsCoordinates List)
         "12"[:2] == "12"
         "12"[:1] == "1"
         "12"[:0] == ""
-        ""[:-9223372036854775808] : error_outOfRange
-        ""[:9223372036854775807] : error_outOfRange
-        ""[:-1] : error_outOfRange
-        ""[:1] : error_outOfRange
-        ""[:2] : error_outOfRange
+        ""[:-9223372036854775808] : eid_outOfRange
+        ""[:9223372036854775807] : eid_outOfRange
+        ""[:-1] : eid_outOfRange
+        ""[:1] : eid_outOfRange
+        ""[:2] : eid_outOfRange
         "123"[:0] == ""
         "123"[:1] == "1"
         "123"[:2] == "12"
         "123"[:3] == "123"
-        "123"[:-9223372036854775808] : error_outOfRange
-        "123"[:9223372036854775807] : error_outOfRange
-        "123"[:-1] : error_outOfRange
-        "123"[:4] : error_outOfRange
-        "123"[:5] : error_outOfRange
+        "123"[:-9223372036854775808] : eid_outOfRange
+        "123"[:9223372036854775807] : eid_outOfRange
+        "123"[:-1] : eid_outOfRange
+        "123"[:4] : eid_outOfRange
+        "123"[:5] : eid_outOfRange
 
 #noinline
 def testString_GetRange(write ok Int, write errorsCoordinates List)
@@ -468,58 +474,58 @@ def testString_GetRange(write ok Int, write errorsCoordinates List)
         "12"[1:2] == "2"
         "12"[0:2] == "12"
         "12"[2:2] == ""
-        ""[-9223372036854775808:-9223372036854775808] : error_outOfRange
-        ""[-9223372036854775808:-1] : error_outOfRange
-        ""[-9223372036854775808:9223372036854775807] : error_outOfRange
-        ""[9223372036854775807:9223372036854775807] : error_outOfRange
-        ""[-1:-1] : error_outOfRange
-        ""[-1:0] : error_outOfRange
-        ""[0:-1] : error_outOfRange
-        ""[0:1] : error_outOfRange
-        ""[1:0] : error_outOfRange
-        ""[1:1] : error_outOfRange
-        ""[2:1] : error_outOfRange
-        ""[2:0] : error_outOfRange
-        ""[2:-1] : error_outOfRange
-        ""[2:-9223372036854775808] : error_outOfRange
-        ""[2:9223372036854775807] : error_outOfRange
+        ""[-9223372036854775808:-9223372036854775808] : eid_outOfRange
+        ""[-9223372036854775808:-1] : eid_outOfRange
+        ""[-9223372036854775808:9223372036854775807] : eid_outOfRange
+        ""[9223372036854775807:9223372036854775807] : eid_outOfRange
+        ""[-1:-1] : eid_outOfRange
+        ""[-1:0] : eid_outOfRange
+        ""[0:-1] : eid_outOfRange
+        ""[0:1] : eid_outOfRange
+        ""[1:0] : eid_outOfRange
+        ""[1:1] : eid_outOfRange
+        ""[2:1] : eid_outOfRange
+        ""[2:0] : eid_outOfRange
+        ""[2:-1] : eid_outOfRange
+        ""[2:-9223372036854775808] : eid_outOfRange
+        ""[2:9223372036854775807] : eid_outOfRange
         "123"[0:3] == "123"
         "123"[1:3] == "23"
         "123"[0:2] == "12"
-        "123"[-9223372036854775808:-9223372036854775808] : error_outOfRange
-        "123"[-9223372036854775808:-1] : error_outOfRange
-        "123"[-9223372036854775808:9223372036854775807] : error_outOfRange
-        "123"[9223372036854775807:9223372036854775807] : error_outOfRange
-        "123"[-1:-1] : error_outOfRange
-        "123"[-1:0] : error_outOfRange
-        "123"[0:-1] : error_outOfRange
-        "123"[1:0] : error_outOfRange
-        "123"[2:1] : error_outOfRange
-        "123"[2:0] : error_outOfRange
-        "123"[2:-1] : error_outOfRange
-        "123"[2:-9223372036854775808] : error_outOfRange
-        "123"[2:9223372036854775807] : error_outOfRange
+        "123"[-9223372036854775808:-9223372036854775808] : eid_outOfRange
+        "123"[-9223372036854775808:-1] : eid_outOfRange
+        "123"[-9223372036854775808:9223372036854775807] : eid_outOfRange
+        "123"[9223372036854775807:9223372036854775807] : eid_outOfRange
+        "123"[-1:-1] : eid_outOfRange
+        "123"[-1:0] : eid_outOfRange
+        "123"[0:-1] : eid_outOfRange
+        "123"[1:0] : eid_outOfRange
+        "123"[2:1] : eid_outOfRange
+        "123"[2:0] : eid_outOfRange
+        "123"[2:-1] : eid_outOfRange
+        "123"[2:-9223372036854775808] : eid_outOfRange
+        "123"[2:9223372036854775807] : eid_outOfRange
 
 #noinline
 def testString_GetItem(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        ""[0] : error_outOfRange
-        ""[1] : error_outOfRange
-        ""[-1] : error_outOfRange
-        ""[-9223372036854775808] : error_outOfRange
-        ""[9223372036854775807] : error_outOfRange
+        ""[0] : eid_outOfRange
+        ""[1] : eid_outOfRange
+        ""[-1] : eid_outOfRange
+        ""[-9223372036854775808] : eid_outOfRange
+        ""[9223372036854775807] : eid_outOfRange
         "1"[0] == '1'
-        "1"[1] : error_outOfRange
-        "1"[-1] : error_outOfRange
-        "1"[-9223372036854775808] : error_outOfRange
-        "1"[9223372036854775807] : error_outOfRange
+        "1"[1] : eid_outOfRange
+        "1"[-1] : eid_outOfRange
+        "1"[-9223372036854775808] : eid_outOfRange
+        "1"[9223372036854775807] : eid_outOfRange
         "123"[0] == '1'
         "123"[1] == '2'
         "123"[2] == '3'
-        "123"[3] : error_outOfRange
-        "123"[-1] : error_outOfRange
-        "123"[-9223372036854775808] : error_outOfRange
-        "123"[9223372036854775807] : error_outOfRange
+        "123"[3] : eid_outOfRange
+        "123"[-1] : eid_outOfRange
+        "123"[-9223372036854775808] : eid_outOfRange
+        "123"[9223372036854775807] : eid_outOfRange
 
 #noinline
 def testString_Add(write ok Int, write errorsCoordinates List)
@@ -621,11 +627,11 @@ def testString_Hashed(write ok Int, write errorsCoordinates List)
 #noinline
 def testString_Long(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        "".length~() == 0
-        "1".length~() == 1
-        "12".length~() == 2
-        "123".length~() == 3
-        "1234567890".length~() == 10
+        "".length() == 0
+        "1".length() == 1
+        "12".length() == 2
+        "123".length() == 3
+        "1234567890".length() == 10
 
 #noinline
 def testString_Empty(write ok Int, write errorsCoordinates List)
@@ -691,31 +697,31 @@ def testString_Container(write ok Int, write errorsCoordinates List)
         string4 == "-0"
         string5.setItem(2, 'a').nothing?()
         string5 == "12a"
-        string6.setItem(0, '1') : error_outOfRange
+        string6.setItem(0, '1') : eid_outOfRange
         string6 == ""
-        string6.setItem(-1, '1') : error_outOfRange
+        string6.setItem(-1, '1') : eid_outOfRange
         string6 == ""
-        string6.setItem(1, '1') : error_outOfRange
+        string6.setItem(1, '1') : eid_outOfRange
         string6 == ""
-        string6.setItem(-9223372036854775808, '1') : error_outOfRange
+        string6.setItem(-9223372036854775808, '1') : eid_outOfRange
         string6 == ""
-        string6.setItem(9223372036854775807, '1') : error_outOfRange
+        string6.setItem(9223372036854775807, '1') : eid_outOfRange
         string6 == ""
-        string1.setItem(-1, '1') : error_outOfRange
+        string1.setItem(-1, '1') : eid_outOfRange
         string1 == "-"
-        string1.setItem(1, '1') : error_outOfRange
+        string1.setItem(1, '1') : eid_outOfRange
         string1 == "-"
-        string1.setItem(-9223372036854775808, '1') : error_outOfRange
+        string1.setItem(-9223372036854775808, '1') : eid_outOfRange
         string1 == "-"
-        string1.setItem(9223372036854775807, '1') : error_outOfRange
+        string1.setItem(9223372036854775807, '1') : eid_outOfRange
         string1 == "-"
-        string2.setItem(-1, '1') : error_outOfRange
+        string2.setItem(-1, '1') : eid_outOfRange
         string2 == "-2"
-        string2.setItem(2, '1') : error_outOfRange
+        string2.setItem(2, '1') : eid_outOfRange
         string2 == "-2"
-        string2.setItem(-9223372036854775808, '1') : error_outOfRange
+        string2.setItem(-9223372036854775808, '1') : eid_outOfRange
         string2 == "-2"
-        string2.setItem(9223372036854775807, '1') : error_outOfRange
+        string2.setItem(9223372036854775807, '1') : eid_outOfRange
         string2 == "-2"
     string1 = "1".clone()
     string2 = "12".clone()
@@ -735,31 +741,31 @@ def testString_Container(write ok Int, write errorsCoordinates List)
         string4 == "-0"
         string5.setItem(2, 'a').nothing?()
         string5 == "12a"
-        string6.setItem(0, '1') : error_outOfRange
+        string6.setItem(0, '1') : eid_outOfRange
         string6 == ""
-        string6.setItem(-1, '1') : error_outOfRange
+        string6.setItem(-1, '1') : eid_outOfRange
         string6 == ""
-        string6.setItem(1, '1') : error_outOfRange
+        string6.setItem(1, '1') : eid_outOfRange
         string6 == ""
-        string6.setItem(-9223372036854775808, '1') : error_outOfRange
+        string6.setItem(-9223372036854775808, '1') : eid_outOfRange
         string6 == ""
-        string6.setItem(9223372036854775807, '1') : error_outOfRange
+        string6.setItem(9223372036854775807, '1') : eid_outOfRange
         string6 == ""
-        string1.setItem(-1, '1') : error_outOfRange
+        string1.setItem(-1, '1') : eid_outOfRange
         string1 == "-"
-        string1.setItem(1, '1') : error_outOfRange
+        string1.setItem(1, '1') : eid_outOfRange
         string1 == "-"
-        string1.setItem(-9223372036854775808, '1') : error_outOfRange
+        string1.setItem(-9223372036854775808, '1') : eid_outOfRange
         string1 == "-"
-        string1.setItem(9223372036854775807, '1') : error_outOfRange
+        string1.setItem(9223372036854775807, '1') : eid_outOfRange
         string1 == "-"
-        string2.setItem(-1, '1') : error_outOfRange
+        string2.setItem(-1, '1') : eid_outOfRange
         string2 == "-2"
-        string2.setItem(2, '1') : error_outOfRange
+        string2.setItem(2, '1') : eid_outOfRange
         string2 == "-2"
-        string2.setItem(-9223372036854775808, '1') : error_outOfRange
+        string2.setItem(-9223372036854775808, '1') : eid_outOfRange
         string2 == "-2"
-        string2.setItem(9223372036854775807, '1') : error_outOfRange
+        string2.setItem(9223372036854775807, '1') : eid_outOfRange
         string2 == "-2"
 
 #noinline
@@ -774,29 +780,29 @@ def testString_Copy(write ok Int, write errorsCoordinates List)
         s1 == ""
         copy(s1, 0, "12", 1, 0).nothing?()
         s1 == ""
-        copy(s1, -1, "", 0, 0) :error_outOfRange
+        copy(s1, -1, "", 0, 0) :eid_outOfRange
         s1 == ""
-        copy(s1, -9223372036854775808, "", 0, 0) :error_outOfRange
+        copy(s1, -9223372036854775808, "", 0, 0) :eid_outOfRange
         s1 == ""
-        copy(s1, 1, "", 0, 0) :error_outOfRange
+        copy(s1, 1, "", 0, 0) :eid_outOfRange
         s1 == ""
-        copy(s1, 9223372036854775807, "", 0, 0) :error_outOfRange
+        copy(s1, 9223372036854775807, "", 0, 0) :eid_outOfRange
         s1 == ""
-        copy(s1, 0, "", -1, 0) :error_outOfRange
+        copy(s1, 0, "", -1, 0) :eid_outOfRange
         s1 == ""
-        copy(s1, 0, "", -9223372036854775808, 0) :error_outOfRange
+        copy(s1, 0, "", -9223372036854775808, 0) :eid_outOfRange
         s1 == ""
-        copy(s1, 0, "", 1, 0) :error_outOfRange
+        copy(s1, 0, "", 1, 0) :eid_outOfRange
         s1 == ""
-        copy(s1, 0, "", 9223372036854775807, 0) :error_outOfRange
+        copy(s1, 0, "", 9223372036854775807, 0) :eid_outOfRange
         s1 == ""
-        copy(s1, 0, "", 0, -1) :error_outOfRange
+        copy(s1, 0, "", 0, -1) :eid_outOfRange
         s1 == ""
-        copy(s1, 0, "", 0, -9223372036854775808) :error_outOfRange
+        copy(s1, 0, "", 0, -9223372036854775808) :eid_outOfRange
         s1 == ""
-        copy(s1, 0, "", 0, 1) :error_outOfRange
+        copy(s1, 0, "", 0, 1) :eid_outOfRange
         s1 == ""
-        copy(s1, 0, "", 0, 9223372036854775807) :error_outOfRange
+        copy(s1, 0, "", 0, 9223372036854775807) :eid_outOfRange
         s1 == ""
         copy(s2, 0, "", 0, 0).nothing?()
         s2 == "1"
@@ -812,19 +818,19 @@ def testString_Copy(write ok Int, write errorsCoordinates List)
         s2 == "4"
         copy(s2, 0, "345", 2, 1).nothing?()
         s2 == "5"
-        copy(s2, 0, "345", 0, 2) : error_outOfRange
+        copy(s2, 0, "345", 0, 2) : eid_outOfRange
         s2 == "5"
-        copy(s2, 1, "345", 0, 1) : error_outOfRange
+        copy(s2, 1, "345", 0, 1) : eid_outOfRange
         s2 == "5"
-        copy(s2, 0, "345", 2, 2) : error_outOfRange
+        copy(s2, 0, "345", 2, 2) : eid_outOfRange
         s2 == "5"
-        copy(s2, -1, "345", 0, 1) : error_outOfRange
+        copy(s2, -1, "345", 0, 1) : eid_outOfRange
         s2 == "5"
-        copy(s2, 2, "345", 0, 0) : error_outOfRange
+        copy(s2, 2, "345", 0, 0) : eid_outOfRange
         s2 == "5"
-        copy(s2, 0, "345", -1, 0) : error_outOfRange
+        copy(s2, 0, "345", -1, 0) : eid_outOfRange
         s2 == "5"
-        copy(s2, 0, "345", 0, -1) : error_outOfRange
+        copy(s2, 0, "345", 0, -1) : eid_outOfRange
         s2 == "5"
         copy(s3, 0, "", 0, 0).nothing?()
         s3 == "1a300"
@@ -842,17 +848,17 @@ def testString_Copy(write ok Int, write errorsCoordinates List)
         s3 == "77344"
         copy(s3, 5, "7234", 4, 0).nothing?()
         s3 == "77344"
-        copy(s3, 5, "7234", 5, 0) : error_outOfRange
+        copy(s3, 5, "7234", 5, 0) : eid_outOfRange
         s3 == "77344"
-        copy(s3, 6, "7234", 4, 0) : error_outOfRange
+        copy(s3, 6, "7234", 4, 0) : eid_outOfRange
         s3 == "77344"
-        copy(s3, 5, "7234", 4, 1) : error_outOfRange
+        copy(s3, 5, "7234", 4, 1) : eid_outOfRange
         s3 == "77344"
-        copy(s3, 5, "7234", 4, -1) : error_outOfRange
+        copy(s3, 5, "7234", 4, -1) : eid_outOfRange
         s3 == "77344"
-        copy(s3, -1, "7234", 4, 0) : error_outOfRange
+        copy(s3, -1, "7234", 4, 0) : eid_outOfRange
         s3 == "77344"
-        copy(s3, 0, "7234", -1, 0) : error_outOfRange
+        copy(s3, 0, "7234", -1, 0) : eid_outOfRange
         s3 == "77344"
 
 #noinline
@@ -861,27 +867,27 @@ def testString_Put(write ok Int, write errorsCoordinates List)
     var s2 String = "a"
     var s3 String = "abcd"
     test: ok, errorsCoordinates
-        s1.put(0, '2') : error_outOfRange
+        s1.put(0, '2') : eid_outOfRange
         s1 == ""
-        s1.put(1, '2') : error_outOfRange
+        s1.put(1, '2') : eid_outOfRange
         s1 == ""
-        s1.put(9223372036854775807, '2') : error_outOfRange
+        s1.put(9223372036854775807, '2') : eid_outOfRange
         s1 == ""
-        s1.put(-1, '2') : error_outOfRange
+        s1.put(-1, '2') : eid_outOfRange
         s1 == ""
-        s1.put(-9223372036854775808, '2') : error_outOfRange
+        s1.put(-9223372036854775808, '2') : eid_outOfRange
         s1 == ""
         s2.put(0, '2') == 'a'
         s2 == "2"
         s2.put(0, '3') == '2'
         s2 == "3"
-        s2.put(1, '0') : error_outOfRange
+        s2.put(1, '0') : eid_outOfRange
         s2 == "3"
-        s2.put(9223372036854775807, '0') : error_outOfRange
+        s2.put(9223372036854775807, '0') : eid_outOfRange
         s2 == "3"
-        s2.put(-1, '0') : error_outOfRange
+        s2.put(-1, '0') : eid_outOfRange
         s2 == "3"
-        s2.put(-9223372036854775808, '0') : error_outOfRange
+        s2.put(-9223372036854775808, '0') : eid_outOfRange
         s2 == "3"
         s3.put(0, '-') == 'a'
         s3 == "-bcd"
@@ -889,13 +895,13 @@ def testString_Put(write ok Int, write errorsCoordinates List)
         s3 == "-4cd"
         s3.put(3, '0') == 'd'
         s3 == "-4c0"
-        s3.put(4, '1') : error_outOfRange
+        s3.put(4, '1') : eid_outOfRange
         s3 == "-4c0"
-        s3.put(9223372036854775807, '1') : error_outOfRange
+        s3.put(9223372036854775807, '1') : eid_outOfRange
         s3 == "-4c0"
-        s3.put(-1, '1') : error_outOfRange
+        s3.put(-1, '1') : eid_outOfRange
         s3 == "-4c0"
-        s3.put(-9223372036854775808, '1') : error_outOfRange
+        s3.put(-9223372036854775808, '1') : eid_outOfRange
         s3 == "-4c0"
 
 #noinline
@@ -928,41 +934,37 @@ def testString_BinarySerializable(write ok Int, write errorsCoordinates List)
     var position Int = 0
     test: ok, errorsCoordinates
         "".serialize(bytes).nothing?()
-        bytes == [0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes)
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_String()
         "1234 ".serialize(bytes).nothing?()
-        bytes == [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 49, 50, 51, 52, 32].repackTo(Bytes)
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 49, 50, 51, 52, 32].intArrayToBytes_String()
         "Абв".serialize(bytes).nothing?()
-        bytes == [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 49, 50, 51, 52, 32, 6, 0, 0, 0, 0, 0, 0, 0, 0xd0, 0x90, 0xd0, 0xb1, 0xd0, 0xb2].repackTo(Bytes)
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 49, 50, 51, 52, 32, 3, 0, 0, 0, 0, 0, 0, 0, 0x90, 8, 0xb1, 8, 0xb2, 8].intArrayToBytes_String()
         String.deserialize(bytes, position) == ""
         position == 8
         String.deserialize(bytes, position) == "1234 "
         position == 21
         String.deserialize(bytes, position) == "Абв"
         position == 35
-        String.deserialize(bytes, position) : error_outOfRange
+        String.deserialize(bytes, position) : eid_outOfRange
     position = 0
     test: ok, errorsCoordinates
-        String.deserialize([1, 0, 0, 0, 0, 0, 0, 0, 255].repackTo(Bytes), position) : error_invalidCharacter
+        String.deserialize([2, 0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_String(), position) : eid_outOfRange
         position == 0
-        String.deserialize([1, 0, 0, 0, 0, 0, 0, 0, 255, 255].repackTo(Bytes), position) : error_invalidCharacter
+        String.deserialize([1, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_String(), position) : eid_outOfRange
         position == 0
-        String.deserialize([2, 0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        String.deserialize([0, 0, 0, 0, 0, 0, 1].intArrayToBytes_String(), position) : eid_outOfRange
         position == 0
-        String.deserialize([1, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
-        position == 0
-        String.deserialize([0, 0, 0, 0, 0, 0, 1].repackTo(Bytes), position) : error_outOfRange
-        position == 0
-        String.deserialize([].repackTo(Bytes), position) : error_outOfRange
+        String.deserialize([].intArrayToBytes_String(), position) : eid_outOfRange
         position == 0
     position = -1
     test: ok, errorsCoordinates
-        String.deserialize([5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 50, 0, 0, 0, 51, 0, 0, 0, 52, 0, 0, 0, 32, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        String.deserialize([5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 50, 0, 0, 0, 51, 0, 0, 0, 52, 0, 0, 0, 32, 0, 0, 0].intArrayToBytes_String(), position) : eid_outOfRange
     position = -9223372036854775808
     test: ok, errorsCoordinates
-        String.deserialize([5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 50, 0, 0, 0, 51, 0, 0, 0, 52, 0, 0, 0, 32, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        String.deserialize([5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 50, 0, 0, 0, 51, 0, 0, 0, 52, 0, 0, 0, 32, 0, 0, 0].intArrayToBytes_String(), position) : eid_outOfRange
     position = 9223372036854775807
     test: ok, errorsCoordinates
-        String.deserialize([5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 50, 0, 0, 0, 51, 0, 0, 0, 52, 0, 0, 0, 32, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        String.deserialize([5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 50, 0, 0, 0, 51, 0, 0, 0, 52, 0, 0, 0, 32, 0, 0, 0].intArrayToBytes_String(), position) : eid_outOfRange
 
 #noinline
 def testString_Swap(write ok Int, write errorsCoordinates List)
@@ -972,45 +974,45 @@ def testString_Swap(write ok Int, write errorsCoordinates List)
     var a4 String = "123"
     var a5 String = "12345"
     test: ok, errorsCoordinates
-        a1.swap(0, 0) : error_outOfRange
+        a1.swap(0, 0) : eid_outOfRange
         a1 == ""
-        a1.swap(-1, 0) : error_outOfRange
+        a1.swap(-1, 0) : eid_outOfRange
         a1 == ""
-        a1.swap(-1, -1) : error_outOfRange
+        a1.swap(-1, -1) : eid_outOfRange
         a1 == ""
-        a1.swap(0, -1) : error_outOfRange
+        a1.swap(0, -1) : eid_outOfRange
         a1 == ""
-        a1.swap(9223372036854775807, 0) : error_outOfRange
+        a1.swap(9223372036854775807, 0) : eid_outOfRange
         a1 == ""
-        a1.swap(0, 9223372036854775807) : error_outOfRange
+        a1.swap(0, 9223372036854775807) : eid_outOfRange
         a1 == ""
-        a1.swap(0, 1) : error_outOfRange
+        a1.swap(0, 1) : eid_outOfRange
         a1 == ""
-        a1.swap(1, 1) : error_outOfRange
+        a1.swap(1, 1) : eid_outOfRange
         a1 == ""
-        a1.swap(1, 0) : error_outOfRange
+        a1.swap(1, 0) : eid_outOfRange
         a1 == ""
-        a1.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a1.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a1 == ""
         a2.swap(0, 0).nothing?()
         a2 == "1"
-        a2.swap(1, 1) : error_outOfRange
+        a2.swap(1, 1) : eid_outOfRange
         a2 == "1"
-        a2.swap(-1, 0) : error_outOfRange
+        a2.swap(-1, 0) : eid_outOfRange
         a2 == "1"
-        a2.swap(-1, -1) : error_outOfRange
+        a2.swap(-1, -1) : eid_outOfRange
         a2 == "1"
-        a2.swap(0, -1) : error_outOfRange
+        a2.swap(0, -1) : eid_outOfRange
         a2 == "1"
-        a2.swap(9223372036854775807, 0) : error_outOfRange
+        a2.swap(9223372036854775807, 0) : eid_outOfRange
         a2 == "1"
-        a2.swap(0, 9223372036854775807) : error_outOfRange
+        a2.swap(0, 9223372036854775807) : eid_outOfRange
         a2 == "1"
-        a2.swap(0, 1) : error_outOfRange
+        a2.swap(0, 1) : eid_outOfRange
         a2 == "1"
-        a2.swap(1, 0) : error_outOfRange
+        a2.swap(1, 0) : eid_outOfRange
         a2 == "1"
-        a2.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a2.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a2 == "1"
         a3.swap(0, 0).nothing?()
         a3 == "12"
@@ -1020,23 +1022,23 @@ def testString_Swap(write ok Int, write errorsCoordinates List)
         a3 == "21"
         a3.swap(1, 0).nothing?()
         a3 == "12"
-        a3.swap(2, 2) : error_outOfRange
+        a3.swap(2, 2) : eid_outOfRange
         a3 == "12"
-        a3.swap(-1, 0) : error_outOfRange
+        a3.swap(-1, 0) : eid_outOfRange
         a3 == "12"
-        a3.swap(-1, -1) : error_outOfRange
+        a3.swap(-1, -1) : eid_outOfRange
         a3 == "12"
-        a3.swap(0, -1) : error_outOfRange
+        a3.swap(0, -1) : eid_outOfRange
         a3 == "12"
-        a3.swap(9223372036854775807, 0) : error_outOfRange
+        a3.swap(9223372036854775807, 0) : eid_outOfRange
         a3 == "12"
-        a3.swap(0, 9223372036854775807) : error_outOfRange
+        a3.swap(0, 9223372036854775807) : eid_outOfRange
         a3 == "12"
-        a3.swap(0, 2) : error_outOfRange
+        a3.swap(0, 2) : eid_outOfRange
         a3 == "12"
-        a3.swap(2, 0) : error_outOfRange
+        a3.swap(2, 0) : eid_outOfRange
         a3 == "12"
-        a3.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a3.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a3 == "12"
         a4.swap(0, 0).nothing?()
         a4 == "123"
@@ -1054,25 +1056,25 @@ def testString_Swap(write ok Int, write errorsCoordinates List)
         a4 == "231"
         a4.swap(2, 0).nothing?()
         a4 == "132"
-        a4.swap(3, 3) : error_outOfRange
+        a4.swap(3, 3) : eid_outOfRange
         a4 == "132"
-        a4.swap(-1, 0) : error_outOfRange
+        a4.swap(-1, 0) : eid_outOfRange
         a4 == "132"
-        a4.swap(-1, -1) : error_outOfRange
+        a4.swap(-1, -1) : eid_outOfRange
         a4 == "132"
-        a4.swap(0, -1) : error_outOfRange
+        a4.swap(0, -1) : eid_outOfRange
         a4 == "132"
-        a4.swap(9223372036854775807, 0) : error_outOfRange
+        a4.swap(9223372036854775807, 0) : eid_outOfRange
         a4 == "132"
-        a4.swap(0, 9223372036854775807) : error_outOfRange
+        a4.swap(0, 9223372036854775807) : eid_outOfRange
         a4 == "132"
-        a4.swap(0, 3) : error_outOfRange
+        a4.swap(0, 3) : eid_outOfRange
         a4 == "132"
-        a4.swap(3, 0) : error_outOfRange
+        a4.swap(3, 0) : eid_outOfRange
         a4 == "132"
-        a4.swap(3, 1) : error_outOfRange
+        a4.swap(3, 1) : eid_outOfRange
         a4 == "132"
-        a4.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a4.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a4 == "132"
         a5.swap(0, 0).nothing?()
         a5 == "12345"
@@ -1098,25 +1100,25 @@ def testString_Swap(write ok Int, write errorsCoordinates List)
         a5 == "53241"
         a5.swap(4, 0).nothing?()
         a5 == "13245"
-        a5.swap(5, 5) : error_outOfRange
+        a5.swap(5, 5) : eid_outOfRange
         a5 == "13245"
-        a5.swap(-1, 0) : error_outOfRange
+        a5.swap(-1, 0) : eid_outOfRange
         a5 == "13245"
-        a5.swap(-1, -1) : error_outOfRange
+        a5.swap(-1, -1) : eid_outOfRange
         a5 == "13245"
-        a5.swap(0, -1) : error_outOfRange
+        a5.swap(0, -1) : eid_outOfRange
         a5 == "13245"
-        a5.swap(9223372036854775807, 0) : error_outOfRange
+        a5.swap(9223372036854775807, 0) : eid_outOfRange
         a5 == "13245"
-        a5.swap(0, 9223372036854775807) : error_outOfRange
+        a5.swap(0, 9223372036854775807) : eid_outOfRange
         a5 == "13245"
-        a5.swap(0, 5) : error_outOfRange
+        a5.swap(0, 5) : eid_outOfRange
         a5 == "13245"
-        a5.swap(5, 0) : error_outOfRange
+        a5.swap(5, 0) : eid_outOfRange
         a5 == "13245"
-        a5.swap(5, 1) : error_outOfRange
+        a5.swap(5, 1) : eid_outOfRange
         a5 == "13245"
-        a5.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a5.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a5 == "13245"
     a1 = "123".clone()
     a2 = a1
@@ -1124,13 +1126,13 @@ def testString_Swap(write ok Int, write errorsCoordinates List)
         a1.swap(0, 2).nothing?()
         a1 == "321"
         a2 == "123"
-        a1.swap(0, -1) : error_outOfRange
+        a1.swap(0, -1) : eid_outOfRange
         a1 == "321"
         a2 == "123"
-        a1.swap(0, 3) : error_outOfRange
+        a1.swap(0, 3) : eid_outOfRange
         a1 == "321"
         a2 == "123"
-        a1.swap(3, 0) : error_outOfRange
+        a1.swap(3, 0) : eid_outOfRange
         a1 == "321"
         a2 == "123"
 
@@ -1141,35 +1143,35 @@ def testString_SetItem(write ok Int, write errorsCoordinates List)
     var a3 String = "12"
     var a4 String = "123"
     test: ok, errorsCoordinates
-        a1.setItem(0, '0') : error_outOfRange
+        a1.setItem(0, '0') : eid_outOfRange
         a1 == ""
-        a1.setItem(-1, '0') : error_outOfRange
+        a1.setItem(-1, '0') : eid_outOfRange
         a1 == ""
-        a1.setItem(9223372036854775807, '0') : error_outOfRange
+        a1.setItem(9223372036854775807, '0') : eid_outOfRange
         a1 == ""
-        a1.setItem(1, '1') : error_outOfRange
+        a1.setItem(1, '1') : eid_outOfRange
         a1 == ""
-        a1.setItem(-9223372036854775808, '0') : error_outOfRange
+        a1.setItem(-9223372036854775808, '0') : eid_outOfRange
         a1 == ""
         a2.setItem(0, '0').nothing?()
         a2 == "0"
-        a2.setItem(-1, '1') : error_outOfRange
+        a2.setItem(-1, '1') : eid_outOfRange
         a2 == "0"
-        a2.setItem(9223372036854775807, '1') : error_outOfRange
+        a2.setItem(9223372036854775807, '1') : eid_outOfRange
         a2 == "0"
-        a2.setItem(-9223372036854775808, '1') : error_outOfRange
+        a2.setItem(-9223372036854775808, '1') : eid_outOfRange
         a2 == "0"
         a3.setItem(0, '0').nothing?()
         a3 == "02"
         a3.setItem(1, '1').nothing?()
         a3 == "01"
-        a3.setItem(2, '2') : error_outOfRange
+        a3.setItem(2, '2') : eid_outOfRange
         a3 == "01"
-        a3.setItem(-1, '2') : error_outOfRange
+        a3.setItem(-1, '2') : eid_outOfRange
         a3 == "01"
-        a3.setItem(9223372036854775807, '2') : error_outOfRange
+        a3.setItem(9223372036854775807, '2') : eid_outOfRange
         a3 == "01"
-        a3.setItem(-9223372036854775808, '2') : error_outOfRange
+        a3.setItem(-9223372036854775808, '2') : eid_outOfRange
         a3 == "01"
         a4.setItem(0, '0').nothing?()
         a4 == "023"
@@ -1177,13 +1179,13 @@ def testString_SetItem(write ok Int, write errorsCoordinates List)
         a4 == "013"
         a4.setItem(2, '2').nothing?()
         a4 == "012"
-        a4.setItem(3, '3') : error_outOfRange
+        a4.setItem(3, '3') : eid_outOfRange
         a4 == "012"
-        a4.setItem(-1, '4') : error_outOfRange
+        a4.setItem(-1, '4') : eid_outOfRange
         a4 == "012"
-        a4.setItem(9223372036854775807, '4') : error_outOfRange
+        a4.setItem(9223372036854775807, '4') : eid_outOfRange
         a4 == "012"
-        a4.setItem(-9223372036854775808, '4') : error_outOfRange
+        a4.setItem(-9223372036854775808, '4') : eid_outOfRange
         a4 == "012"
     a1 = "123".clone()
     a2 = a1
@@ -1191,7 +1193,7 @@ def testString_SetItem(write ok Int, write errorsCoordinates List)
         a1.setItem(0, '4').nothing?()
         a1 == "423"
         a2 == "123"
-        a1.setItem(-1, '0') : error_outOfRange
+        a1.setItem(-1, '0') : eid_outOfRange
         a1 == "423"
         a2 == "123"
 
@@ -1200,28 +1202,28 @@ def testString_ContainFromAtoB?(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         !"".containFromAtoB?('1', 0, 0)
         !"".containFromAtoB?('0', 0, 0)
-        !"".containFromAtoB?('0', 0, 1) : error_outOfRange
-        !"".containFromAtoB?('0', 1, 0) : error_outOfRange
-        !"".containFromAtoB?('0', -1, 0) : error_outOfRange
-        !"".containFromAtoB?('0', 0, -1) : error_outOfRange
-        !"".containFromAtoB?('0', 0, 9223372036854775807) : error_outOfRange
-        !"".containFromAtoB?('0', 0, -9223372036854775808) : error_outOfRange
-        !"".containFromAtoB?('0', -9223372036854775808, 0) : error_outOfRange
-        !"".containFromAtoB?('0', -9223372036854775808, 9223372036854775807) : error_outOfRange
+        !"".containFromAtoB?('0', 0, 1) : eid_outOfRange
+        !"".containFromAtoB?('0', 1, 0) : eid_outOfRange
+        !"".containFromAtoB?('0', -1, 0) : eid_outOfRange
+        !"".containFromAtoB?('0', 0, -1) : eid_outOfRange
+        !"".containFromAtoB?('0', 0, 9223372036854775807) : eid_outOfRange
+        !"".containFromAtoB?('0', 0, -9223372036854775808) : eid_outOfRange
+        !"".containFromAtoB?('0', -9223372036854775808, 0) : eid_outOfRange
+        !"".containFromAtoB?('0', -9223372036854775808, 9223372036854775807) : eid_outOfRange
         !"0".containFromAtoB?('0', 0, 0)
         !"0".containFromAtoB?('0', 1, 1)
         !"0".containFromAtoB?('1', 0, 0)
         !"0".containFromAtoB?('1', 1, 1)
         !"0".containFromAtoB?('1', 0, 1)
         "0".containFromAtoB?('0', 0, 1)
-        !"0".containFromAtoB?('0', 0, 2) : error_outOfRange
-        !"0".containFromAtoB?('0', 2, 0) : error_outOfRange
-        !"0".containFromAtoB?('0', -1, 0) : error_outOfRange
-        !"0".containFromAtoB?('0', 0, -1) : error_outOfRange
-        !"0".containFromAtoB?('0', 0, 9223372036854775807) : error_outOfRange
-        !"0".containFromAtoB?('0', 0, -9223372036854775808) : error_outOfRange
-        !"0".containFromAtoB?('0', -9223372036854775808, 0) : error_outOfRange
-        !"0".containFromAtoB?('0', -9223372036854775808, 9223372036854775807) : error_outOfRange
+        !"0".containFromAtoB?('0', 0, 2) : eid_outOfRange
+        !"0".containFromAtoB?('0', 2, 0) : eid_outOfRange
+        !"0".containFromAtoB?('0', -1, 0) : eid_outOfRange
+        !"0".containFromAtoB?('0', 0, -1) : eid_outOfRange
+        !"0".containFromAtoB?('0', 0, 9223372036854775807) : eid_outOfRange
+        !"0".containFromAtoB?('0', 0, -9223372036854775808) : eid_outOfRange
+        !"0".containFromAtoB?('0', -9223372036854775808, 0) : eid_outOfRange
+        !"0".containFromAtoB?('0', -9223372036854775808, 9223372036854775807) : eid_outOfRange
         !"01".containFromAtoB?('0', 0, 0)
         !"01".containFromAtoB?('0', 1, 1)
         !"01".containFromAtoB?('0', 2, 2)
@@ -1233,14 +1235,14 @@ def testString_ContainFromAtoB?(write ok Int, write errorsCoordinates List)
         "01".containFromAtoB?('0', 0, 1)
         "01".containFromAtoB?('1', 0, 2)
         "01".containFromAtoB?('1', 1, 2)
-        !"01".containFromAtoB?('0', 0, 3) : error_outOfRange
-        !"01".containFromAtoB?('0', 3, 0) : error_outOfRange
-        !"01".containFromAtoB?('0', -1, 0) : error_outOfRange
-        !"01".containFromAtoB?('0', 0, -1) : error_outOfRange
-        !"01".containFromAtoB?('0', 0, 9223372036854775807) : error_outOfRange
-        !"01".containFromAtoB?('0', 0, -9223372036854775808) : error_outOfRange
-        !"01".containFromAtoB?('0', -9223372036854775808, 0) : error_outOfRange
-        !"01".containFromAtoB?('0', -9223372036854775808, 9223372036854775807) : error_outOfRange
+        !"01".containFromAtoB?('0', 0, 3) : eid_outOfRange
+        !"01".containFromAtoB?('0', 3, 0) : eid_outOfRange
+        !"01".containFromAtoB?('0', -1, 0) : eid_outOfRange
+        !"01".containFromAtoB?('0', 0, -1) : eid_outOfRange
+        !"01".containFromAtoB?('0', 0, 9223372036854775807) : eid_outOfRange
+        !"01".containFromAtoB?('0', 0, -9223372036854775808) : eid_outOfRange
+        !"01".containFromAtoB?('0', -9223372036854775808, 0) : eid_outOfRange
+        !"01".containFromAtoB?('0', -9223372036854775808, 9223372036854775807) : eid_outOfRange
         "0123456789abcde".containFromAtoB?('0', 0, 15)
         "0123456789abcde".containFromAtoB?('0', 0, 1)
         !"0123456789abcde".containFromAtoB?('0', 1, 15)
@@ -1266,7 +1268,7 @@ def testString_ContainFromAtoB?(write ok Int, write errorsCoordinates List)
         !"0123456789abcde".containFromAtoB?('w', 0, 15)
         !"0123456789abcde".containFromAtoB?('_', 0, 15)
         !"0123456789abcde".containFromAtoB?(')', 0, 15)
-        !"0123456789abcde".containFromAtoB?('\0000', 0, 15)
+        !"0123456789abcde".containFromAtoB?('\000000', 0, 15)
         "0123456789abcdef".containFromAtoB?('0', 0, 16)
         "0123456789abcdef".containFromAtoB?('0', 0, 1)
         !"0123456789abcdef".containFromAtoB?('0', 1, 16)
@@ -1292,7 +1294,7 @@ def testString_ContainFromAtoB?(write ok Int, write errorsCoordinates List)
         !"0123456789abcdef".containFromAtoB?('w', 0, 16)
         !"0123456789abcdef".containFromAtoB?('_', 0, 16)
         !"0123456789abcdef".containFromAtoB?(')', 0, 16)
-        !"0123456789abcdef".containFromAtoB?('\0000', 0, 16)
+        !"0123456789abcdef".containFromAtoB?('\000000', 0, 16)
         "0123456789abcdefz".containFromAtoB?('0', 0, 17)
         "0123456789abcdefz".containFromAtoB?('0', 0, 1)
         !"0123456789abcdefz".containFromAtoB?('0', 1, 17)
@@ -1318,21 +1320,21 @@ def testString_ContainFromAtoB?(write ok Int, write errorsCoordinates List)
         !"0123456789abcdefz".containFromAtoB?('w', 0, 17)
         !"0123456789abcdefz".containFromAtoB?('_', 0, 17)
         !"0123456789abcdefz".containFromAtoB?(')', 0, 17)
-        !"0123456789abcdefz".containFromAtoB?('\0000', 0, 17)
+        !"0123456789abcdefz".containFromAtoB?('\000000', 0, 17)
 
 #noinline
 def testString_CountFromAtoB(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         "".countFromAtoB('1', 0, 0) == 0
         "".countFromAtoB('0', 0, 0) == 0
-        "".countFromAtoB('0', 0, 1) : error_outOfRange
-        "".countFromAtoB('0', 1, 0) : error_outOfRange
-        "".countFromAtoB('0', -1, 0) : error_outOfRange
-        "".countFromAtoB('0', 0, -1) : error_outOfRange
-        "".countFromAtoB('0', 0, 9223372036854775807) : error_outOfRange
-        "".countFromAtoB('0', 0, -9223372036854775808) : error_outOfRange
-        "".countFromAtoB('0', -9223372036854775808, 0) : error_outOfRange
-        "".countFromAtoB('0', -9223372036854775808, 9223372036854775807) : error_outOfRange
+        "".countFromAtoB('0', 0, 1) : eid_outOfRange
+        "".countFromAtoB('0', 1, 0) : eid_outOfRange
+        "".countFromAtoB('0', -1, 0) : eid_outOfRange
+        "".countFromAtoB('0', 0, -1) : eid_outOfRange
+        "".countFromAtoB('0', 0, 9223372036854775807) : eid_outOfRange
+        "".countFromAtoB('0', 0, -9223372036854775808) : eid_outOfRange
+        "".countFromAtoB('0', -9223372036854775808, 0) : eid_outOfRange
+        "".countFromAtoB('0', -9223372036854775808, 9223372036854775807) : eid_outOfRange
         "0".countFromAtoB('0', 0, 0) == 0
         "0".countFromAtoB('0', 1, 1) == 0
         "0".countFromAtoB('1', 0, 0) == 0
@@ -1340,14 +1342,14 @@ def testString_CountFromAtoB(write ok Int, write errorsCoordinates List)
         "0".countFromAtoB('1', 0, 1) == 0
         "0".countFromAtoB('0', 0, 1) == 1
         "0".countFromAtoB('2', 0, 1) == 0
-        "0".countFromAtoB('0', 0, 2) : error_outOfRange
-        "0".countFromAtoB('0', 2, 0) : error_outOfRange
-        "0".countFromAtoB('0', -1, 0) : error_outOfRange
-        "0".countFromAtoB('0', 0, -1) : error_outOfRange
-        "0".countFromAtoB('0', 0, 9223372036854775807) : error_outOfRange
-        "0".countFromAtoB('0', 0, -9223372036854775808) : error_outOfRange
-        "0".countFromAtoB('0', -9223372036854775808, 0) : error_outOfRange
-        "0".countFromAtoB('0', -9223372036854775808, 9223372036854775807) : error_outOfRange
+        "0".countFromAtoB('0', 0, 2) : eid_outOfRange
+        "0".countFromAtoB('0', 2, 0) : eid_outOfRange
+        "0".countFromAtoB('0', -1, 0) : eid_outOfRange
+        "0".countFromAtoB('0', 0, -1) : eid_outOfRange
+        "0".countFromAtoB('0', 0, 9223372036854775807) : eid_outOfRange
+        "0".countFromAtoB('0', 0, -9223372036854775808) : eid_outOfRange
+        "0".countFromAtoB('0', -9223372036854775808, 0) : eid_outOfRange
+        "0".countFromAtoB('0', -9223372036854775808, 9223372036854775807) : eid_outOfRange
         "01".countFromAtoB('0', 0, 0) == 0
         "01".countFromAtoB('0', 1, 1) == 0
         "01".countFromAtoB('0', 2, 2) == 0
@@ -1362,14 +1364,14 @@ def testString_CountFromAtoB(write ok Int, write errorsCoordinates List)
         "00".countFromAtoB('0', 0, 2) == 2
         "00".countFromAtoB('0', 0, 1) == 1
         "00".countFromAtoB('0', 1, 2) == 1
-        "01".countFromAtoB('0', 0, 3) : error_outOfRange
-        "01".countFromAtoB('0', 3, 0) : error_outOfRange
-        "01".countFromAtoB('0', -1, 0) : error_outOfRange
-        "01".countFromAtoB('0', 0, -1) : error_outOfRange
-        "01".countFromAtoB('0', 0, 9223372036854775807) : error_outOfRange
-        "01".countFromAtoB('0', 0, -9223372036854775808) : error_outOfRange
-        "01".countFromAtoB('0', -9223372036854775808, 0) : error_outOfRange
-        "01".countFromAtoB('0', -9223372036854775808, 9223372036854775807) : error_outOfRange
+        "01".countFromAtoB('0', 0, 3) : eid_outOfRange
+        "01".countFromAtoB('0', 3, 0) : eid_outOfRange
+        "01".countFromAtoB('0', -1, 0) : eid_outOfRange
+        "01".countFromAtoB('0', 0, -1) : eid_outOfRange
+        "01".countFromAtoB('0', 0, 9223372036854775807) : eid_outOfRange
+        "01".countFromAtoB('0', 0, -9223372036854775808) : eid_outOfRange
+        "01".countFromAtoB('0', -9223372036854775808, 0) : eid_outOfRange
+        "01".countFromAtoB('0', -9223372036854775808, 9223372036854775807) : eid_outOfRange
         "0123456789abcde".countFromAtoB('0', 0, 15) == 1
         "0123456789abcde".countFromAtoB('0', 0, 1) == 1
         "0123456789abcde".countFromAtoB('0', 1, 15) == 0
@@ -1388,7 +1390,7 @@ def testString_CountFromAtoB(write ok Int, write errorsCoordinates List)
         "0123456789abcde".countFromAtoB('w', 0, 15) == 0
         "0123456789abcde".countFromAtoB('_', 0, 15) == 0
         "0123456789abcde".countFromAtoB(')', 0, 15) == 0
-        "0123456789abcde".countFromAtoB('\0000', 0, 15) == 0
+        "0123456789abcde".countFromAtoB('\000000', 0, 15) == 0
         "662345669a6cd66".countFromAtoB('6', 0, 15) == 7
         "662345669a6cd66".countFromAtoB('6', 1, 14) == 5
         "666666666666666".countFromAtoB('6', 1, 14) == 13
@@ -1411,7 +1413,7 @@ def testString_CountFromAtoB(write ok Int, write errorsCoordinates List)
         "0123456789abcdef".countFromAtoB('w', 0, 16) == 0
         "0123456789abcdef".countFromAtoB('_', 0, 16) == 0
         "0123456789abcdef".countFromAtoB(')', 0, 16) == 0
-        "0123456789abcdef".countFromAtoB('\0000', 0, 16) == 0
+        "0123456789abcdef".countFromAtoB('\000000', 0, 16) == 0
         "662345669a6cd666".countFromAtoB('6', 0, 16) == 8
         "662345669a6cd666".countFromAtoB('6', 1, 15) == 6
         "6666666666666666".countFromAtoB('6', 1, 15) == 14
@@ -1434,7 +1436,7 @@ def testString_CountFromAtoB(write ok Int, write errorsCoordinates List)
         "0123456789abcdefz".countFromAtoB('w', 0, 17) == 0
         "0123456789abcdefz".countFromAtoB('_', 0, 17) == 0
         "0123456789abcdefz".countFromAtoB(')', 0, 17) == 0
-        "0123456789abcdefz".countFromAtoB('\0000', 0, 17) == 0
+        "0123456789abcdefz".countFromAtoB('\000000', 0, 17) == 0
         "662345669a6cd6666".countFromAtoB('6', 0, 17) == 9
         "662345669a6cd6666".countFromAtoB('6', 1, 16) == 7
         "66666666666666666".countFromAtoB('6', 0, 17) == 17
@@ -1474,11 +1476,11 @@ def testString_CountPartFromAtoB(write ok Int, write errorsCoordinates List)
         "12a234".countPartFromAtoB("234", 0, 5) == 0
         "12a234".countPartFromAtoB("234", 4, 6) == 0
         "12a234".countPartFromAtoB("22", 0, 6) == 0
-        "12a234".countPartFromAtoB("2", -1, 2) : error_outOfRange
-        "12a234".countPartFromAtoB("2", 2, 1) : error_outOfRange
-        "12a234".countPartFromAtoB("2", -10, -1) : error_outOfRange
-        "".countPartFromAtoB("", 0, 0) : error_nothingToLook
-        "12".countPartFromAtoB("", 0, 0) : error_nothingToLook
+        "12a234".countPartFromAtoB("2", -1, 2) : eid_outOfRange
+        "12a234".countPartFromAtoB("2", 2, 1) : eid_outOfRange
+        "12a234".countPartFromAtoB("2", -10, -1) : eid_outOfRange
+        "".countPartFromAtoB("", 0, 0) : eid_nothingToLook
+        "12".countPartFromAtoB("", 0, 0) : eid_nothingToLook
         "123412b".countPartFromAtoB("12", 0, 3) == 1
         "123412b".countPartFromAtoB("12", 0, 6) == 2
         "222222b".countPartFromAtoB("222", 0, 7) == 2
@@ -1575,23 +1577,23 @@ def testString_LookNFromAtoB(write ok Int, write errorsCoordinates List)
         "".lookNFromAtoB('a', 1, 0, 0).nothing?()
         "".lookNFromAtoB('a', 2, 0, 0).nothing?()
         "".lookNFromAtoB('a', 9223372036854775807, 0, 0).nothing?()
-        "".lookNFromAtoB('a', -1, 1, 0) : error_outOfRange
-        "".lookNFromAtoB('a', -9223372036854775808, 1, 0) : error_outOfRange
-        "".lookNFromAtoB('a', 1, 1, 0) : error_outOfRange
-        "".lookNFromAtoB('a', 1, 0, 1) : error_outOfRange
+        "".lookNFromAtoB('a', -1, 1, 0) : eid_outOfRange
+        "".lookNFromAtoB('a', -9223372036854775808, 1, 0) : eid_outOfRange
+        "".lookNFromAtoB('a', 1, 1, 0) : eid_outOfRange
+        "".lookNFromAtoB('a', 1, 0, 1) : eid_outOfRange
         "a".lookNFromAtoB('a', 1, 0, 1) == 0
         "a".lookNFromAtoB('a', 2, 0, 1).nothing?()
         "a".lookNFromAtoB('a', 1, 0, 0).nothing?()
         "a".lookNFromAtoB('a', 1, 1, 1).nothing?()
         "a".lookNFromAtoB('_', 1, 0, 1).nothing?()
-        "a".lookNFromAtoB('a', 1, 1, 0) : error_outOfRange
-        "a".lookNFromAtoB('a', 0, 0, 0) : error_outOfRange
-        "a".lookNFromAtoB('a', -1, 0, 0) : error_outOfRange
-        "a".lookNFromAtoB('a', -9223372036854775808, 0, 0) : error_outOfRange
-        "a".lookNFromAtoB('_', 1, -1, 0) : error_outOfRange
-        "a".lookNFromAtoB('_', 1, 0, -1) : error_outOfRange
-        "a".lookNFromAtoB('a', 1, 0, 2) : error_outOfRange
-        "a".lookNFromAtoB('a', 1, 2, 0) : error_outOfRange
+        "a".lookNFromAtoB('a', 1, 1, 0) : eid_outOfRange
+        "a".lookNFromAtoB('a', 0, 0, 0) : eid_outOfRange
+        "a".lookNFromAtoB('a', -1, 0, 0) : eid_outOfRange
+        "a".lookNFromAtoB('a', -9223372036854775808, 0, 0) : eid_outOfRange
+        "a".lookNFromAtoB('_', 1, -1, 0) : eid_outOfRange
+        "a".lookNFromAtoB('_', 1, 0, -1) : eid_outOfRange
+        "a".lookNFromAtoB('a', 1, 0, 2) : eid_outOfRange
+        "a".lookNFromAtoB('a', 1, 2, 0) : eid_outOfRange
         "ab".lookNFromAtoB('a', 1, 0, 1) == 0
         "ab".lookNFromAtoB('a', 2, 0, 1).nothing?()
         "ab".lookNFromAtoB('a', 1, 0, 2) == 0
@@ -1604,8 +1606,8 @@ def testString_LookNFromAtoB(write ok Int, write errorsCoordinates List)
         "bb".lookNFromAtoB('b', 2, 0, 2) == 1
         "ab".lookNFromAtoB('a', 1, 0, 0).nothing?()
         "ab".lookNFromAtoB('a', 2, 0, 0).nothing?()
-        "ab".lookNFromAtoB('a', 0, 0, 0) : error_outOfRange
-        "ab".lookNFromAtoB('a', -1, 0, 0) : error_outOfRange
+        "ab".lookNFromAtoB('a', 0, 0, 0) : eid_outOfRange
+        "ab".lookNFromAtoB('a', -1, 0, 0) : eid_outOfRange
         "ab".lookNFromAtoB('b', 1, 0, 0).nothing?()
         "aa".lookNFromAtoB('a', 1, 0, 1) == 0
         "aa".lookNFromAtoB('a', 2, 0, 1).nothing?()
@@ -1619,13 +1621,13 @@ def testString_LookNFromAtoB(write ok Int, write errorsCoordinates List)
         "ab".lookNFromAtoB('b', 1, 1, 2) == 1
         "ab".lookNFromAtoB('b', 1, 1, 1).nothing?()
         "ab".lookNFromAtoB('_', 1, 0, 2).nothing?()
-        "ab".lookNFromAtoB('a', 1, 1, 0) : error_outOfRange
-        "ab".lookNFromAtoB('a', 1, 3, 0) : error_outOfRange
-        "ab".lookNFromAtoB('a', 2, 3, 0) : error_outOfRange
-        "ab".lookNFromAtoB('_', 1, -1, 0) : error_outOfRange
-        "ab".lookNFromAtoB('_', 1, 0, -1) : error_outOfRange
-        "ab".lookNFromAtoB('a', 1, 0, 3) : error_outOfRange
-        "ab".lookNFromAtoB('a', 1, 3, 0) : error_outOfRange
+        "ab".lookNFromAtoB('a', 1, 1, 0) : eid_outOfRange
+        "ab".lookNFromAtoB('a', 1, 3, 0) : eid_outOfRange
+        "ab".lookNFromAtoB('a', 2, 3, 0) : eid_outOfRange
+        "ab".lookNFromAtoB('_', 1, -1, 0) : eid_outOfRange
+        "ab".lookNFromAtoB('_', 1, 0, -1) : eid_outOfRange
+        "ab".lookNFromAtoB('a', 1, 0, 3) : eid_outOfRange
+        "ab".lookNFromAtoB('a', 1, 3, 0) : eid_outOfRange
         "11111111".lookNFromAtoB('1', 1, 0, 8) == 0
         "11111111".lookNFromAtoB('1', 2, 0, 8) == 1
         "11111111".lookNFromAtoB('1', 7, 0, 8) == 6
@@ -1690,15 +1692,15 @@ def testString_LookNPartFromAtoB(write ok Int, write errorsCoordinates List)
         "".lookNPartFromAtoB("0", 1, 0, 0).nothing?()
         "".lookNPartFromAtoB("0", 2, 0, 0).nothing?()
         "".lookNPartFromAtoB("0", 9223372036854775807, 0, 0).nothing?()
-        "".lookNPartFromAtoB("0", 0, 0, 0) : error_outOfRange
-        "".lookNPartFromAtoB("0", -1, 0, 0) : error_outOfRange
-        "".lookNPartFromAtoB("0", -9223372036854775808, 0, 0) : error_outOfRange
+        "".lookNPartFromAtoB("0", 0, 0, 0) : eid_outOfRange
+        "".lookNPartFromAtoB("0", -1, 0, 0) : eid_outOfRange
+        "".lookNPartFromAtoB("0", -9223372036854775808, 0, 0) : eid_outOfRange
         "1".lookNPartFromAtoB("1", 1, 0, 1) == 0
         "1".lookNPartFromAtoB("1", 9223372036854775807, 0, 1).nothing?()
-        "1".lookNPartFromAtoB("1", 0, 0, 1) : error_outOfRange
-        "1".lookNPartFromAtoB("1", -1, 0, 1) : error_outOfRange
-        "1".lookNPartFromAtoB("1", -9223372036854775808, 0, 1) : error_outOfRange
-        "1".lookNPartFromAtoB("1", 1, 1, 0) : error_outOfRange
+        "1".lookNPartFromAtoB("1", 0, 0, 1) : eid_outOfRange
+        "1".lookNPartFromAtoB("1", -1, 0, 1) : eid_outOfRange
+        "1".lookNPartFromAtoB("1", -9223372036854775808, 0, 1) : eid_outOfRange
+        "1".lookNPartFromAtoB("1", 1, 1, 0) : eid_outOfRange
         "1".lookNPartFromAtoB("1", 1, 0, 0).nothing?()
         "1".lookNPartFromAtoB("1", 2, 0, 0).nothing?()
         "1".lookNPartFromAtoB("1", 1, 1, 1).nothing?()
@@ -1714,9 +1716,9 @@ def testString_LookNPartFromAtoB(write ok Int, write errorsCoordinates List)
         "2".lookNPartFromAtoB("12", 1, 0, 1).nothing?()
         "2".lookNPartFromAtoB("12", 2, 0, 1).nothing?()
         "12a234".lookNPartFromAtoB("1", 1, 0, 1) == 0
-        "12a234".lookNPartFromAtoB("1", 0, 0, 1) : error_outOfRange
-        "12a234".lookNPartFromAtoB("1", -1, 0, 1) : error_outOfRange
-        "12a234".lookNPartFromAtoB("1", -9223372036854775808, 0, 1) : error_outOfRange
+        "12a234".lookNPartFromAtoB("1", 0, 0, 1) : eid_outOfRange
+        "12a234".lookNPartFromAtoB("1", -1, 0, 1) : eid_outOfRange
+        "12a234".lookNPartFromAtoB("1", -9223372036854775808, 0, 1) : eid_outOfRange
         "12a234".lookNPartFromAtoB("1", 2, 0, 1).nothing?()
         "12a234".lookNPartFromAtoB("1", 1, 0, 2) == 0
         "12a234".lookNPartFromAtoB("1", 2, 0, 2).nothing?()
@@ -1763,11 +1765,11 @@ def testString_LookNPartFromAtoB(write ok Int, write errorsCoordinates List)
         "12a234".lookNPartFromAtoB("234", 2, 4, 6).nothing?()
         "12a234".lookNPartFromAtoB("22", 1, 0, 6).nothing?()
         "12a234".lookNPartFromAtoB("22", 2, 0, 6).nothing?()
-        "12a234".lookNPartFromAtoB("2", 1, -1, 2) : error_outOfRange
-        "12a234".lookNPartFromAtoB("2", 1, 2, 1) : error_outOfRange
-        "12a234".lookNPartFromAtoB("2", 1, -10, -1) : error_outOfRange
-        "".lookNPartFromAtoB("", 1, 0, 0) : error_nothingToLook
-        "12".lookNPartFromAtoB("", 1, 0, 0) : error_nothingToLook
+        "12a234".lookNPartFromAtoB("2", 1, -1, 2) : eid_outOfRange
+        "12a234".lookNPartFromAtoB("2", 1, 2, 1) : eid_outOfRange
+        "12a234".lookNPartFromAtoB("2", 1, -10, -1) : eid_outOfRange
+        "".lookNPartFromAtoB("", 1, 0, 0) : eid_nothingToLook
+        "12".lookNPartFromAtoB("", 1, 0, 0) : eid_nothingToLook
         "123412b".lookNPartFromAtoB("12", 1, 0, 3) == 0
         "123412b".lookNPartFromAtoB("12", 2, 0, 3).nothing?()
         "123412b".lookNPartFromAtoB("12", 1, 0, 6) == 0
@@ -1881,18 +1883,18 @@ def testString_LookNPartFromAtoB(write ok Int, write errorsCoordinates List)
 def testString_LookAllFromAtoB(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         "".lookAllFromAtoB('a', 0, 0) == []
-        "".lookAllFromAtoB('a', 1, 0) : error_outOfRange
-        "".lookAllFromAtoB('a', 0, 1) : error_outOfRange
+        "".lookAllFromAtoB('a', 1, 0) : eid_outOfRange
+        "".lookAllFromAtoB('a', 0, 1) : eid_outOfRange
         "a".lookAllFromAtoB('a', 0, 1) == [0]
         "a".lookAllFromAtoB('a', 0, 0) == []
         "a".lookAllFromAtoB('a', 1, 1) == []
         "a".lookAllFromAtoB('b', 0, 1) == []
         "a".lookAllFromAtoB('c', 0, 1) == []
-        "a".lookAllFromAtoB('a', 1, 0) : error_outOfRange
-        "a".lookAllFromAtoB('c', -1, 0) : error_outOfRange
-        "a".lookAllFromAtoB('c', 0, -1) : error_outOfRange
-        "a".lookAllFromAtoB('a', 0, 2) : error_outOfRange
-        "a".lookAllFromAtoB('a', 2, 0) : error_outOfRange
+        "a".lookAllFromAtoB('a', 1, 0) : eid_outOfRange
+        "a".lookAllFromAtoB('c', -1, 0) : eid_outOfRange
+        "a".lookAllFromAtoB('c', 0, -1) : eid_outOfRange
+        "a".lookAllFromAtoB('a', 0, 2) : eid_outOfRange
+        "a".lookAllFromAtoB('a', 2, 0) : eid_outOfRange
         "ad".lookAllFromAtoB('a', 0, 1) == [0]
         "ad".lookAllFromAtoB('a', 0, 2) == [0]
         "ad".lookAllFromAtoB('d', 0, 2) == [1]
@@ -1909,12 +1911,12 @@ def testString_LookAllFromAtoB(write ok Int, write errorsCoordinates List)
         "ad".lookAllFromAtoB('d', 1, 1) == []
         "ad".lookAllFromAtoB('b', 0, 2) == []
         "ad".lookAllFromAtoB('c', 0, 2) == []
-        "ad".lookAllFromAtoB('a', 1, 0) : error_outOfRange
-        "ad".lookAllFromAtoB('a', 3, 0) : error_outOfRange
-        "ad".lookAllFromAtoB('c', -1, 0) : error_outOfRange
-        "ad".lookAllFromAtoB('c', 0, -1) : error_outOfRange
-        "ad".lookAllFromAtoB('a', 0, 3) : error_outOfRange
-        "ad".lookAllFromAtoB('a', 3, 0) : error_outOfRange
+        "ad".lookAllFromAtoB('a', 1, 0) : eid_outOfRange
+        "ad".lookAllFromAtoB('a', 3, 0) : eid_outOfRange
+        "ad".lookAllFromAtoB('c', -1, 0) : eid_outOfRange
+        "ad".lookAllFromAtoB('c', 0, -1) : eid_outOfRange
+        "ad".lookAllFromAtoB('a', 0, 3) : eid_outOfRange
+        "ad".lookAllFromAtoB('a', 3, 0) : eid_outOfRange
         "ad_2d2a".lookAllFromAtoB('2', 0, 6) == [3, 5]
         "11111111".lookAllFromAtoB('1', 0, 8) == [0, 1, 2, 3, 4, 5, 6, 7]
         "11111111".lookAllFromAtoB('1', 1, 8) == [1, 2, 3, 4, 5, 6, 7]
@@ -1999,11 +2001,11 @@ def testString_LookAllPartsFromAtoB(write ok Int, write errorsCoordinates List)
         "12_234".lookAllPartsFromAtoB("234", 4, 6) == []
         "12_234".lookAllPartsFromAtoB("22", 0, 6) == []
         "12_234".lookAllPartsFromAtoB("2_", 0, 6) == [1]
-        "12_234".lookAllPartsFromAtoB("2", -1, 2) : error_outOfRange
-        "12_234".lookAllPartsFromAtoB("2", 2, 1) : error_outOfRange
-        "12_234".lookAllPartsFromAtoB("2", -10, -1) : error_outOfRange
-        "".lookAllPartsFromAtoB("", 0, 0) : error_nothingToLook
-        "12".lookAllPartsFromAtoB("", 0, 0) : error_nothingToLook
+        "12_234".lookAllPartsFromAtoB("2", -1, 2) : eid_outOfRange
+        "12_234".lookAllPartsFromAtoB("2", 2, 1) : eid_outOfRange
+        "12_234".lookAllPartsFromAtoB("2", -10, -1) : eid_outOfRange
+        "".lookAllPartsFromAtoB("", 0, 0) : eid_nothingToLook
+        "12".lookAllPartsFromAtoB("", 0, 0) : eid_nothingToLook
         "123412b".lookAllPartsFromAtoB("12", 0, 3) == [0]
         "123412b".lookAllPartsFromAtoB("12", 0, 6) == [0, 4]
         "222222b".lookAllPartsFromAtoB("222", 0, 7) == [0, 3]
@@ -2057,24 +2059,24 @@ def testString_LookBackNFromAtoB(write ok Int, write errorsCoordinates List)
         "".lookBackNFromAtoB('a', 1, 0, 0).nothing?()
         "".lookBackNFromAtoB('a', 2, 0, 0).nothing?()
         "".lookBackNFromAtoB('a', 9223372036854775807, 0, 0).nothing?()
-        "".lookBackNFromAtoB('a', -1, 1, 0) : error_outOfRange
-        "".lookBackNFromAtoB('a', -9223372036854775808, 1, 0) : error_outOfRange
-        "".lookBackNFromAtoB('a', 1, 1, 0) : error_outOfRange
-        "".lookBackNFromAtoB('a', 1, 0, 1) : error_outOfRange
+        "".lookBackNFromAtoB('a', -1, 1, 0) : eid_outOfRange
+        "".lookBackNFromAtoB('a', -9223372036854775808, 1, 0) : eid_outOfRange
+        "".lookBackNFromAtoB('a', 1, 1, 0) : eid_outOfRange
+        "".lookBackNFromAtoB('a', 1, 0, 1) : eid_outOfRange
         "a".lookBackNFromAtoB('a', 1, 0, 1) == 0
         "a".lookBackNFromAtoB('a', 2, 0, 1).nothing?()
         "a".lookBackNFromAtoB('a', 1, 0, 0).nothing?()
         "a".lookBackNFromAtoB('a', 1, 1, 1).nothing?()
         "a".lookBackNFromAtoB('b', 1, 0, 1).nothing?()
         "a".lookBackNFromAtoB('-', 1, 0, 1).nothing?()
-        "a".lookBackNFromAtoB('a', 1, 1, 0) : error_outOfRange
-        "a".lookBackNFromAtoB('a', 0, 0, 0) : error_outOfRange
-        "a".lookBackNFromAtoB('a', -1, 0, 0) : error_outOfRange
-        "a".lookBackNFromAtoB('a', -9223372036854775808, 0, 0) : error_outOfRange
-        "a".lookBackNFromAtoB('-', 1, -1, 0) : error_outOfRange
-        "a".lookBackNFromAtoB('-', 1, 0, -1) : error_outOfRange
-        "a".lookBackNFromAtoB('a', 1, 0, 2) : error_outOfRange
-        "a".lookBackNFromAtoB('a', 1, 2, 0) : error_outOfRange
+        "a".lookBackNFromAtoB('a', 1, 1, 0) : eid_outOfRange
+        "a".lookBackNFromAtoB('a', 0, 0, 0) : eid_outOfRange
+        "a".lookBackNFromAtoB('a', -1, 0, 0) : eid_outOfRange
+        "a".lookBackNFromAtoB('a', -9223372036854775808, 0, 0) : eid_outOfRange
+        "a".lookBackNFromAtoB('-', 1, -1, 0) : eid_outOfRange
+        "a".lookBackNFromAtoB('-', 1, 0, -1) : eid_outOfRange
+        "a".lookBackNFromAtoB('a', 1, 0, 2) : eid_outOfRange
+        "a".lookBackNFromAtoB('a', 1, 2, 0) : eid_outOfRange
         "a2".lookBackNFromAtoB('a', 1, 0, 1) == 0
         "a2".lookBackNFromAtoB('a', 2, 0, 1).nothing?()
         "a2".lookBackNFromAtoB('a', 1, 0, 2) == 0
@@ -2087,8 +2089,8 @@ def testString_LookBackNFromAtoB(write ok Int, write errorsCoordinates List)
         "22".lookBackNFromAtoB('2', 2, 0, 2) == 0
         "a2".lookBackNFromAtoB('a', 1, 0, 0).nothing?()
         "a2".lookBackNFromAtoB('a', 2, 0, 0).nothing?()
-        "a2".lookBackNFromAtoB('a', 0, 0, 0) : error_outOfRange
-        "a2".lookBackNFromAtoB('a', -1, 0, 0) : error_outOfRange
+        "a2".lookBackNFromAtoB('a', 0, 0, 0) : eid_outOfRange
+        "a2".lookBackNFromAtoB('a', -1, 0, 0) : eid_outOfRange
         "a2".lookBackNFromAtoB('2', 1, 0, 0).nothing?()
         "aa".lookBackNFromAtoB('a', 1, 0, 1) == 0
         "aa".lookBackNFromAtoB('a', 2, 0, 1).nothing?()
@@ -2103,13 +2105,13 @@ def testString_LookBackNFromAtoB(write ok Int, write errorsCoordinates List)
         "a2".lookBackNFromAtoB('2', 1, 1, 1).nothing?()
         "a2".lookBackNFromAtoB('b', 1, 0, 2).nothing?()
         "a2".lookBackNFromAtoB('-', 1, 0, 2).nothing?()
-        "a2".lookBackNFromAtoB('a', 1, 1, 0) : error_outOfRange
-        "a2".lookBackNFromAtoB('a', 1, 3, 0) : error_outOfRange
-        "a2".lookBackNFromAtoB('a', 2, 3, 0) : error_outOfRange
-        "a2".lookBackNFromAtoB('-', 1, -1, 0) : error_outOfRange
-        "a2".lookBackNFromAtoB('-', 1, 0, -1) : error_outOfRange
-        "a2".lookBackNFromAtoB('a', 1, 0, 3) : error_outOfRange
-        "a2".lookBackNFromAtoB('a', 1, 3, 0) : error_outOfRange
+        "a2".lookBackNFromAtoB('a', 1, 1, 0) : eid_outOfRange
+        "a2".lookBackNFromAtoB('a', 1, 3, 0) : eid_outOfRange
+        "a2".lookBackNFromAtoB('a', 2, 3, 0) : eid_outOfRange
+        "a2".lookBackNFromAtoB('-', 1, -1, 0) : eid_outOfRange
+        "a2".lookBackNFromAtoB('-', 1, 0, -1) : eid_outOfRange
+        "a2".lookBackNFromAtoB('a', 1, 0, 3) : eid_outOfRange
+        "a2".lookBackNFromAtoB('a', 1, 3, 0) : eid_outOfRange
         "acd_13".lookBackNFromAtoB('a', 1, 0, 6) == 0
         "acd_13".lookBackNFromAtoB('a', 2, 0, 6).nothing?()
         "acd_13".lookBackNFromAtoB('3', 1, 0, 6) == 5
@@ -2209,15 +2211,15 @@ def testString_LookBackNPartFromAtoB(write ok Int, write errorsCoordinates List)
         "".lookBackNPartFromAtoB("0", 1, 0, 0).nothing?()
         "".lookBackNPartFromAtoB("0", 2, 0, 0).nothing?()
         "".lookBackNPartFromAtoB("0", 9223372036854775807, 0, 0).nothing?()
-        "".lookBackNPartFromAtoB("0", 0, 0, 0) : error_outOfRange
-        "".lookBackNPartFromAtoB("0", -1, 0, 0) : error_outOfRange
-        "".lookBackNPartFromAtoB("0", -9223372036854775808, 0, 0) : error_outOfRange
+        "".lookBackNPartFromAtoB("0", 0, 0, 0) : eid_outOfRange
+        "".lookBackNPartFromAtoB("0", -1, 0, 0) : eid_outOfRange
+        "".lookBackNPartFromAtoB("0", -9223372036854775808, 0, 0) : eid_outOfRange
         "1".lookBackNPartFromAtoB("1", 1, 0, 1) == 0
         "1".lookBackNPartFromAtoB("1", 9223372036854775807, 0, 1).nothing?()
-        "1".lookBackNPartFromAtoB("1", 0, 0, 1) : error_outOfRange
-        "1".lookBackNPartFromAtoB("1", -1, 0, 1) : error_outOfRange
-        "1".lookBackNPartFromAtoB("1", -9223372036854775808, 0, 1) : error_outOfRange
-        "1".lookBackNPartFromAtoB("1", 1, 1, 0) : error_outOfRange
+        "1".lookBackNPartFromAtoB("1", 0, 0, 1) : eid_outOfRange
+        "1".lookBackNPartFromAtoB("1", -1, 0, 1) : eid_outOfRange
+        "1".lookBackNPartFromAtoB("1", -9223372036854775808, 0, 1) : eid_outOfRange
+        "1".lookBackNPartFromAtoB("1", 1, 1, 0) : eid_outOfRange
         "1".lookBackNPartFromAtoB("1", 1, 0, 0).nothing?()
         "1".lookBackNPartFromAtoB("1", 2, 0, 0).nothing?()
         "1".lookBackNPartFromAtoB("1", 1, 1, 1).nothing?()
@@ -2233,9 +2235,9 @@ def testString_LookBackNPartFromAtoB(write ok Int, write errorsCoordinates List)
         "2".lookBackNPartFromAtoB("12", 1, 0, 1).nothing?()
         "2".lookBackNPartFromAtoB("12", 2, 0, 1).nothing?()
         "12a234".lookBackNPartFromAtoB("1", 1, 0, 1) == 0
-        "12a234".lookBackNPartFromAtoB("1", 0, 0, 1) : error_outOfRange
-        "12a234".lookBackNPartFromAtoB("1", -1, 0, 1) : error_outOfRange
-        "12a234".lookBackNPartFromAtoB("1", -9223372036854775808, 0, 1) : error_outOfRange
+        "12a234".lookBackNPartFromAtoB("1", 0, 0, 1) : eid_outOfRange
+        "12a234".lookBackNPartFromAtoB("1", -1, 0, 1) : eid_outOfRange
+        "12a234".lookBackNPartFromAtoB("1", -9223372036854775808, 0, 1) : eid_outOfRange
         "12a234".lookBackNPartFromAtoB("1", 2, 0, 1).nothing?()
         "12a234".lookBackNPartFromAtoB("1", 1, 0, 2) == 0
         "12a234".lookBackNPartFromAtoB("1", 2, 0, 2).nothing?()
@@ -2282,11 +2284,11 @@ def testString_LookBackNPartFromAtoB(write ok Int, write errorsCoordinates List)
         "12a234".lookBackNPartFromAtoB("234", 2, 4, 6).nothing?()
         "12a234".lookBackNPartFromAtoB("22", 1, 0, 6).nothing?()
         "12a234".lookBackNPartFromAtoB("22", 2, 0, 6).nothing?()
-        "12a234".lookBackNPartFromAtoB("2", 1, -1, 2) : error_outOfRange
-        "12a234".lookBackNPartFromAtoB("2", 1, 2, 1) : error_outOfRange
-        "12a234".lookBackNPartFromAtoB("2", 1, -10, -1) : error_outOfRange
-        "".lookBackNPartFromAtoB("", 1, 0, 0) : error_nothingToLook
-        "12".lookBackNPartFromAtoB("", 1, 0, 0) : error_nothingToLook
+        "12a234".lookBackNPartFromAtoB("2", 1, -1, 2) : eid_outOfRange
+        "12a234".lookBackNPartFromAtoB("2", 1, 2, 1) : eid_outOfRange
+        "12a234".lookBackNPartFromAtoB("2", 1, -10, -1) : eid_outOfRange
+        "".lookBackNPartFromAtoB("", 1, 0, 0) : eid_nothingToLook
+        "12".lookBackNPartFromAtoB("", 1, 0, 0) : eid_nothingToLook
         "123412b".lookBackNPartFromAtoB("12", 1, 0, 3) == 0
         "123412b".lookBackNPartFromAtoB("12", 2, 0, 3).nothing?()
         "123412b".lookBackNPartFromAtoB("12", 1, 0, 6) == 4
@@ -2400,45 +2402,45 @@ def testString_LookBackNPartFromAtoB(write ok Int, write errorsCoordinates List)
 def testString_Delete$(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         "".delete$(0, 0) == ""
-        "".delete$(1, 0) : error_outOfRange
-        "".delete$(9223372036854775807, 0) : error_outOfRange
-        "".delete$(-1, 0) : error_outOfRange
-        "".delete$(-9223372036854775808, 0) : error_outOfRange
-        "".delete$(0, 1) : error_outOfRange
-        "".delete$(0, 9223372036854775807) : error_outOfRange
-        "".delete$(0, -1) : error_outOfRange
-        "".delete$(0, -9223372036854775808) : error_outOfRange
+        "".delete$(1, 0) : eid_outOfRange
+        "".delete$(9223372036854775807, 0) : eid_outOfRange
+        "".delete$(-1, 0) : eid_outOfRange
+        "".delete$(-9223372036854775808, 0) : eid_outOfRange
+        "".delete$(0, 1) : eid_outOfRange
+        "".delete$(0, 9223372036854775807) : eid_outOfRange
+        "".delete$(0, -1) : eid_outOfRange
+        "".delete$(0, -9223372036854775808) : eid_outOfRange
         "1".delete$(0, 0) == "1"
         "1".delete$(1, 0) == "1"
         "1".delete$(0, 1) == ""
-        "1".delete$(1, 1) : error_outOfRange
-        "1".delete$(9223372036854775807, 0) : error_outOfRange
-        "1".delete$(-1, 0) : error_outOfRange
-        "1".delete$(-9223372036854775808, 0) : error_outOfRange
-        "1".delete$(0, 2) : error_outOfRange
-        "1".delete$(0, 9223372036854775807) : error_outOfRange
-        "1".delete$(0, -1) : error_outOfRange
-        "1".delete$(0, -9223372036854775808) : error_outOfRange
+        "1".delete$(1, 1) : eid_outOfRange
+        "1".delete$(9223372036854775807, 0) : eid_outOfRange
+        "1".delete$(-1, 0) : eid_outOfRange
+        "1".delete$(-9223372036854775808, 0) : eid_outOfRange
+        "1".delete$(0, 2) : eid_outOfRange
+        "1".delete$(0, 9223372036854775807) : eid_outOfRange
+        "1".delete$(0, -1) : eid_outOfRange
+        "1".delete$(0, -9223372036854775808) : eid_outOfRange
         "123456789".delete$(0, 0) == "123456789"
         "123456789".delete$(0, 1) == "23456789"
         "123456789".delete$(0, 2) == "3456789"
         "123456789".delete$(0, 9) == ""
-        "123456789".delete$(0, 10) : error_outOfRange
+        "123456789".delete$(0, 10) : eid_outOfRange
         "123456789".delete$(1, 0) == "123456789"
         "123456789".delete$(1, 1) == "13456789"
         "123456789".delete$(1, 2) == "1456789"
         "123456789".delete$(1, 8) == "1"
-        "123456789".delete$(1, 9) : error_outOfRange
+        "123456789".delete$(1, 9) : eid_outOfRange
         "123456789".delete$(4, 0) == "123456789"
         "123456789".delete$(4, 1) == "12346789"
         "123456789".delete$(4, 2) == "1234789"
         "123456789".delete$(4, 5) == "1234"
-        "123456789".delete$(4, 6) : error_outOfRange
+        "123456789".delete$(4, 6) : eid_outOfRange
         "123456789".delete$(8, 0) == "123456789"
         "123456789".delete$(8, 1) == "12345678"
-        "123456789".delete$(8, 2) : error_outOfRange
+        "123456789".delete$(8, 2) : eid_outOfRange
         "123456789".delete$(9, 0) == "123456789"
-        "123456789".delete$(9, 1) : error_outOfRange
+        "123456789".delete$(9, 1) : eid_outOfRange
 
 #noinline
 def testString_Delete(write ok Int, write errorsCoordinates List)
@@ -2448,53 +2450,53 @@ def testString_Delete(write ok Int, write errorsCoordinates List)
     var c4 String = "123456789"
     var c5 String = "123456789".clone()
     var c6 String = "123456789".clone()
-    var c7 String = c6
+    const c7 String = c6
     test: ok, errorsCoordinates
         c1.delete(0, 0).nothing?()
         c1 == ""
-        c1.delete(1, 0) : error_outOfRange
+        c1.delete(1, 0) : eid_outOfRange
         c1 == ""
-        c1.delete(9223372036854775807, 0) : error_outOfRange
+        c1.delete(9223372036854775807, 0) : eid_outOfRange
         c1 == ""
-        c1.delete(-1, 0) : error_outOfRange
+        c1.delete(-1, 0) : eid_outOfRange
         c1 == ""
-        c1.delete(-9223372036854775808, 0) : error_outOfRange
+        c1.delete(-9223372036854775808, 0) : eid_outOfRange
         c1 == ""
-        c1.delete(0, 1) : error_outOfRange
+        c1.delete(0, 1) : eid_outOfRange
         c1 == ""
-        c1.delete(0, 9223372036854775807) : error_outOfRange
+        c1.delete(0, 9223372036854775807) : eid_outOfRange
         c1 == ""
-        c1.delete(0, -1) : error_outOfRange
+        c1.delete(0, -1) : eid_outOfRange
         c1 == ""
-        c1.delete(0, -9223372036854775808) : error_outOfRange
+        c1.delete(0, -9223372036854775808) : eid_outOfRange
         c1 == ""
         c2.delete(0, 0).nothing?()
         c2 == "1"
         c2.delete(1, 0).nothing?()
         c2 == "1"
-        c2.delete(0, 2) : error_outOfRange
+        c2.delete(0, 2) : eid_outOfRange
         c2 == "1"
-        c2.delete(0, 9223372036854775807) : error_outOfRange
+        c2.delete(0, 9223372036854775807) : eid_outOfRange
         c2 == "1"
-        c2.delete(0, -1) : error_outOfRange
+        c2.delete(0, -1) : eid_outOfRange
         c2 == "1"
-        c2.delete(0, -9223372036854775807) : error_outOfRange
+        c2.delete(0, -9223372036854775807) : eid_outOfRange
         c2 == "1"
-        c2.delete(2, 0) : error_outOfRange
+        c2.delete(2, 0) : eid_outOfRange
         c2 == "1"
-        c2.delete(9223372036854775807, 0) : error_outOfRange
+        c2.delete(9223372036854775807, 0) : eid_outOfRange
         c2 == "1"
-        c2.delete(-1, 0) : error_outOfRange
+        c2.delete(-1, 0) : eid_outOfRange
         c2 == "1"
-        c2.delete(-9223372036854775808, 0) : error_outOfRange
+        c2.delete(-9223372036854775808, 0) : eid_outOfRange
         c2 == "1"
-        c3.delete(0, 10) : error_outOfRange
+        c3.delete(0, 10) : eid_outOfRange
         c3 == "123456789"
-        c3.delete(1, 9) : error_outOfRange
+        c3.delete(1, 9) : eid_outOfRange
         c3 == "123456789"
-        c3.delete(4, 6) : error_outOfRange
+        c3.delete(4, 6) : eid_outOfRange
         c3 == "123456789"
-        c3.delete(9, 1) : error_outOfRange
+        c3.delete(9, 1) : eid_outOfRange
         c3 == "123456789"
         c3.delete(0, 0).nothing?()
         c3 == "123456789"
@@ -2557,7 +2559,7 @@ def testString_Replace(write ok Int, write errorsCoordinates List)
     var c4 String = "1212121212121212121212121212121"
     var c5 String = "12121212121212121212121212121212".clone()
     var c6 String = "121212121212121212121212121212121".clone()
-    var c7 String = c6
+    const c7 String = c6
     test: ok, errorsCoordinates
         c1.replace('1', '0').nothing?()
         c1 == ""
@@ -2600,15 +2602,15 @@ def testString_Replace(write ok Int, write errorsCoordinates List)
 #noinline
 def testString_Insert$(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        "".insert$(1, '1') : error_outOfRange
-        "".insert$(9223372036854775807, '1') : error_outOfRange
-        "".insert$(-1, '1') : error_outOfRange
-        "".insert$(-9223372036854775808, '1') : error_outOfRange
+        "".insert$(1, '1') : eid_outOfRange
+        "".insert$(9223372036854775807, '1') : eid_outOfRange
+        "".insert$(-1, '1') : eid_outOfRange
+        "".insert$(-9223372036854775808, '1') : eid_outOfRange
         "".insert$(0, '1') == "1"
-        "1".insert$(2, '1') : error_outOfRange
-        "1".insert$(9223372036854775807, '1') : error_outOfRange
-        "1".insert$(-1, '1') : error_outOfRange
-        "1".insert$(-9223372036854775808, '1') : error_outOfRange
+        "1".insert$(2, '1') : eid_outOfRange
+        "1".insert$(9223372036854775807, '1') : eid_outOfRange
+        "1".insert$(-1, '1') : eid_outOfRange
+        "1".insert$(-9223372036854775808, '1') : eid_outOfRange
         "1".insert$(0, '2') == "21"
         "1".insert$(1, '2') == "12"
         "12345".insert$(0, 'a') == "a12345"
@@ -2620,25 +2622,25 @@ def testString_Insert$(write ok Int, write errorsCoordinates List)
 def testString_Insert(write ok Int, write errorsCoordinates List)
     var c1 String = ""
     var c2 String = "1"
-    var c3 String = c2
+    const c3 String = c2
     test: ok, errorsCoordinates
-        c1.insert(1, '1') : error_outOfRange
+        c1.insert(1, '1') : eid_outOfRange
         c1 == ""
-        c1.insert(9223372036854775807, '1') : error_outOfRange
+        c1.insert(9223372036854775807, '1') : eid_outOfRange
         c1 == ""
-        c1.insert(-1, '1') : error_outOfRange
+        c1.insert(-1, '1') : eid_outOfRange
         c1 == ""
-        c1.insert(-9223372036854775808, '1') : error_outOfRange
+        c1.insert(-9223372036854775808, '1') : eid_outOfRange
         c1 == ""
         c1.insert(0, '1').nothing?()
         c1 == "1"
-        c1.insert(2, '1') : error_outOfRange
+        c1.insert(2, '1') : eid_outOfRange
         c1 == "1"
-        c1.insert(9223372036854775807, '1') : error_outOfRange
+        c1.insert(9223372036854775807, '1') : eid_outOfRange
         c1 == "1"
-        c1.insert(-1, '1') : error_outOfRange
+        c1.insert(-1, '1') : eid_outOfRange
         c1 == "1"
-        c1.insert(-9223372036854775808, '1') : error_outOfRange
+        c1.insert(-9223372036854775808, '1') : eid_outOfRange
         c1 == "1"
         c1.insert(0, '2').nothing?()
         c1 == "21"
@@ -2652,30 +2654,30 @@ def testString_Insert(write ok Int, write errorsCoordinates List)
         c2 == "a31f2"
         c2.insert(3, '1').nothing?()
         c2 == "a311f2"
-        c2.insert(7, '1') : error_outOfRange
+        c2.insert(7, '1') : eid_outOfRange
         c2 == "a311f2"
-        c2.insert(9223372036854775807, '1') : error_outOfRange
+        c2.insert(9223372036854775807, '1') : eid_outOfRange
         c2 == "a311f2"
-        c2.insert(-1, '1') : error_outOfRange
+        c2.insert(-1, '1') : eid_outOfRange
         c2 == "a311f2"
-        c2.insert(-9223372036854775808, '1') : error_outOfRange
+        c2.insert(-9223372036854775808, '1') : eid_outOfRange
         c2 == "a311f2"
         c3 == "1"
 
 #noinline
 def testString_InsertPart$(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        "".insertPart$(1, "1") : error_outOfRange
-        "".insertPart$(9223372036854775807, "1") : error_outOfRange
-        "".insertPart$(-1, "1") : error_outOfRange
-        "".insertPart$(-9223372036854775808, "1") : error_outOfRange
+        "".insertPart$(1, "1") : eid_outOfRange
+        "".insertPart$(9223372036854775807, "1") : eid_outOfRange
+        "".insertPart$(-1, "1") : eid_outOfRange
+        "".insertPart$(-9223372036854775808, "1") : eid_outOfRange
         "".insertPart$(0, "") == ""
         "".insertPart$(0, "1") == "1"
         "".insertPart$(0, "123") == "123"
-        "1".insertPart$(2, "1") : error_outOfRange
-        "1".insertPart$(9223372036854775807, "1") : error_outOfRange
-        "1".insertPart$(-1, "1") : error_outOfRange
-        "1".insertPart$(-9223372036854775808, "1") : error_outOfRange
+        "1".insertPart$(2, "1") : eid_outOfRange
+        "1".insertPart$(9223372036854775807, "1") : eid_outOfRange
+        "1".insertPart$(-1, "1") : eid_outOfRange
+        "1".insertPart$(-9223372036854775808, "1") : eid_outOfRange
         "1".insertPart$(0, "") == "1"
         "1".insertPart$(1, "") == "1"
         "1".insertPart$(0, "2") == "21"
@@ -2691,25 +2693,25 @@ def testString_InsertPart(write ok Int, write errorsCoordinates List)
     var c1 String = ""
     var c2 String = "1"
     test: ok, errorsCoordinates
-        c1.insertPart(1, "1") : error_outOfRange
+        c1.insertPart(1, "1") : eid_outOfRange
         c1 == ""
-        c1.insertPart(9223372036854775807, "1") : error_outOfRange
+        c1.insertPart(9223372036854775807, "1") : eid_outOfRange
         c1 == ""
-        c1.insertPart(-1, "1") : error_outOfRange
+        c1.insertPart(-1, "1") : eid_outOfRange
         c1 == ""
-        c1.insertPart(-9223372036854775808, "1") : error_outOfRange
+        c1.insertPart(-9223372036854775808, "1") : eid_outOfRange
         c1 == ""
         c1.insertPart(0, "").nothing?()
         c1 == ""
         c1.insertPart(0, "1").nothing?()
         c1 == "1"
-        c1.insertPart(2, "1") : error_outOfRange
+        c1.insertPart(2, "1") : eid_outOfRange
         c1 == "1"
-        c1.insertPart(9223372036854775807, "1") : error_outOfRange
+        c1.insertPart(9223372036854775807, "1") : eid_outOfRange
         c1 == "1"
-        c1.insertPart(-1, "1") : error_outOfRange
+        c1.insertPart(-1, "1") : eid_outOfRange
         c1 == "1"
-        c1.insertPart(-9223372036854775808, "1") : error_outOfRange
+        c1.insertPart(-9223372036854775808, "1") : eid_outOfRange
         c1 == "1"
         c1.insertPart(0, "").nothing?()
         c1 == "1"
@@ -2737,39 +2739,39 @@ def testString_InsertPart(write ok Int, write errorsCoordinates List)
 #noinline
 def testString_Repeat(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        String.repeat('c', 0) == ""
-        String.repeat('c', 1) == "c"
-        String.repeat('c', 2) == "cc"
-        String.repeat('c', 10) == "cccccccccc"
-        String.repeat('c', 11) == "ccccccccccc"
-        String.repeat('c', 16) == "cccccccccccccccc"
-        String.repeat('c', -1) : error_outOfRange
-        String.repeat('c', -2) : error_outOfRange
-        String.repeat('c', -9223372036854775808) : error_outOfRange
+        'c'.repeat(0, String) == ""
+        'c'.repeat(1, String) == "c"
+        'c'.repeat(2, String) == "cc"
+        'c'.repeat(10, String) == "cccccccccc"
+        'c'.repeat(11, String) == "ccccccccccc"
+        'c'.repeat(16, String) == "cccccccccccccccc"
+        'c'.repeat(-1, String) : eid_outOfRange
+        'c'.repeat(-2, String) : eid_outOfRange
+        'c'.repeat(-9223372036854775808, String) : eid_outOfRange
 
 #noinline
 def testString_RepeatPart(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         "".repeatPart(0) == ""
         "".repeatPart(120) == ""
-        "".repeatPart(-1) : error_outOfRange
-        "".repeatPart(-9223372036854775808) : error_outOfRange
+        "".repeatPart(-1) : eid_outOfRange
+        "".repeatPart(-9223372036854775808) : eid_outOfRange
         "13".repeatPart(0) == ""
         "13".repeatPart(1) == "13"
         "13".repeatPart(2) == "1313"
         "13".repeatPart(10) == "13131313131313131313"
         "13".repeatPart(11) == "1313131313131313131313"
         "13".repeatPart(16) == "13131313131313131313131313131313"
-        "13".repeatPart(-1) : error_outOfRange
-        "13".repeatPart(-9223372036854775808) : error_outOfRange
+        "13".repeatPart(-1) : eid_outOfRange
+        "13".repeatPart(-9223372036854775808) : eid_outOfRange
         "13110100".repeatPart(0) == ""
         "13110100".repeatPart(1) == "13110100"
         "13110100".repeatPart(2) == "1311010013110100"
         "13110100".repeatPart(10) == "13110100131101001311010013110100131101001311010013110100131101001311010013110100"
         "13110100".repeatPart(11) == "1311010013110100131101001311010013110100131101001311010013110100131101001311010013110100"
         "13110100".repeatPart(16) == "13110100131101001311010013110100131101001311010013110100131101001311010013110100131101001311010013110100131101001311010013110100"
-        "13110100".repeatPart(-1) : error_outOfRange
-        "13110100".repeatPart(-9223372036854775808) : error_outOfRange
+        "13110100".repeatPart(-1) : eid_outOfRange
+        "13110100".repeatPart(-9223372036854775808) : eid_outOfRange
 
 #noinline
 def testString_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
@@ -2777,21 +2779,21 @@ def testString_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         c.reverseFromAtoB(0, 0).nothing?()
         c == ""
-        c.reverseFromAtoB(0, 1) : error_outOfRange
+        c.reverseFromAtoB(0, 1) : eid_outOfRange
         c == ""
-        c.reverseFromAtoB(1, 1) : error_outOfRange
+        c.reverseFromAtoB(1, 1) : eid_outOfRange
         c == ""
-        c.reverseFromAtoB(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : eid_outOfRange
         c == ""
-        c.reverseFromAtoB(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : eid_outOfRange
         c == ""
-        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : eid_outOfRange
         c == ""
-        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : eid_outOfRange
         c == ""
-        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : eid_outOfRange
         c == ""
-        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         c == ""
     c = "1"
     test: ok, errorsCoordinates
@@ -2801,25 +2803,25 @@ def testString_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
         c == "1"
         c.reverseFromAtoB(1, 1).nothing?()
         c == "1"
-        c.reverseFromAtoB(0, 2) : error_outOfRange
+        c.reverseFromAtoB(0, 2) : eid_outOfRange
         c == "1"
-        c.reverseFromAtoB(2, 1) : error_outOfRange
+        c.reverseFromAtoB(2, 1) : eid_outOfRange
         c == "1"
-        c.reverseFromAtoB(1, 2) : error_outOfRange
+        c.reverseFromAtoB(1, 2) : eid_outOfRange
         c == "1"
-        c.reverseFromAtoB(2, 2) : error_outOfRange
+        c.reverseFromAtoB(2, 2) : eid_outOfRange
         c == "1"
-        c.reverseFromAtoB(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : eid_outOfRange
         c == "1"
-        c.reverseFromAtoB(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : eid_outOfRange
         c == "1"
-        c.reverseFromAtoB(-9223372036854775808, 1) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 1) : eid_outOfRange
         c == "1"
-        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : eid_outOfRange
         c == "1"
-        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : eid_outOfRange
         c == "1"
-        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         c == "1"
     c = "12"
     test: ok, errorsCoordinates
@@ -2835,25 +2837,25 @@ def testString_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
         c == "12"
         c.reverseFromAtoB(0, 2).nothing?()
         c == "21"
-        c.reverseFromAtoB(0, 3) : error_outOfRange
+        c.reverseFromAtoB(0, 3) : eid_outOfRange
         c == "21"
-        c.reverseFromAtoB(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : eid_outOfRange
         c == "21"
-        c.reverseFromAtoB(1, 3) : error_outOfRange
+        c.reverseFromAtoB(1, 3) : eid_outOfRange
         c == "21"
-        c.reverseFromAtoB(3, 3) : error_outOfRange
+        c.reverseFromAtoB(3, 3) : eid_outOfRange
         c == "21"
-        c.reverseFromAtoB(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : eid_outOfRange
         c == "21"
-        c.reverseFromAtoB(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : eid_outOfRange
         c == "21"
-        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : eid_outOfRange
         c == "21"
-        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : eid_outOfRange
         c == "21"
-        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : eid_outOfRange
         c == "21"
-        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         c == "21"
     c = "123456789"
     test: ok, errorsCoordinates
@@ -2873,27 +2875,27 @@ def testString_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
         c == "678912345"
         c.reverseFromAtoB(3, 7).nothing?()
         c == "678321945"
-        c.reverseFromAtoB(0, 10) : error_outOfRange
+        c.reverseFromAtoB(0, 10) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(9, 0) : error_outOfRange
+        c.reverseFromAtoB(9, 0) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(10, 0) : error_outOfRange
+        c.reverseFromAtoB(10, 0) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(3, -1) : error_outOfRange
+        c.reverseFromAtoB(3, -1) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         c == "678321945"
-        c.reverseFromAtoB(9223372036854775807, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(9223372036854775807, -9223372036854775808) : eid_outOfRange
         c == "678321945"
     c = ""
     for :(i Int = 0) i < 128; i++
@@ -2942,10 +2944,10 @@ def testString_ToUpper(write ok Int, write errorsCoordinates List)
 #noinline
 def testString_ItemTypeNumber(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        "".itemTypeNumber~() == Char.typeNumber~()
-        "0".itemTypeNumber~() == Char.typeNumber~()
-        "dfd".itemTypeNumber~() == Char.typeNumber~()
-        "01010".itemTypeNumber~() == Char.typeNumber~()
+        "".itemTypeNumber() == Char.typeNumber()
+        "0".itemTypeNumber() == Char.typeNumber()
+        "dfd".itemTypeNumber() == Char.typeNumber()
+        "01010".itemTypeNumber() == Char.typeNumber()
 
 #noinline
 def testString_Sort(write ok Int, write errorsCoordinates List)
@@ -3056,3 +3058,15 @@ def testString_StableSort(write ok Int, write errorsCoordinates List)
         allOk = allOk && a1[i] <= a1[i - 1]
     test: ok, errorsCoordinates
         allOk
+#noinline
+def testString_PrepareForThreads(write ok Int, write errorsCoordinates List)
+    const s String = "123".clone()
+    s.shar__rc_use()
+    test: ok, errorsCoordinates
+        "".clone().prepareForThreads() == ""
+        "a a".clone().prepareForThreads() == "a a"
+        "123".clone().prepareForThreads() == "123"
+        s.prepareForThreads() == "123"
+        s.prepareForThreads().unsafe_string_getCounter() == 1
+        "12".unsafe_string_getCounter() == 0
+    s.shar__rc_free()

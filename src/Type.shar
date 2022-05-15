@@ -5,101 +5,92 @@ export group Type
 
 #alwaysinline nothrow
 def type_rc_free(type $Any)
-    llvm
-        %##nreg##type as list## = insertvalue {i64, i32} %0, i32 ##tnum##STD::List##, 1
-        %##nreg##unneeded## = call {i64, i32} ##ancntfunc##STD::shar__rc_free.STD::List##({i64, i32} %##reg##type as list##)
-        ret {i64, i32} zeroinitializer
+    const counter Int = type.unsafe_getI64(0) & 0xffffffffff
+    const fieldsCount Int = type.unsafe_getI64(0) >> 40
+    if counter > 1
+        type.unsafe_setI64(0, (fieldsCount << 40) | (counter - 1))
+    elif counter == 1
+        const fieldsDatas Int = type.unsafe_offsetI64(1)
+        const fieldsTypes Int = fieldsDatas.unsafe_offsetI64(fieldsCount)
+        for :(index Int = 0) index < fieldsCount; index++
+            unsafe_object(fieldsTypes.unsafe_getI32(index), fieldsDatas.unsafe_getI64(index))
+        type.unsafe_free()
 
 #alwaysinline nothrow
 def type_rc_use(type $Any)
-    llvm
-        %##nreg##type as list## = insertvalue {i64, i32} %0, i32 ##tnum##STD::List##, 1
-        %##nreg##unneeded## = call {i64, i32} ##ancntfunc##STD::shar__rc_use.STD::List##({i64, i32} %##reg##type as list##)
-        ret {i64, i32} zeroinitializer
+    const counter Int = type.unsafe_getI64(0) & 0xffffffffff
+    if counter != 0
+        type.unsafe_setI64(0, (type.unsafe_getI64(0) & 0xffffff0000000000) | (counter + 1))
 
 #alwaysinline nothrow
 def type_to_const(type $Any)
-    llvm
-        %##nreg##type as list## = insertvalue {i64, i32} %0, i32 ##tnum##STD::List##, 1
-        %##nreg##unneeded## = call {i64, i32} ##ancntfunc##STD::shar__to_const.STD::List##({i64, i32} %##reg##type as list##)
-        ret {i64, i32} zeroinitializer
+    const counter Int = type.unsafe_getI64(0) & 0xffffffffff
+    if counter != 0
+        const fieldsCount Int = type.unsafe_getI64(0) >> 40
+        const fieldsDatas Int = type.unsafe_offsetI64(1)
+        const fieldsTypes Int = fieldsDatas.unsafe_offsetI64(fieldsCount)
+        for :(index Int = 0) index < fieldsCount; index++
+            unsafe_object(fieldsTypes.unsafe_getI32(index), fieldsDatas.unsafe_getI64(index)).shar__to_const()
+        type.unsafe_setI64(0, fieldsCount << 40)
 
 #alwaysinline nothrow
 def type_use?(type $Any) Bool
-    llvm
-        %##nreg##type as list## = insertvalue {i64, i32} %0, i32 ##tnum##STD::List##, 1
-        %##nreg##result## = call {i64, i32} ##ancntfunc##STD::use?.STD::List##({i64, i32} %##reg##type as list##)
-        ret {i64, i32} %##reg##result##
+    return (type.unsafe_getI64(0) & 0xffffffffff) != 1
 
 #alwaysinline nothrow
 def type_constant?(type $Any) Bool
-    llvm
-        %##nreg##type as list## = insertvalue {i64, i32} %0, i32 ##tnum##STD::List##, 1
-        %##nreg##result## = call {i64, i32} ##ancntfunc##STD::constant?.STD::List##({i64, i32} %##reg##type as list##)
-        ret {i64, i32} %##reg##result##
+    return (type.unsafe_getI64(0) & 0xffffffffff) == 0
 
 #alwaysinline nothrow
 def type_clone(type $Any) $Any
-    llvm
-        %##nreg##type as list## = insertvalue {i64, i32} %0, i32 ##tnum##STD::List##, 1
-        %##nreg##result list## = call {i64, i32} ##ancntfunc##STD::clone.STD::List##({i64, i32} %##reg##type as list##)
-        %##nreg##result list value## = extractvalue {i64, i32} %##reg##result list##, 0
-        %##nreg##result## = insertvalue {i64, i32} %0, i64 %##reg##result list value##, 0
-        ret {i64, i32} %##reg##result##
+    const fieldsCount Int = type.unsafe_getI64(0) >> 40
+    const result Int = unsafe_malloc(fieldsCount * 12 + 8)
+    unsafe_memcpyI32(result, type, fieldsCount * 3 + 2)
+    result.unsafe_setI64(0, (fieldsCount << 40) | 1)
+    const fieldsDatas Int = result.unsafe_offsetI64(1)
+    const fieldsTypes Int = fieldsDatas.unsafe_offsetI64(fieldsCount)
+    for :(index Int = 0) index < fieldsCount; index++
+        unsafe_use_object(fieldsTypes.unsafe_getI32(index), fieldsDatas.unsafe_getI64(index))
+    return unsafe_object(type.typeNumber(), result)
 
-//@The function converts the list to type.
-#this(Type) alwaysinline
-export def fromList(noread type This, list List) This
-    llvm
-        %##nreg##unneeded## = call {i64, i32} ##ancntfunc##STD::shar__rc_use.STD::List##({i64, i32} %1)
-        %##nreg##result value## = extractvalue {i64, i32} %1, 0
-        %##nreg##result## = insertvalue {i64, i32} %0, i64 %##reg##result value##, 0
-        ret {i64, i32} %##reg##result##
+#alwaysinline nothrow
+def type_getField(type $Any, fieldNumber Int) $Any
+    const fieldsDatas Int = type.unsafe_offsetI64(1)
+    const fieldsTypes Int = fieldsDatas.unsafe_offsetI64(type.unsafe_getI64(0) >> 40)
+    const result $Any = unsafe_object(fieldsTypes.unsafe_getI32(fieldNumber), fieldsDatas.unsafe_getI64(fieldNumber))
+    result.shar__rc_use()
+    return result
 
-//@The function converts the type to a list.
+#alwaysinline nothrow unsafewrite
+def type_putField(write type $Any, fieldNumber Int, newValue $Any) $Any
+    if type.type_use?()
+        type = type.type_clone()
+    const fieldsDatas Int = type.unsafe_offsetI64(1)
+    const fieldsTypes Int = fieldsDatas.unsafe_offsetI64(type.unsafe_getI64(0) >> 40)
+    const result $Any = unsafe_object(fieldsTypes.unsafe_getI32(fieldNumber), fieldsDatas.unsafe_getI64(fieldNumber))
+    newValue.shar__rc_use()
+    fieldsTypes.unsafe_setI32(fieldNumber, newValue.typeNumber())
+    fieldsDatas.unsafe_setI64(fieldNumber, newValue.unsafe_getValue())
+    return result
+
 #alwaysinline
-export def toList(type $Type) List
-    llvm
-        %##nreg##result value## = extractvalue {i64, i32} %0, 0
-        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::List##}, i64 %##reg##result value##, 0
-        %##nreg##unneeded## = call {i64, i32} ##ancntfunc##STD::shar__rc_use.STD::List##({i64, i32} %##reg##result##)
-        ret {i64, i32} %##reg##result##
+def type_dump(type $Any, level Int) String
+    const fieldsCount Int = type.unsafe_getI64(0) >> 40
+    const fieldsDatas Int = type.unsafe_offsetI64(1)
+    const fieldsTypes Int = fieldsDatas.unsafe_offsetI64(fieldsCount)
+    const spaces String = "  ".repeatPart(level)
+    var result String = spaces + "Type: " + type.typeNumber().getTypeName() + "\n"
+    for :(fieldIndex Int = 0) fieldIndex < fieldsCount; fieldIndex++
+        const field $Any = unsafe_object(fieldsTypes.unsafe_getI32(fieldIndex), fieldsDatas.unsafe_getI64(fieldIndex))
+        field.shar__rc_use()
+        result += spaces + "  " + unsafe_field_getName(type, fieldIndex) + ":" + field.dump(level + 1)[level * 2 + 1:]
+    return result
 
-//@The function is the same as the "STD::getItem" function for list.
-#alwaysinline
-export def typeGetItem(type $Type, index Int) $Any
-    llvm
-        %##nreg##type value## = extractvalue {i64, i32} %0, 0
-        %##nreg##type as list## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::List##}, i64 %##reg##type value##, 0
-        %##nreg##result## = call {i64, i32} ##ancfunc##STD::shar__sugar__getItem.STD::List##({i64, i32} %##reg##type as list##, {i64, i32} %1)
-        ret {i64, i32} %##reg##result##
-
-//@The function is the same as the "STD::setItem" function for list.
-#alwaysinline unsafewrite
-export def typeSetItem(write type $Type, index Int, newItem $Any)
-    llvm
-        %##nreg##ro type## = load {i64, i32}, {i64, i32}* %0, align 8
-        %##nreg##type value## = extractvalue {i64, i32} %##reg##ro type##, 0
-        %##nreg##type of type## = extractvalue {i64, i32} %##reg##ro type##, 1
-        %##nreg##type as list## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::List##}, i64 %##reg##type value##, 0
-        store {i64, i32} %##reg##type as list##, {i64, i32}* %0, align 8
-        %##nreg##result## = call {i64, i32} ##ancfunc##STD::setItem.STD::List##({i64, i32}* %0, {i64, i32} %1, {i64, i32} %2)
-        %##nreg##new ro type## = load {i64, i32}, {i64, i32}* %0, align 8
-        %##nreg##new type## = insertvalue {i64, i32} %##reg##new ro type##, i32 %##reg##type of type##, 1
-        store {i64, i32} %##reg##new type##, {i64, i32}* %0, align 8
-        ret {i64, i32} %##reg##result##
-
-//@The function is the same as the "STD::put" function for list.
-#alwaysinline unsafewrite
-export def typePut(write type $Type, index Int, newItem $Any) $Any
-    llvm
-        %##nreg##ro type## = load {i64, i32}, {i64, i32}* %0, align 8
-        %##nreg##type value## = extractvalue {i64, i32} %##reg##ro type##, 0
-        %##nreg##type of type## = extractvalue {i64, i32} %##reg##ro type##, 1
-        %##nreg##type as list## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::List##}, i64 %##reg##type value##, 0
-        store {i64, i32} %##reg##type as list##, {i64, i32}* %0, align 8
-        %##nreg##result## = call {i64, i32} ##ancfunc##STD::put.STD::List##({i64, i32}* %0, {i64, i32} %1, {i64, i32} %2)
-        %##nreg##new ro type## = load {i64, i32}, {i64, i32}* %0, align 8
-        %##nreg##new type## = insertvalue {i64, i32} %##reg##new ro type##, i32 %##reg##type of type##, 1
-        store {i64, i32} %##reg##new type##, {i64, i32}* %0, align 8
+#alwaysinline nothrow
+def unsafe_field_getName(type, fieldIndex $Any) String
+    IR
+        %##nreg##type number## = extractvalue {i64, i32} %0, 1
+        %##nreg##field index i64## = extractvalue {i64, i32} %1, 0
+        %##nreg##field index## = trunc i64 %##reg##field index i64## to i32
+        %##nreg##result## = call {i64, i32} @shar.get.field.name(i32 %##reg##type number##, i32 %##reg##field index##)
         ret {i64, i32} %##reg##result##

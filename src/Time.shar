@@ -4,7 +4,7 @@ module STD
 export primitive Time
 
 //@The function creates an object of the "STD::Time" type, which stores the time specified using the arguments.
-//@If the time specified in the arguments is not correct, or if a time is specified that the "STD::Time" type cannot store, then the function returns an error with the "enum::STD::error_outOfRange" code.
+//@If the time specified in the arguments is not correct, or if a time is specified that the "STD::Time" type cannot store, then the function returns an error with the "const::STD::eid_outOfRange" code.
 export def Time(year, month, day, hour, minute, second, microsecond Int) Time
     if {
         year.inRange?(1970, 294248) &&
@@ -49,13 +49,13 @@ export def Time(year, month, day, hour, minute, second, microsecond Int) Time
             resultAsInt = (resultAsInt + (day - 1) * 86400 + hour * 3600 + minute * 60 + second) * 1000000 + microsecond
             if resultAsInt >= 0
                 return intToTime(resultAsInt)
-    throw(enum::error_outOfRange, "Out of range.", nothing)
+    throw(const::eid_outOfRange, "Out of range.", nothing)
 
 //@The function disassembles the specified time into components.
 //@The function returns an array with 6 numbers of "Int" type, in the following order: year, month, day, hours, minute, second, microsecond.
 #nothrow
 export def disassembleTime(time Time) Array
-    var allMicroseconds Int = timeToInt(time)
+    const allMicroseconds Int = timeToInt(time)
     const microsecond Int = allMicroseconds % 1000000
     const second Int = allMicroseconds / 1000000 % 60
     const minute Int = allMicroseconds % 3600000000 / 60000000
@@ -188,52 +188,52 @@ export def disassembleTime(time Time) Array
 
 //@The function finds out how many microseconds will be if the specified time is disassemble into components.
 #alwaysinline nothrow
-export def microsecond~(time Time) Int
+export def microsecond(time Time) Int
     return timeToInt(time) % 1000000
 
 //@The function finds out how many seconds will be if the specified time is disassemble into components.
 #alwaysinline nothrow
-export def second~(time Time) Int
+export def second(time Time) Int
     return timeToInt(time) / 1000000 % 60
 
 //@The function finds out how many minutes will be if the specified time is disassemble into components.
 #alwaysinline nothrow
-export def minute~(time Time) Int
+export def minute(time Time) Int
     return timeToInt(time) % 3600000000 / 60000000
 
 //@The function finds out how many hours will be if the specified time is disassemble into components.
 #alwaysinline nothrow
-export def hour~(time Time) Int
+export def hour(time Time) Int
     return timeToInt(time) % 86400000000 / 3600000000
 
 //@The function finds out what the day of the month will be, if the specified time is disassemble into components.
 #nothrow
-export def day~(time Time) Int
+export def day(time Time) Int
     return disassembleTime(time)[2]
 
 //@The function finds out what the month of the year will be, if the specified time is disassemble into components.
 #nothrow
-export def month~(time Time) Int
+export def month(time Time) Int
     return disassembleTime(time)[1]
 
 //@The function finds out what the year will be if the specified time is disassemble into components.
 #nothrow
-export def year~(time Time) Int
+export def year(time Time) Int
     return disassembleTime(time)[0]
 
 //@The function returns the current time.
 #alwaysinline nothrow
 export def currentTime() Time
-    llvm
-        %##nreg##time## = call i64 @shar__get__current__time()
+    IR
+        %##nreg##time## = call i64 @time__current()
         %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Time##}, i64 %##reg##time##, 0
         ret {i64, i32} %##reg##result##
 
 //@The function returns the current time. (UTC)
 #alwaysinline nothrow
 export def currentUTCTime() Time
-    llvm
-        %##nreg##time## = call i64 @shar__get__current__utc__time()
+    IR
+        %##nreg##time## = call i64 @time__current_utc()
         %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Time##}, i64 %##reg##time##, 0
         ret {i64, i32} %##reg##result##
 
@@ -243,30 +243,6 @@ export def timeToInt(time Time) Int
     return time.unsafe_getValue()
 
 attach Time to Independent
-
-#override(STD) alwaysinline
-def shar__rc_free(time Time)
-    return nothing
-
-#override(STD) alwaysinline
-def shar__rc_use(time Time)
-    return nothing
-
-#override(STD) alwaysinline
-def shar__to_const(time Time)
-    return nothing
-
-#override(STD) alwaysinline nothrow
-def use?(time Time) Bool
-    return false
-
-#override(STD) alwaysinline nothrow
-def constant?(time Time) Bool
-    return false
-
-#override(STD) alwaysinline nothrow
-def clone(time Time) Time
-    return time
 
 #override(STD) nothrow
 def dump(time Time, level Int) String
@@ -286,21 +262,17 @@ attach Time to Shar__sugar__notEqual
 
 attach Time to Ordered
     #alwaysinline nothrow
-    def compare(time1, time2 Time) Int
-        llvm
-            %##nreg##time1## = extractvalue {i64, i32} %0, 0
-            %##nreg##time2## = extractvalue {i64, i32} %1, 0
-            %##nreg##less## = icmp ult i64 %##reg##time1##, %##reg##time2##
-            %##nreg##equal## = icmp eq i64 %##reg##time1##, %##reg##time2##
-            %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-            %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
-            %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
-            ret {i64, i32} %##reg##result##
+    def compare(time1, time2 Time) CompareResult
+        if time1 < time2
+            return CompareResult[less]
+        if time1 > time2
+            return CompareResult[great]
+        return CompareResult[equal]
 
 attach Time to Shar__sugar__great
     #alwaysinline nothrow
     def shar__sugar__great(time1, time2 Time) Bool
-        llvm
+        IR
             %##nreg##time1## = extractvalue {i64, i32} %0, 0
             %##nreg##time2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp ugt i64 %##reg##time1##, %##reg##time2##
@@ -311,7 +283,7 @@ attach Time to Shar__sugar__great
 attach Time to Shar__sugar__greatOrEqual
     #alwaysinline nothrow
     def shar__sugar__greatOrEqual(time1, time2 Time) Bool
-        llvm
+        IR
             %##nreg##time1## = extractvalue {i64, i32} %0, 0
             %##nreg##time2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp uge i64 %##reg##time1##, %##reg##time2##
@@ -322,7 +294,7 @@ attach Time to Shar__sugar__greatOrEqual
 attach Time to Shar__sugar__less
     #alwaysinline nothrow
     def shar__sugar__less(time1, time2 Time) Bool
-        llvm
+        IR
             %##nreg##time1## = extractvalue {i64, i32} %0, 0
             %##nreg##time2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp ult i64 %##reg##time1##, %##reg##time2##
@@ -333,7 +305,7 @@ attach Time to Shar__sugar__less
 attach Time to Shar__sugar__lessOrEqual
     #alwaysinline nothrow
     def shar__sugar__lessOrEqual(time1, time2 Time) Bool
-        llvm
+        IR
             %##nreg##time1## = extractvalue {i64, i32} %0, 0
             %##nreg##time2## = extractvalue {i64, i32} %1, 0
             %##nreg##result i1## = icmp ule i64 %##reg##time1##, %##reg##time2##
@@ -365,18 +337,18 @@ attach Time to StringWriter
 attach Time to StringReader
     def fromString(noread type Time, string String) Time
         if {
-            string.length~() > 22 &&
+            string.length() > 22 &&
             string[0] >= '0' && string[0] <= '3' &&
             string[1] >= '0' && string[1] <= '9' &&
             string[2] >= '.' &&
             (string[3] == '0' || string[3] == '1') &&
             string[4] >= '0' && string[4] <= '9' &&
             string[5] >= '.' &&
-            string[string.length~() - 1] == ')'
+            string[string.length() - 1] == ')'
         }
             const day Int = (charToInt(string[0]) - charToInt('0')) * 10 + charToInt(string[1]) - charToInt('0')
             const month Int = (charToInt(string[3]) - charToInt('0')) * 10 + charToInt(string[4]) - charToInt('0')
-            const spaceIndex <>Int = string.lookFromAtoB(' ', 7, string.length~())
+            const spaceIndex <>Int = string.lookFromAtoB(' ', 7, string.length())
             var year Int = 0
             try
                 if !spaceIndex.nothing?()
@@ -384,7 +356,7 @@ attach Time to StringReader
             catch
                 nothing
             if {
-                year != 0 && (string.length~() - spaceIndex) > 12 &&
+                year != 0 && (string.length() - spaceIndex) > 12 &&
                 string[spaceIndex + 1] >= '0' && string[spaceIndex + 1] <= '2' &&
                 string[spaceIndex + 2] >= '0' && string[spaceIndex + 2] <= '9' &&
                 string[spaceIndex + 3] >= ':' &&
@@ -397,7 +369,7 @@ attach Time to StringReader
             }
                 var microsecond Int = -1
                 try
-                    microsecond = Int.fromString(string[spaceIndex + 11 : string.length~() - 1])
+                    microsecond = Int.fromString(string[spaceIndex + 11 : string.length() - 1])
                 catch
                     nothing
                 if microsecond != -1
@@ -408,7 +380,7 @@ attach Time to StringReader
                         return Time(year, month, day, hour, minute, second, microsecond)
                     catch
                         nothing
-        throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
+        throw(const::eid_readFromString, "Reading from the string caused an error.", nothing)
 
 attach Time to Hashable
     #alwaysinline nothrow
@@ -422,10 +394,10 @@ attach Time to Hashable
 attach Time to BinarySerializable
     #alwaysinline nothrow
     def serialize(time Time, write bytes Bytes)
-        const newLength Int = bytes.length~() + 8
+        const newLength Int = bytes.length() + 8
         if bytes.use?()
             const newBytes Bytes = unsafe_bytes_createDummy(newLength)
-            unsafe_memcpyI8(newBytes.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length~())
+            unsafe_memcpyI8(newBytes.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length())
             bytes = newBytes
         else
             bytes.unsafe_realloc(newLength + 16)
@@ -435,8 +407,8 @@ attach Time to BinarySerializable
     #alwaysinline
     def deserialize(noread type Time, bytes Bytes, write position Int) Time
         inthrow
-            if bytes.length~() - position < 8 || position < 0
-                throw(enum::error_outOfRange, "Out of range.", nothing)
+            if bytes.length() - position < 8 || position < 0
+                throw(const::eid_outOfRange, "Out of range.", nothing)
         const resultAsInt Int = bytes.unsafe_offsetI8(position + 16).unsafe_getI64(0)
         position += 8
         return resultAsInt.intToTime()

@@ -1,87 +1,55 @@
 module STD
 
 //@The file system object type.
-export enum
-    // block device
-    fsot_block
-    // character device
-    fsot_char
-    // directory
-    fsot_dir
-    // named pipe
-    fsot_pipe
-    // symbolic link
-    fsot_link
-    // regular file
-    fsot_file
-    // UNIX domain socket
-    fsot_socket
-    // unknown
-    fsot_unknown
+export enum FSOType
+    block // block device
+    char // character device
+    dir // directory
+    pipe // named pipe
+    link // symbolic link
+    file // regular file
+    socket // UNIX domain socket
+    unknown // unknown
 
 //@Type to store information about file system objects.
-//@An attempt to access the contents of a directory if the object is not a directory throws the "enum::STD::error_accessContentsOfNotDirectory" error.
 export type FSObject
-    // name String
-    // type enum::fsot_*
-    // (if type == fsot_dir) subObjects [FSObject] | (if it was not possible to access the contents of a directory) Nothing
+    name       String
+    type       FSOType
+    subObjects <>Array // <>[FSObject]
 
 #override(STD)
-def dump(fsObject FSObject, level Int) String
+def dump(object FSObject, level Int) String
     const levelSpaces String = "  ".repeatPart(level)
-    var result String = levelSpaces + "Type: STD::FSObject = {name: " + fsObject.fsoName~() + ", type: "
+    var result String = levelSpaces + "Type: STD::FSObject = {name: " + object.name~() + ", type: "
     var typeString String = ""
-    eSwitch fsObject.fsoType~()
-    case fsot_block
+    eSwitch object.type~()
+    case block
         typeString = "block device"
-    case fsot_char
+    case char
         typeString = "character device"
-    case fsot_dir
+    case dir
         typeString = "directory"
-    case fsot_pipe
+    case pipe
         typeString = "named pipe"
-    case fsot_link
+    case link
         typeString = "symbolic link"
-    case fsot_file
+    case file
         typeString = "regular file"
-    case fsot_socket
+    case socket
         typeString = "UNIX domain socket"
-    case fsot_unknown
+    case unknown
         typeString = "unknown"
-    default
-        unreachable()
     result += typeString + "}"
-    if fsObject.fsoType~() == enum::fsot_dir
-        const subObjects <>Array = fsObject.fsoSubObjects~()
+    if object.type~().enumToInt() == FSOType[dir].enumToInt()
+        const subObjects <>Array = object.subObjects~()
         if subObjects.nothing?()
             result += " [!]"
         elif subObjects.empty?()
             result += " []"
         else
             result += " [\n"
-            parse _, subObject = subObjects
+            parse _, subObject FSObject = subObjects
                 result += subObject.dump(level + 1)
             result += levelSpaces + "]"
     result += "\n"
     return result
-
-#alwaysinline
-export def fsoName~(fsObject FSObject) String
-    return fsObject.typeGetItem(0)
-
-#alwaysinline
-export def fsoType~(fsObject FSObject) Int
-    return fsObject.typeGetItem(1)
-
-#alwaysinline
-export def fsoSubObjects~(fsObject FSObject) <>Array
-    inthrow
-        if fsObject.fsoType~() != enum::fsot_dir
-            throw(enum::error_accessContentsOfNotDirectory, "An attempt was made to access the contents of a directory, but the object is not a directory.", nothing)
-    return fsObject.typeGetItem(2)
-
-#alwaysinline nothrow
-def FSObject(name String, type Int, subObjects <>Array) FSObject
-    if type == enum::fsot_dir
-        return FSObject.fromList({name, type, subObjects})
-    return FSObject.fromList({name, type})
