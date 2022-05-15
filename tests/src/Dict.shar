@@ -1,52 +1,37 @@
 module Main
 
-primitive TestDict_BadInt
+type TestDict_BadInt
+    i Int
 
 attach TestDict_BadInt to Equal
 
 attach TestDict_BadInt to Shar__sugar__equal
     #alwaysinline nothrow
     def shar__sugar__equal(integer1, integer2 TestDict_BadInt) Bool
-        llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
-            %##nreg##result i1## = icmp eq i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+        return integer1.i~() == integer2.i~()
 
 attach TestDict_BadInt to Shar__sugar__notEqual
     #alwaysinline nothrow
     def shar__sugar__notEqual(integer1, integer2 TestDict_BadInt) Bool
-        llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
-            %##nreg##result i1## = icmp ne i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+        return integer1.i~() != integer2.i~()
 
 attach TestDict_BadInt to Hashable
     #alwaysinline nothrow
     def getHash(int TestDict_BadInt) Int
-        return int.dict_toGood() & 15
+        return int.i~() & 15
 
     #alwaysinline nothrow
     def getRandomizedHash(int TestDict_BadInt) Int
-        return int.dict_toGood() & 15
+        return int.i~() & 15
 
 attach TestDict_BadInt to StringWriter
     #inline nothrow
     def toString(int TestDict_BadInt) String
-        return int.dict_toGood().toString()
-
-#alwaysinline nothrow
-def dict_toGood(int TestDict_BadInt) Int
-    return int.unsafe_getValue()
+        return int.i~().toString()
 
 #alwaysinline nothrow
 def dict_toBad(int Int) TestDict_BadInt
-    return unsafe_object(TestDict_BadInt.typeNumber~(), int)
+    return TestDict_BadInt{i: int}
 
 def unsafe_dict_getCounter(dict $Any) Int
     return dict.unsafe_getI64(0)
@@ -57,6 +42,7 @@ def testDict(write ok Int, write errorsCoordinates List)
     testDict_Part2(ok, errorsCoordinates)
     testDict_Part3(ok, errorsCoordinates)
     testDict_Part4(ok, errorsCoordinates)
+    testDict_Part5(ok, errorsCoordinates)
     testDict_Dump(ok, errorsCoordinates)
 
 #noinline
@@ -82,7 +68,7 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
         parse key, value = d2
             count++
             key.type!(String)
-            if !(value.typeNumber~() == Dict.typeNumber~() || value.typeNumber~() == String.typeNumber~())
+            if !(value.typeNumber() == Dict.typeNumber() || value.typeNumber() == String.typeNumber())
                 count = -1000
     catch
         count = 0
@@ -141,7 +127,7 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
         !d4.constant?()
     d1 = d1.clone()
     d2 = d3.clone()
-    var d5 Dict = d4.clone()
+    const d5 Dict = d4.clone()
     test: ok, errorsCoordinates
         unsafe_dict_getCounter(d1) == 1
         unsafe_dict_getCounter(d2) == 1
@@ -281,52 +267,37 @@ def testDict_MemoryManagement(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d1.length~() == 300
-        d2.length~() == 400
-        d3.length~() == 300
+        d1.length() == 300
+        d2.length() == 400
+        d3.length() == 300
 
 #noinline
 def testDict_Part1(write ok Int, write errorsCoordinates List)
     const ed Dict = Dict()
     var d Dict = Dict()
-    var s String = "123".clone()
+    const s String = "123".clone()
     test: ok, errorsCoordinates
-        ed.length~() == 0
-        ed.keyTypeNumber~() == Nothing.typeNumber~()
+        ed.length() == 0
         ed[12].nothing?()
         ed[0].nothing?()
         ed["asdf"].nothing?()
         ed[""].nothing?()
         ed['c'].nothing?()
         d.put(0, 72).nothing?()
-        d.length~() == 1
-        d.keyTypeNumber~() == Int.typeNumber~()
+        d.length() == 1
         d[12].nothing?()
         d[0] == 72
-        d["asdf"] : error_invalidType
-        d[""]: error_invalidType
-        d['c'] : error_invalidType
-        d.put("", 123) : error_invalidType
         d.put(0, "Ha") == 72
-        d.length~() == 1
-        d.keyTypeNumber~() == Int.typeNumber~()
+        d.length() == 1
         d[12].nothing?()
         d[0] == "Ha"
-        d["asdf"] : error_invalidType
-        d[""]: error_invalidType
-        d['c'] : error_invalidType
         d.put(-1, "").nothing?()
-        d.length~() == 2
-        d.keyTypeNumber~() == Int.typeNumber~()
+        d.length() == 2
         d[12].nothing?()
         d[0] == "Ha"
         d[-1] == ""
-        d["asdf"] : error_invalidType
-        d[""]: error_invalidType
-        d['c'] : error_invalidType
         d.put(3589, 'c').nothing?()
-        d.length~() == 3
-        d.keyTypeNumber~() == Int.typeNumber~()
+        d.length() == 3
         d[-2].nothing?()
         d[0] == "Ha"
         d[-1] == ""
@@ -334,79 +305,66 @@ def testDict_Part1(write ok Int, write errorsCoordinates List)
         d.put(0, "One") == "Ha"
         d.put(-1, "2") == ""
         d.put(3589, "some") == 'c'
-        d.length~() == 3
-        d.keyTypeNumber~() == Int.typeNumber~()
+        d.length() == 3
         d[-2].nothing?()
         d[0] == "One"
         d[-1] == "2"
         d[3589] == "some"
         s.unsafe_getI64(0) == 1
         d.put(17, s).nothing?()
-        d.length~() == 4
-        d.keyTypeNumber~() == Int.typeNumber~()
+        d.length() == 4
         d[17] == s
         s.unsafe_getI64(0) == 2
         d.put(-1, nothing) == "2"
-        d.length~() == 3
-        d.keyTypeNumber~() == Int.typeNumber~()
+        d.length() == 3
         d[0] == "One"
         d[-1].nothing?()
         d[3589] == "some"
         d[17] == s
         d.put(3589, nothing) == "some"
-        d.length~() == 2
-        d.keyTypeNumber~() == Int.typeNumber~()
+        d.length() == 2
         d[0] == "One"
         d[-1].nothing?()
         d[3589].nothing?()
         d[17] == s
         d.put(17, nothing) == s
-        d.length~() == 1
-        d.keyTypeNumber~() == Int.typeNumber~()
+        d.length() == 1
         d[0] == "One"
         d[-1].nothing?()
         d[3589].nothing?()
         d[17].nothing?()
         s.unsafe_getI64(0) == 1
         d.put(0, nothing) == "One"
-        d.length~() == 0
-        d.keyTypeNumber~() == Nothing.typeNumber~()
+        d.length() == 0
         d[0].nothing?()
         d[-1].nothing?()
         d[3589].nothing?()
         d[17].nothing?()
         d.put(s, s).nothing?()
-        d.length~() == 1
-        d.keyTypeNumber~() == String.typeNumber~()
+        d.length() == 1
         s.unsafe_getI64(0) == 3
-        d[0] : error_invalidType
         d[s] == s
         d[""].nothing?()
         d["1230"].nothing?()
         d["122"].nothing?()
         d.put("fg", "44").nothing?()
-        d.length~() == 2
-        d.keyTypeNumber~() == String.typeNumber~()
+        d.length() == 2
         s.unsafe_getI64(0) == 3
-        d[0] : error_invalidType
         d[s] == s
         d["fg"] == "44"
         d[""].nothing?()
         d["1230"].nothing?()
         d["122"].nothing?()
         d.put(s, nothing) == s
-        d.length~() == 1
-        d.keyTypeNumber~() == String.typeNumber~()
+        d.length() == 1
         s.unsafe_getI64(0) == 1
-        d[0] : error_invalidType
         d["fg"] == "44"
         d[s].nothing?()
         d[""].nothing?()
         d["1230"].nothing?()
         d["122"].nothing?()
         d.put("fg", nothing) == "44"
-        d.length~() == 0
-        d.keyTypeNumber~() == Nothing.typeNumber~()
+        d.length() == 0
         s.unsafe_getI64(0) == 1
         d[0].nothing?()
         d["fg"].nothing?()
@@ -426,7 +384,7 @@ def testDict_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 0
+        d.length() == 0
     allOk = false
     try
         for :(index Int = 0) index < 200; index++
@@ -437,7 +395,7 @@ def testDict_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     var count Int = 0
     try
@@ -461,7 +419,7 @@ def testDict_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -472,7 +430,7 @@ def testDict_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 100
+        d.length() == 100
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -502,7 +460,7 @@ def testDict_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 0
+        d.length() == 0
 
 #noinline
 def testDict_Part3(write ok Int, write errorsCoordinates List)
@@ -520,7 +478,7 @@ def testDict_Part3(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     try
         for :(index Int = 0) index < 200; index++
@@ -531,7 +489,7 @@ def testDict_Part3(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -542,7 +500,7 @@ def testDict_Part3(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 100
+        d.length() == 100
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -573,7 +531,7 @@ def testDict_Part3(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 0
+        d.length() == 0
 
 #noinline
 def testDict_Part4(write ok Int, write errorsCoordinates List)
@@ -588,13 +546,13 @@ def testDict_Part4(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     var count Int = 0
     try
-        parse :(parse) key, value = d
+        parse :(parse) key TestDict_BadInt, value = d
             count++
-            allOk = value == (key.dict_toGood() << 2)
+            allOk = value == (key.i~() << 2)
             if !allOk
                 end parse
     catch
@@ -612,7 +570,7 @@ def testDict_Part4(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -623,7 +581,7 @@ def testDict_Part4(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 100
+        d.length() == 100
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -654,7 +612,56 @@ def testDict_Part4(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 0
+        d.length() == 0
+
+#noinline
+def testDict_Part5(write ok Int, write errorsCoordinates List)
+    var d Dict = Dict()
+    var a Array = []
+    for :(index Int = 0) index < 200; index++
+        a += [Int.getRandom(), Int.getRandom()]
+    var allOk Bool = false
+    try
+        for :(index Int = 0) index < 200; index++
+            if (index & 1) == 1
+                allOk = d.put(a[index * 2], a[index * 2 + 1].toString()).nothing?()
+            else
+                allOk = d.put(a[index * 2].toString(), a[index * 2 + 1]).nothing?()
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            if (index & 1) == 1
+                allOk = d.put(a[index * 2], index.toString()) == a[index * 2 + 1].toString()
+            else
+                allOk = d.put(a[index * 2].toString(), index) == a[index * 2 + 1]
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length() == 200
+    allOk = false
+    try
+        for :(index Int = 0) index < 200; index++
+            if (index & 1) == 1
+                allOk = d.put(a[index * 2], nothing) == index.toString()
+            else
+                allOk = d.put(a[index * 2].toString(), nothing) == index
+            if !allOk
+                end index
+    catch
+        allOk = false
+    test: ok, errorsCoordinates
+        allOk
+        d.length() == 0
 
 #noinline
 def testDict_Dump(write ok Int, write errorsCoordinates List)
@@ -664,5 +671,5 @@ def testDict_Dump(write ok Int, write errorsCoordinates List)
         d.dump(1) == "  Type: STD::Dict = []\n"
     d.put(12, "13")
     test: ok, errorsCoordinates
-        d.dump(0) == "Type: STD::Dict = [\n  key:\n    Type: STD::Int = 12\n  value:\n    Type: STD::String = 13\n]\n"
-        d.dump(1) == "  Type: STD::Dict = [\n    key:\n      Type: STD::Int = 12\n    value:\n      Type: STD::String = 13\n  ]\n"
+        d.dump(0) == "Type: STD::Dict = [\n  key: Type: STD::Int = 12\n  value: Type: STD::String = 13\n]\n"
+        d.dump(1) == "  Type: STD::Dict = [\n    key: Type: STD::Int = 12\n    value: Type: STD::String = 13\n  ]\n"

@@ -41,17 +41,17 @@ def constant?(bytes Bytes) Bool
 
 #override(STD) nothrow
 def clone(bytes Bytes) Bytes
-    var result Bytes = unsafe_bytes_createDummy(bytes.length~())
-    unsafe_memcpyI8(result.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length~())
+    var result Bytes = unsafe_bytes_createDummy(bytes.length())
+    unsafe_memcpyI8(result.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length())
     return result
 
 #override(STD) nothrow
 def dump(bytes Bytes, level Int) String
-    return "  ".repeatPart(level) + "Type: STD::Bytes = " + bytes.toString() + "\n"
+    return "  ".repeatPart(level) + "Type: STD::Bytes = " + bytes.empty?().select("EMPTY", bytes.toString()) + "\n"
 
 #alwaysinline nothrow
 def unsafe_bytes_createDummy(length $Any) Bytes
-    const result Bytes = unsafe_object(Bytes.typeNumber~(), unsafe_malloc(length + 16))
+    const result Bytes = unsafe_object(Bytes.typeNumber(), unsafe_malloc(length + 16))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, length)
     return result
@@ -61,31 +61,47 @@ attach Bytes to Equal
 attach Bytes to Shar__sugar__equal
     #alwaysinline nothrow
     def shar__sugar__equal(bytes1, bytes2 Bytes) Bool
-        return bytes1.compare(bytes2) == enum::ord_equal
+        eSwitch bytes1.compare(bytes2)
+        case equal
+            return true
+        case less, great
+            return false
 
 attach Bytes to Shar__sugar__notEqual
     #alwaysinline nothrow
     def shar__sugar__notEqual(bytes1, bytes2 Bytes) Bool
-        return bytes1.compare(bytes2) != enum::ord_equal
+        eSwitch bytes1.compare(bytes2)
+        case less, great
+            return true
+        case equal
+            return false
 
 attach Bytes to Ordered
     #alwaysinline nothrow
-    def compare(bytes1, bytes2 Bytes) Int
-        const length1 Int = bytes1.length~()
-        const length2 Int = bytes2.length~()
+    def compare(bytes1, bytes2 Bytes) CompareResult
+        const length1 Int = bytes1.length()
+        const length2 Int = bytes2.length()
         const generalLength Int = length1.min(length2)
-        return unsafe_bytes_compare(bytes1.unsafe_offsetI64(2), bytes2.unsafe_offsetI64(2), generalLength, length1, length2)
+        switch unsafe_bytes_compare(bytes1.unsafe_offsetI64(2), bytes2.unsafe_offsetI64(2), generalLength, length1, length2)
+        case 0
+            return CompareResult[equal]
+        case 1
+            return CompareResult[less]
+        case 2
+            return CompareResult[great]
+        default
+            unreachable()
 
 #alwaysinline nothrow
 def unsafe_bytes_compare(address1, address2, generalLength, length1, length2 $Any) Int
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address b1 i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address b1 i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address b1## = inttoptr i64 %##reg##address b1 i64## to <32 x i8>*
-        %##nreg##address b2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##address b2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##address b2## = inttoptr i64 %##reg##address b2 i64## to <32 x i8>*
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##length## = extractvalue {i64, i32} %2, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
         br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##simd loop##:
@@ -110,9 +126,9 @@ def unsafe_bytes_compare(address1, address2, generalLength, length1, length2 $An
         %##nreg##item from vector b1## = extractelement <32 x i8> %##reg##vector from address b1##, i32 %##reg##vector index##
         %##nreg##item from vector b2## = extractelement <32 x i8> %##reg##vector from address b2##, i32 %##reg##vector index##
         %##nreg##simd less## = icmp ult i8 %##reg##item from vector b1##, %##reg##item from vector b2##
-        %##nreg##simd result i64## = select i1 %##reg##simd less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##simd result i64##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result i64## = select i1 %##reg##simd less##, i64 1, i64 2
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##simd result i64##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##scalar label##:
         %##nreg##remain items 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain items 1##, %##reg##vector equal label##]
         %##nreg##vector address b1## = phi <32 x i8>* [%##reg##address b1##, %##reg##start##], [%##reg##new simd address b1##, %##reg##vector equal label##]
@@ -137,44 +153,59 @@ def unsafe_bytes_compare(address1, address2, generalLength, length1, length2 $An
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##not equal label##:
         %##nreg##scalar less## = icmp ult i8 %##reg##item from address b1##, %##reg##item from address b2##
-        %##nreg##scalar result i64## = select i1 %##reg##scalar less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar result i64##, 1
-        ret [2 x i64] %##reg##scalar result##
+        %##nreg##scalar result i64## = select i1 %##reg##scalar less##, i64 1, i64 2
+        %##nreg##scalar result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##scalar result i64##, 0
+        ret {i64, i32} %##reg##scalar result##
         ##nreg##end label##:
-        %##nreg##length b1## = extractvalue [2 x i64] %3, 1
-        %##nreg##length b2## = extractvalue [2 x i64] %4, 1
+        %##nreg##length b1## = extractvalue {i64, i32} %3, 0
+        %##nreg##length b2## = extractvalue {i64, i32} %4, 0
         %##nreg##less## = icmp ult i64 %##reg##length b1##, %##reg##length b2##
         %##nreg##equal## = icmp eq i64 %##reg##length b1##, %##reg##length b2##
-        %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
-
+        %##nreg##less or great## = select i1 %##reg##less##, i64 1, i64 2
+        %##nreg##result i64## = select i1 %##reg##equal##, i64 0, i64 %##reg##less or great##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach Bytes to Shar__sugar__less
     #alwaysinline nothrow
     def shar__sugar__less(bytes1, bytes2 Bytes) Bool
-        return bytes1.compare(bytes2) == enum::ord_less
+        eSwitch bytes1.compare(bytes2)
+        case less
+            return true
+        case equal, great
+            return false
 
 attach Bytes to Shar__sugar__great
     #alwaysinline nothrow
     def shar__sugar__great(bytes1, bytes2 Bytes) Bool
-        return bytes1.compare(bytes2) == enum::ord_great
+        eSwitch bytes1.compare(bytes2)
+        case great
+            return true
+        case equal, less
+            return false
 
 attach Bytes to Shar__sugar__lessOrEqual
     #alwaysinline nothrow
     def shar__sugar__lessOrEqual(bytes1, bytes2 Bytes) Bool
-        return bytes1.compare(bytes2) != enum::ord_great
+        eSwitch bytes1.compare(bytes2)
+        case less, equal
+            return true
+        case great
+            return false
 
 attach Bytes to Shar__sugar__greatOrEqual
     #alwaysinline nothrow
     def shar__sugar__greatOrEqual(bytes1, bytes2 Bytes) Bool
-        return bytes1.compare(bytes2) != enum::ord_less
+        eSwitch bytes1.compare(bytes2)
+        case equal, great
+            return true
+        case less
+            return false
 
 attach Bytes to Shar__sugar__getFromAToLast
     #alwaysinline
     def shar__sugar__getFromAToLast(bytes Bytes, a Int) Bytes
-        return bytes[a : bytes.length~()]
+        return bytes[a : bytes.length()]
 
 attach Bytes to Shar__sugar__getFromFirstToA
     #alwaysinline
@@ -185,8 +216,8 @@ attach Bytes to Shar__sugar__getRange
     #alwaysinline
     def shar__sugar__getRange(bytes Bytes, from, to Int) Bytes
         inthrow
-            if !(from >= 0 && from <= to && to <= bytes.length~())
-                throw(enum::error_outOfRange, "Out of range.", nothing)
+            if !(from >= 0 && from <= to && to <= bytes.length())
+                throw(const::eid_outOfRange, "Out of range.", nothing)
         var result Bytes = Bytes()
         const length Int = to - from
         if length != 0
@@ -195,33 +226,41 @@ attach Bytes to Shar__sugar__getRange
         return result
 
 attach Bytes to Shar__sugar__getItem
-    //@The result of the function is of type "STD::Int", and the byte is stored in the first eight bits of the result.
     #alwaysinline
-    def shar__sugar__getItem(bytes Bytes, index Int) Int
+    def shar__sugar__getItem(bytes Bytes, index Int) Byte
         inthrow
-            if !index.inRange?(0, bytes.length~())
-                throw(enum::error_outOfRange, "Out of range.", nothing)
-        return bytes.unsafe_getI8(index + 16)
+            if !index.inRange?(0, bytes.length())
+                throw(const::eid_outOfRange, "Out of range.", nothing)
+        return unsafe_object(Byte.typeNumber(), bytes.unsafe_getI8(index + 16))
 
 attach Bytes to Shar__sugar__add
     #inline nothrow
     def shar__sugar__add(bytes, addedBytes Bytes) Bytes
-        var result Bytes = unsafe_bytes_createDummy(bytes.length~() + addedBytes.length~())
-        copy(result, 0, bytes, 0, bytes.length~())
-        copy(result, bytes.length~(), addedBytes, 0, addedBytes.length~())
+        if addedBytes.empty?()
+            return bytes
+        if bytes.empty?()
+            return addedBytes
+        var result Bytes = unsafe_bytes_createDummy(bytes.length() + addedBytes.length())
+        copy(result, 0, bytes, 0, bytes.length())
+        copy(result, bytes.length(), addedBytes, 0, addedBytes.length())
         return result
 
 attach Bytes to Shar__sugar__addSet
     #inline nothrow
     def shar__sugar__addSet(write bytes, addedBytes Bytes)
+        if addedBytes.empty?()
+            return
+        if bytes.empty?()
+            bytes = addedBytes
+            return
         if bytes.use?()
             bytes = bytes + addedBytes
         elif !addedBytes.empty?()
-            const startBytesLength Int = bytes.length~()
-            const newLength Int = startBytesLength + addedBytes.length~()
+            const startBytesLength Int = bytes.length()
+            const newLength Int = startBytesLength + addedBytes.length()
             bytes.unsafe_setI64(1, newLength)
             bytes.unsafe_realloc(newLength + 16)
-            copy(bytes, startBytesLength, addedBytes, 0, addedBytes.length~())
+            copy(bytes, startBytesLength, addedBytes, 0, addedBytes.length())
 
 attach Bytes to StringWriter
     #nothrow
@@ -229,41 +268,41 @@ attach Bytes to StringWriter
         var result String = ""
         if !bytes.empty?()
             const realBytes Int = bytes.unsafe_offsetI64(2)
-            for :(index Int = 0) index < bytes.length~(); index++
+            for :(index Int = 0) index < bytes.length(); index++
                 const byte Int = realBytes.unsafe_getI8(index)
                 var bits Int = byte >> 4
                 var char1 Int = 0
                 var char2 Int = 0
                 switch bits
                 case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-                    char1 = bits + '0'.charToInt()
+                    char1 = bits + charToInt('0')
                 case 10, 11, 12, 13, 14, 15
-                    char1 = bits + 'A'.charToInt() - 10
+                    char1 = bits + charToInt('A') - 10
                 bits = byte & 0xf
                 switch bits
                 case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-                    char2 = bits + '0'.charToInt()
+                    char2 = bits + charToInt('0')
                 case 10, 11, 12, 13, 14, 15
-                    char2 = bits + 'A'.charToInt() - 10
-                result.addItem(char1.intToChar())
-                result.addItem(char2.intToChar())
+                    char2 = bits + charToInt('A') - 10
+                result.addItem(intToChar(char1))
+                result.addItem(intToChar(char2))
         return result
 
 attach Bytes to StringReader
     def fromString(noread type Bytes, string String) Bytes
         var result Bytes = Bytes()
-        var stringIsCorrect Bool = (string.length~() & 1) == 0
+        var stringIsCorrect Bool = (string.length() & 1) == 0
         if stringIsCorrect
-            for :(index Int = 0) index < string.length~(); index += 2
+            for :(index Int = 0) index < string.length(); index += 2
                 var byte Int = 0
                 var char Char = string[index]
                 switch char
                 case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-                    byte = char.charToInt() - '0'.charToInt()
+                    byte = charToInt(char) - charToInt('0')
                 case 'a', 'b', 'c', 'd', 'e', 'f'
-                    byte = char.charToInt() - 'a'.charToInt() + 10
+                    byte = charToInt(char) - charToInt('a') + 10
                 case 'A', 'B', 'C', 'D', 'E', 'F'
-                    byte = char.charToInt() - 'A'.charToInt() + 10
+                    byte = charToInt(char) - charToInt('A') + 10
                 default
                     stringIsCorrect = false
                     end index
@@ -271,28 +310,28 @@ attach Bytes to StringReader
                 char = string[index + 1]
                 switch char
                 case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-                    byte |= char.charToInt() - '0'.charToInt()
+                    byte |= charToInt(char) - charToInt('0')
                 case 'a', 'b', 'c', 'd', 'e', 'f'
-                    byte |= char.charToInt() - 'a'.charToInt() + 10
+                    byte |= charToInt(char) - charToInt('a') + 10
                 case 'A', 'B', 'C', 'D', 'E', 'F'
-                    byte |= char.charToInt() - 'A'.charToInt() + 10
+                    byte |= charToInt(char) - charToInt('A') + 10
                 default
                     stringIsCorrect = false
                     end index
-                result.addItem(byte)
+                result.addItem(unsafe_object(Byte.typeNumber(), byte))
         inthrow
             if !stringIsCorrect
-                throw(enum::error_readFromString, "Reading from the string caused an error.", nothing)
+                throw(const::eid_readFromString, "Reading from the string caused an error.", nothing)
         return result
 
 attach Bytes to Hashable
     #alwaysinline nothrow
     def getHash(bytes Bytes) Int
-        var result Int = bytes.length~()
+        var result Int = bytes.length()
         result += result << 10
         result ^= result >> 6
         const realBytes Int = bytes.unsafe_offsetI64(2)
-        for :(index Int = 0) index < bytes.length~(); index++
+        for :(index Int = 0) index < bytes.length(); index++
             result += realBytes.unsafe_getI8(index).getHash()
             result += result << 10
             result ^= result >> 6
@@ -304,13 +343,13 @@ attach Bytes to Hashable
     #alwaysinline nothrow
     def getRandomizedHash(bytes Bytes) Int
         const randomNumber Int = const::staticRandomNumber
-        var result Int = randomNumber + bytes.length~()
+        var result Int = randomNumber + bytes.length()
         const rightShifts Int = (randomNumber & 0xf) + 32
         const leftShifts Int = ((randomNumber & 0xf0) >> 4) + 32
         result += result << 10
         result ^= result >> 6
         const realBytes Int = bytes.unsafe_offsetI64(2)
-        for :(index Int = 0) index < bytes.length~(); index++
+        for :(index Int = 0) index < bytes.length(); index++
             result = (result >> rightShifts) + (result << leftShifts) + (result & 0xffffffff)
             result += realBytes.unsafe_getI8(index).getHash()
             result += result << 10
@@ -322,23 +361,23 @@ attach Bytes to Hashable
 
 attach Bytes to Long
     #alwaysinline nothrow
-    def length~(bytes Bytes) Int
+    def length(bytes Bytes) Int
         return bytes.unsafe_getI64(1)
 
 attach Bytes to Empty
     #alwaysinline nothrow
     def createEmpty(noread type Bytes) Bytes
-        llvm
-            ret [2 x i64] [i64 ##tnum##STD::Bytes##, i64 ptrtoint ([2 x i64]* ##llvmconst##>private unnamed_addr constant [2 x i64] zeroinitializer, align 8<## to i64)]
+        IR
+            ret {i64, i32} {i64 ptrtoint ([2 x i64]* ##llvmconst##>private unnamed_addr constant [2 x i64] zeroinitializer, align 8<## to i64), i32 ##tnum##STD::Bytes##}
 
 attach Bytes to Put
-    //@The result of the function and the new byte are of type "STD::Int", and the byte is stored in the first eight bits of the integer.
+    //@If the index is less than zero, or greater than the index of the last item, then the function returns an error with the code "const::STD::eid_outOfRange".
     #alwaysinline
-    def put(write bytes Bytes, index, newByte Int) Int
+    def put(write bytes Bytes, index Int, newByte Byte) Byte
         inthrow
-            if !index.inRange?(0, bytes.length~())
-                throw(enum::error_outOfRange, "Out of range.", nothing)
-        const oldByte Int = bytes.unsafe_getI8(index + 16)
+            if !index.inRange?(0, bytes.length())
+                throw(const::eid_outOfRange, "Out of range.", nothing)
+        const oldByte Byte = unsafe_object(Byte.typeNumber(), bytes.unsafe_getI8(index + 16))
         if bytes.use?()
             bytes = bytes.clone()
         bytes.unsafe_setI8(index + 16, newByte)
@@ -351,9 +390,9 @@ attach Bytes to Iterable
 
     #alwaysinline nothrow
     def parse__predicate(bytes Bytes, index Int) Bool
-        return index != bytes.length~()
+        return index != bytes.length()
 
-    #alwaysinline unsafewrite nothrow
+    #alwaysinline nothrow
     def parse__next(bytes Bytes, write index Int)
         index++
 
@@ -362,34 +401,32 @@ attach Bytes to Iterable
         return index
 
     #alwaysinline nothrow
-    def parse__get__item(bytes Bytes, index Int) Int
-        return bytes.unsafe_getI8(index + 16)
+    def parse__get__item(bytes Bytes, index Int) Byte
+        return unsafe_object(Byte.typeNumber(), bytes.unsafe_getI8(index + 16))
 
 attach Bytes to Container
-    //@The new byte is of type "STD::Int", and the byte is stored in the first eight bits of the integer.
     #alwaysinline
-    def addItem(write bytes Bytes, newByte Int)
+    def addItem(write bytes Bytes, newByte Byte)
         if bytes.use?()
             bytes = bytes.addItem$(newByte)
         else
-            const newLength Int = bytes.length~() + 1
+            const newLength Int = bytes.length() + 1
             bytes.unsafe_setI64(1, newLength)
             bytes.unsafe_realloc(newLength + 16)
             bytes.unsafe_setI8(newLength + 15, newByte)
 
-    //@The new byte is of type "STD::Int", and the byte is stored in the first eight bits of the integer.
     #alwaysinline
-    def addItem$(bytes Bytes, newByte Int) Bytes
-        const newLength Int = bytes.length~() + 1
+    def addItem$(bytes Bytes, newByte Byte) Bytes
+        const newLength Int = bytes.length() + 1
         var newBytes Bytes = unsafe_bytes_createDummy(newLength)
-        unsafe_memcpyI8(newBytes.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length~())
+        unsafe_memcpyI8(newBytes.unsafe_offsetI64(2), bytes.unsafe_offsetI64(2), bytes.length())
         newBytes.unsafe_setI8(newLength + 15, newByte)
         return newBytes
 
 #override(STD) alwaysinline
 def copy(write destination Bytes, destinationPosition Int, source Bytes, sourcePosition, length Int)
-    const destinationLength Int = destination.length~()
-    const sourceLength Int = source.length~()
+    const destinationLength Int = destination.length()
+    const sourceLength Int = source.length()
     inthrow
         if {
             !(
@@ -398,13 +435,13 @@ def copy(write destination Bytes, destinationPosition Int, source Bytes, sourceP
                 length >= 0 && length <= (destinationLength - destinationPosition).min(sourceLength - sourcePosition)
             )
         }
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if destination.use?()
-        var newBytes Bytes = unsafe_bytes_createDummy(destinationLength)
+        const newBytes Bytes = unsafe_bytes_createDummy(destinationLength)
         unsafe_memcpyI8(newBytes.unsafe_offsetI64(2), destination.unsafe_offsetI64(2), destinationPosition)
         unsafe_memcpyI8(destination.unsafe_offsetI8(16 + destinationPosition), source.unsafe_offsetI8(16 + sourcePosition), length)
         const lastPartStartIndex Int = destinationPosition + length
-        unsafe_memcpyI8(newBytes.unsafe_offsetI8(16 + lastPartStartIndex), destination.unsafe_offsetI8(16 + lastPartStartIndex), destination.length~() - lastPartStartIndex)
+        unsafe_memcpyI8(newBytes.unsafe_offsetI8(16 + lastPartStartIndex), destination.unsafe_offsetI8(16 + lastPartStartIndex), destination.length() - lastPartStartIndex)
         destination = newBytes
     else
         unsafe_memcpyI8(destination.unsafe_offsetI8(16 + destinationPosition), source.unsafe_offsetI8(16 + sourcePosition), length)
@@ -412,7 +449,7 @@ def copy(write destination Bytes, destinationPosition Int, source Bytes, sourceP
 attach Bytes to BinarySerializable
     #alwaysinline nothrow
     def serialize(bytesInput, write bytesOutput Bytes)
-        bytesInput.length~().serialize(bytesOutput)
+        bytesInput.length().serialize(bytesOutput)
         bytesOutput += bytesInput
 
     #alwaysinline
@@ -420,9 +457,9 @@ attach Bytes to BinarySerializable
         const startPosition Int = position
         const length Int = Int.deserialize(bytes, position)
         inthrow
-            if bytes.length~() - position < length || position < 0
+            if bytes.length() - position < length || position < 0
                 position = startPosition
-                throw(enum::error_outOfRange, "Out of range.", nothing)
+                throw(const::eid_outOfRange, "Out of range.", nothing)
         var result Bytes = unsafe_bytes_createDummy(length)
         unsafe_memcpyI8(result.unsafe_offsetI64(2), bytes.unsafe_offsetI8(position + 16), length)
         position += length
@@ -431,8 +468,8 @@ attach Bytes to BinarySerializable
 #override(STD) alwaysinline
 def swap(write bytes Bytes, position1, position2 Int)
     inthrow
-        if !(position1.inRange?(0, bytes.length~()) && position2.inRange?(0, bytes.length~()))
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(position1.inRange?(0, bytes.length()) && position2.inRange?(0, bytes.length()))
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if bytes.use?()
         bytes = bytes.clone()
     const items Int = bytes.unsafe_offsetI64(2)
@@ -441,26 +478,26 @@ def swap(write bytes Bytes, position1, position2 Int)
     items.unsafe_setI8(position2, tmpItem)
 
 #override(STD) alwaysinline
-def setItem(write bytes Bytes, index, newItem Int)
+def setItem(write bytes Bytes, index Int, newItem Byte)
     bytes.put(index, newItem)
 
 #override(STD) alwaysinline
-def countFromAtoB(bytes Bytes, item, a, b Int) Int
+def countFromAtoB(bytes Bytes, item Byte, a, b Int) Int
     inthrow
-        if !(a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(a >= 0 && a <= b && b <= bytes.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     return unsafe_bytes_countFromAtoB(bytes.unsafe_offsetI8(a + 16), item, b - a)
 
 #alwaysinline nothrow
 def unsafe_bytes_countFromAtoB(address, item, length $Any) Int
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##item## = trunc i64 %##reg##item 64## to i8
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
+        %##nreg##length## = extractvalue {i64, i32} %2, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
@@ -503,22 +540,22 @@ def unsafe_bytes_countFromAtoB(address, item, length $Any) Int
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
         %##nreg##result 4## = phi i64 [%##reg##result 2##, %##reg##scalar label##], [%##reg##new result 3##, %##reg##scalar loop##]
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result 4##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result 4##, 0
+        ret {i64, i32} %##reg##result##
 
 #override(STD) inline
 def countPartFromAtoB(bytes, part Bytes, a, b Int) Int
-    const partLength Int = part.length~()
-    const bytesLength Int = bytes.length~()
+    const partLength Int = part.length()
+    const bytesLength Int = bytes.length()
     inthrow
         if !(a >= 0 && a <= b && b <= bytesLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
+            throw(const::eid_nothingToLook, "There is nothing to count.", nothing)
     var result Int = 0
     const edge Int = b - partLength + 1
     if edge > 0
-        const firstByte Int = part.unsafe_getI8(16)
+        const firstByte Byte = unsafe_object(Byte.typeNumber(), part.unsafe_getI8(16))
         for :(index Int = a) index < edge
             const indexOfFirstByte <>Int = bytes.lookFromAtoB(firstByte, index, edge)
             if indexOfFirstByte.nothing?()
@@ -532,34 +569,36 @@ def countPartFromAtoB(bytes, part Bytes, a, b Int) Int
 
 #override(STD) alwaysinline nothrow
 def partsEqual?(bytes1 Bytes, from1 Int, bytes2 Bytes, from2, length Int) Bool
-    const bytes1Length Int = bytes1.length~()
-    const bytes2Length Int = bytes2.length~()
-    return {
+    const bytes1Length Int = bytes1.length()
+    const bytes2Length Int = bytes2.length()
+    if {
         from1 >= 0 && from1 <= bytes1Length &&
         from2 >= 0 && from2 <= bytes2Length &&
-        length >= 0 && length <= (bytes1Length - from1).min(bytes2Length - from2) &&
-        unsafe_bytes_compare(bytes1.unsafe_offsetI8(from1 + 16), bytes2.unsafe_offsetI8(from2 + 16), length, length, length) == enum::ord_equal
+        length >= 0 && length <= (bytes1Length - from1).min(bytes2Length - from2)
+
     }
+        return unsafe_bytes_compare(bytes1.unsafe_offsetI8(from1 + 16), bytes2.unsafe_offsetI8(from2 + 16), length, length, length) == 0
+    return false
 
 #override(STD) alwaysinline
-def lookNFromAtoB(bytes Bytes, item, n, a, b Int) <>Int
+def lookNFromAtoB(bytes Bytes, item Byte, n, a, b Int) <>Int
     inthrow
-        if !(n > 0 && a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(n > 0 && a >= 0 && a <= b && b <= bytes.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     return unsafe_bytes_lookNFromAtoB(bytes.unsafe_offsetI8(a + 16), item, n, a, b)
 
 #alwaysinline nothrow
 def unsafe_bytes_lookNFromAtoB(address, item, n, a, b $Any) <>Int
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##item## = trunc i64 %##reg##item 64## to i8
-        %##nreg##n## = extractvalue [2 x i64] %2, 1
-        %##nreg##a## = extractvalue [2 x i64] %3, 1
-        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##n## = extractvalue {i64, i32} %2, 0
+        %##nreg##a## = extractvalue {i64, i32} %3, 0
+        %##nreg##b## = extractvalue {i64, i32} %4, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
         %##nreg##use simd## = icmp uge i64 %##reg##range size##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
@@ -593,8 +632,8 @@ def unsafe_bytes_lookNFromAtoB(address, item, n, a, b $Any) <>Int
         %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain items 1##
         %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
         %##nreg##full simd index## = add i64 %##reg##start index##, %##reg##offset##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full simd index##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##continue simd search##:
         %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
         %##nreg##new simd address## = getelementptr <32 x i8>, <32 x i8>* %##reg##address 1##, i64 1
@@ -625,24 +664,24 @@ def unsafe_bytes_lookNFromAtoB(address, item, n, a, b $Any) <>Int
         ##nreg##final found item label##:
         %##nreg##scalar offset## = sub i64 %##reg##range size##, %##reg##remain items 3##
         %##nreg##full scalar index## = add i64 %##reg##scalar offset##, %##reg##a##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full scalar index##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) inline
 def lookNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
-    const partLength Int = part.length~()
-    const bytesLength Int = bytes.length~()
+    const partLength Int = part.length()
+    const bytesLength Int = bytes.length()
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= bytesLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
+            throw(const::eid_nothingToLook, "There is nothing to look for.", nothing)
     const edge Int = b - partLength + 1
     if edge > 0
         var mutN Int = n
-        const firstByte Int = part.unsafe_getI8(16)
+        const firstByte Byte = unsafe_object(Byte.typeNumber(), part.unsafe_getI8(16))
         for :(index Int = a) index < edge
             const indexOfFirstByte <>Int = bytes.lookFromAtoB(firstByte, index, edge)
             if indexOfFirstByte.nothing?()
@@ -657,25 +696,25 @@ def lookNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
     return nothing
 
 #override(STD) alwaysinline
-def lookAllFromAtoB(bytes Bytes, item, a, b Int) Array
+def lookAllFromAtoB(bytes Bytes, item Byte, a, b Int) Array
     inthrow
-        if !(a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(a >= 0 && a <= b && b <= bytes.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var result Array = [].clone()
     unsafe_bytes_lookAllFromAtoB(bytes.unsafe_offsetI8(a + 16), item, a, b, result)
     return result
 
 #alwaysinline nothrow unsafewrite
 def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##item## = trunc i64 %##reg##item 64## to i8
-        %##nreg##a## = extractvalue [2 x i64] %2, 1
-        %##nreg##b## = extractvalue [2 x i64] %3, 1
+        %##nreg##a## = extractvalue {i64, i32} %2, 0
+        %##nreg##b## = extractvalue {i64, i32} %3, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
         %##nreg##use simd## = icmp uge i64 %##reg##range size##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
@@ -694,14 +733,14 @@ def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
         ##nreg##simd add indexes##:
         %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain items 1##
         %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
-        %##nreg##start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##start index##, 1
+        %##nreg##start index arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##start index##, 0
         ##llvmdeclare##llvm.ctpop.i32##declare i32 @llvm.ctpop.i32(i32)##
         %##nreg##count of items in vector## = call i32 @llvm.ctpop.i32(i32 %##reg##vector compare result i32##)
         %##nreg##count of items in vector i64## = zext i32 %##reg##count of items in vector## to i64
-        %##nreg##count of items in vector arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##count of items in vector i64##, 1
+        %##nreg##count of items in vector arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##count of items in vector i64##, 0
         %##nreg##vector compare result i64## = zext i32 %##reg##vector compare result i32## to i64
-        %##nreg##vector compare result arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##vector compare result i64##, 1
-        %##nreg##unneeded 1## = call [2 x i64] ##ancntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndexes_SIMD##([2 x i64] %##reg##start index arg##, [2 x i64] %##reg##count of items in vector arg##, [2 x i64] %##reg##vector compare result arg##, [2 x i64]* %4)
+        %##nreg##vector compare result arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##vector compare result i64##, 0
+        %##nreg##unneeded 1## = call {i64, i32} ##ntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndexes_SIMD##({i64, i32} %##reg##start index arg##, {i64, i32} %##reg##count of items in vector arg##, {i64, i32} %##reg##vector compare result arg##, {i64, i32}* %4, i8* %5, i1 0)
         br label %##reg##simd continue search##
         ##nreg##simd continue search##:
         %##nreg##new remain items 1## = sub i64 %##reg##remain items 1##, 32
@@ -723,8 +762,8 @@ def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
         ##nreg##scalar add index##:
         %##nreg##offset## = sub i64 %##reg##range size##, %##reg##remain items 3##
         %##nreg##scalar start index## = add i64 %##reg##a##, %##reg##offset##
-        %##nreg##scalar start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar start index##, 1
-        %##nreg##unneeded 2## = call [2 x i64] ##ancntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndex_scalar##([2 x i64] %##reg##scalar start index arg##, [2 x i64]* %4)
+        %##nreg##scalar start index arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##scalar start index##, 0
+        %##nreg##unneeded 2## = call {i64, i32} ##ntfunc##STD::unsafe_bytes_lookAllFromAtoB_addIndex_scalar##({i64, i32} %##reg##scalar start index arg##, {i64, i32}* %4, i8* %5, i1 0)
         br label %##reg##scalar continue search##
         ##nreg##scalar continue search##:
         %##nreg##new remain items 3## = sub i64 %##reg##remain items 3##, 1
@@ -732,7 +771,7 @@ def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        %##nreg##result pointer of pointer## = getelementptr [2 x i64], [2 x i64]* %4, i64 0, i64 1
+        %##nreg##result pointer of pointer## = getelementptr {i64, i32}, {i64, i32}* %4, i64 0, i32 0
         %##nreg##result pointer i64## = load i64, i64* %##reg##result pointer of pointer##, align 8
         %##nreg##result pointer## = inttoptr i64 %##reg##result pointer i64## to i64*
         %##nreg##result length pointer## = getelementptr i64, i64* %##reg##result pointer##, i64 1
@@ -741,11 +780,11 @@ def unsafe_bytes_lookAllFromAtoB(address, item, a, b, write result $Any)
         %##nreg##length == 0## = icmp eq i64 %##reg##result length##, 0
         %##nreg##result new item type## = select i1 %##reg##length == 0##, i64 ##tnum##STD::Nothing##, i64 ##tnum##STD::Int##
         store i64 %##reg##result new item type##, i64* %##reg##result type pointer##, align 8
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #alwaysinline nothrow
 def unsafe_bytes_lookAllFromAtoB_addIndexes_SIMD(startIndex, countOfNewIndexes, itemsAsBits Int, write indexes Array)
-    const oldLength Int = indexes.length~()
+    const oldLength Int = indexes.length()
     const newLength Int = oldLength + countOfNewIndexes
     indexes.unsafe_setI64(1, newLength)
     indexes.unsafe_realloc(newLength * 8 + 24)
@@ -764,7 +803,7 @@ def unsafe_bytes_lookAllFromAtoB_addIndexes_SIMD(startIndex, countOfNewIndexes, 
 
 #alwaysinline nothrow
 def unsafe_bytes_lookAllFromAtoB_addIndex_scalar(index Int, write indexes Array)
-    const oldLength Int = indexes.length~()
+    const oldLength Int = indexes.length()
     const newLength Int = oldLength + 1
     indexes.unsafe_setI64(1, newLength)
     indexes.unsafe_realloc(newLength * 8 + 24)
@@ -772,17 +811,17 @@ def unsafe_bytes_lookAllFromAtoB_addIndex_scalar(index Int, write indexes Array)
 
 #override(STD) alwaysinline
 def lookAllPartsFromAtoB(bytes, part Bytes, a, b Int) Array
-    const partLength Int = part.length~()
-    const bytesLength Int = bytes.length~()
+    const partLength Int = part.length()
+    const bytesLength Int = bytes.length()
     inthrow
         if !(a >= 0 && a <= b && b <= bytesLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
+            throw(const::eid_nothingToLook, "There is nothing to count.", nothing)
     var result Array = []
     const edge Int = b - partLength + 1
     if edge > 0
-        const firstByte Int = part.unsafe_getI8(16)
+        const firstByte Byte = unsafe_object(Byte.typeNumber(), part.unsafe_getI8(16))
         for :(index Int = a) index < edge
             const indexOfFirstByte <>Int = bytes.lookFromAtoB(firstByte, index, edge)
             if indexOfFirstByte.nothing?()
@@ -795,24 +834,24 @@ def lookAllPartsFromAtoB(bytes, part Bytes, a, b Int) Array
     return result
 
 #override(STD) alwaysinline
-def lookBackNFromAtoB(bytes Bytes, item, n, a, b Int) <>Int
+def lookBackNFromAtoB(bytes Bytes, item Byte, n, a, b Int) <>Int
     inthrow
-        if !(n > 0 && a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(n > 0 && a >= 0 && a <= b && b <= bytes.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     return unsafe_bytes_lookBackNFromAtoB(bytes.unsafe_offsetI8(b + 16), item, n, a, b)
 
 #alwaysinline nothrow
 def unsafe_bytes_lookBackNFromAtoB(address, item, n, a, b $Any) <>Int
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##item## = trunc i64 %##reg##item 64## to i8
-        %##nreg##n## = extractvalue [2 x i64] %2, 1
-        %##nreg##a## = extractvalue [2 x i64] %3, 1
-        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##n## = extractvalue {i64, i32} %2, 0
+        %##nreg##a## = extractvalue {i64, i32} %3, 0
+        %##nreg##b## = extractvalue {i64, i32} %4, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
         %##nreg##use simd## = icmp uge i64 %##reg##range size##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
@@ -851,8 +890,8 @@ def unsafe_bytes_lookBackNFromAtoB(address, item, n, a, b $Any) <>Int
         ##nreg##simd found label##:
         %##nreg##start index## = add i64 %##reg##remain items 1##, %##reg##a##
         %##nreg##full simd index## = sub i64 %##reg##start index##, %##reg##offset##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full simd index##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##scalar label##:
         %##nreg##remain items 2## = phi i64 [%##reg##range size##, %##reg##start##], [%##reg##new remain items 1##, %##reg##continue simd search##]
         %##nreg##n 2## = phi i64 [%##reg##n##, %##reg##start##], [%##reg##n in simd look##, %##reg##continue simd search##]
@@ -878,24 +917,24 @@ def unsafe_bytes_lookBackNFromAtoB(address, item, n, a, b $Any) <>Int
         ##nreg##final found item label##:
         %##nreg##full scalar index + 1## = add i64 %##reg##remain items 3##, %##reg##a##
         %##nreg##full scalar index## = sub i64 %##reg##full scalar index + 1##, 1
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full scalar index##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) inline
 def lookBackNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
-    const partLength Int = part.length~()
-    const bytesLength Int = bytes.length~()
+    const partLength Int = part.length()
+    const bytesLength Int = bytes.length()
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= bytesLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
+            throw(const::eid_nothingToLook, "There is nothing to look for.", nothing)
     const firstEdge Int = b - partLength + 1
     if firstEdge > 0
         var mutN Int = n
-        const firstByte Int = part.unsafe_getI8(16)
+        const firstByte Byte = unsafe_object(Byte.typeNumber(), part.unsafe_getI8(16))
         for :(edge Int = firstEdge) edge > a
             const indexOfFirstByte <>Int = bytes.lookBackFromAtoB(firstByte, a, edge)
             if indexOfFirstByte.nothing?()
@@ -911,14 +950,14 @@ def lookBackNPartFromAtoB(bytes, part Bytes, n, a, b Int) <>Int
 
 #override(STD) alwaysinline
 def delete$(bytes Bytes, from, count Int) Bytes
-    const oldLength Int = bytes.length~()
+    const oldLength Int = bytes.length()
     const newLength Int = oldLength - count
     inthrow
         if {
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var result Bytes = unsafe_bytes_createDummy(newLength)
     const resultItems Int = result.unsafe_offsetI8(16)
     const bytesItems Int = bytes.unsafe_offsetI8(16)
@@ -928,13 +967,13 @@ def delete$(bytes Bytes, from, count Int) Bytes
 
 #override(STD) alwaysinline
 def delete(write bytes Bytes, from, count Int)
-    const oldLength Int = bytes.length~()
+    const oldLength Int = bytes.length()
     inthrow
         if {
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if count == 0
         return
     const newLength Int = oldLength - count
@@ -942,7 +981,7 @@ def delete(write bytes Bytes, from, count Int)
     const lastPartIndex Int = from + count
     const lastPartLength Int = oldLength - lastPartIndex
     if bytes.use?()
-        var newBytes Bytes = unsafe_bytes_createDummy(newLength)
+        const newBytes Bytes = unsafe_bytes_createDummy(newLength)
         const newItems Int = newBytes.unsafe_offsetI8(16)
         unsafe_memcpyI8(newItems, bytesItems, from)
         unsafe_memcpyI8(newItems.unsafe_offsetI8(from), bytesItems.unsafe_offsetI8(lastPartIndex), lastPartLength)
@@ -953,26 +992,26 @@ def delete(write bytes Bytes, from, count Int)
         bytes.unsafe_realloc(16 + newLength)
 
 #override(STD) alwaysinline nothrow
-def replace$(bytes Bytes, oldItem, newItem Int) Bytes
-    const length Int = bytes.length~()
+def replace$(bytes Bytes, oldItem, newItem Byte) Bytes
+    const length Int = bytes.length()
     var result Bytes = unsafe_bytes_createDummy(length)
     unsafe_bytes_replace$(result.unsafe_offsetI8(16), bytes.unsafe_offsetI8(16), oldItem, newItem, length)
     return result
 
 #alwaysinline nothrow
 def unsafe_bytes_replace$(destination, source, oldItem, newItem, length $Any)
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
         %##nreg##destination## = inttoptr i64 %##reg##destination i64## to <32 x i8>*
-        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##source i64## = extractvalue {i64, i32} %1, 0
         %##nreg##source## = inttoptr i64 %##reg##source i64## to <32 x i8>*
-        %##nreg##old item 64## = extractvalue [2 x i64] %2, 1
+        %##nreg##old item 64## = extractvalue {i64, i32} %2, 0
         %##nreg##old item## = trunc i64 %##reg##old item 64## to i8
-        %##nreg##new item 64## = extractvalue [2 x i64] %3, 1
+        %##nreg##new item 64## = extractvalue {i64, i32} %3, 0
         %##nreg##new item## = trunc i64 %##reg##new item 64## to i8
-        %##nreg##length## = extractvalue [2 x i64] %4, 1
+        %##nreg##length## = extractvalue {i64, i32} %4, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
@@ -1016,11 +1055,11 @@ def unsafe_bytes_replace$(destination, source, oldItem, newItem, length $Any)
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline nothrow
-def replace(write bytes Bytes, oldItem, newItem Int)
-    const length Int = bytes.length~()
+def replace(write bytes Bytes, oldItem, newItem Byte)
+    const length Int = bytes.length()
     if bytes.use?()
         bytes = bytes.replace$(oldItem, newItem)
     else
@@ -1028,16 +1067,16 @@ def replace(write bytes Bytes, oldItem, newItem Int)
 
 #alwaysinline nothrow
 def unsafe_bytes_replace(address, oldItem, newItem, length $Any)
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
         %##nreg##address## = inttoptr i64 %##reg##address i64## to <32 x i8>*
-        %##nreg##old item 64## = extractvalue [2 x i64] %1, 1
+        %##nreg##old item 64## = extractvalue {i64, i32} %1, 0
         %##nreg##old item## = trunc i64 %##reg##old item 64## to i8
-        %##nreg##new item 64## = extractvalue [2 x i64] %2, 1
+        %##nreg##new item 64## = extractvalue {i64, i32} %2, 0
         %##nreg##new item## = trunc i64 %##reg##new item 64## to i8
-        %##nreg##length## = extractvalue [2 x i64] %3, 1
+        %##nreg##length## = extractvalue {i64, i32} %3, 0
         %##nreg##use simd## = icmp uge i64 %##reg##length##, 32
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
@@ -1075,15 +1114,15 @@ def unsafe_bytes_replace(address, oldItem, newItem, length $Any)
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain items 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline
-def insert$(bytes Bytes, index, newItem Int) Bytes
-    const oldLength Int = bytes.length~()
+def insert$(bytes Bytes, index Int, newItem Byte) Bytes
+    const oldLength Int = bytes.length()
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var result Bytes = unsafe_bytes_createDummy(newLength)
     const resultItems Int = result.unsafe_offsetI8(16)
     const bytesItems Int = bytes.unsafe_offsetI8(16)
@@ -1093,14 +1132,14 @@ def insert$(bytes Bytes, index, newItem Int) Bytes
     return result
 
 #override(STD) alwaysinline
-def insert(write bytes Bytes, index, newItem Int)
-    const oldLength Int = bytes.length~()
+def insert(write bytes Bytes, index Int, newItem Byte)
+    const oldLength Int = bytes.length()
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if bytes.use?()
-        var newBytes Bytes = unsafe_bytes_createDummy(newLength)
+        const newBytes Bytes = unsafe_bytes_createDummy(newLength)
         const newItems Int = newBytes.unsafe_offsetI8(16)
         const bytesItems Int = bytes.unsafe_offsetI8(16)
         unsafe_memcpyI8(newItems, bytesItems, index)
@@ -1116,12 +1155,12 @@ def insert(write bytes Bytes, index, newItem Int)
 
 #override(STD) inline
 def insertPart$(bytes Bytes, index Int, addedBytes Bytes) Bytes
-    const oldLength Int = bytes.length~()
-    const addedLength Int = addedBytes.length~()
+    const oldLength Int = bytes.length()
+    const addedLength Int = addedBytes.length()
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return bytes
     var result Bytes = unsafe_bytes_createDummy(newLength)
@@ -1135,17 +1174,17 @@ def insertPart$(bytes Bytes, index Int, addedBytes Bytes) Bytes
 
 #override(STD) inline
 def insertPart(write bytes Bytes, index Int, addedBytes Bytes)
-    const oldLength Int = bytes.length~()
-    const addedLength Int = addedBytes.length~()
+    const oldLength Int = bytes.length()
+    const addedLength Int = addedBytes.length()
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return
     const addedItems Int = addedBytes.unsafe_offsetI8(16)
     if bytes.use?()
-        var newBytes Bytes = unsafe_bytes_createDummy(newLength)
+        const newBytes Bytes = unsafe_bytes_createDummy(newLength)
         const bytesItems Int = bytes.unsafe_offsetI8(16)
         const newBytesItems Int = newBytes.unsafe_offsetI8(16)
         unsafe_memcpyI8(newBytesItems, bytesItems, index)
@@ -1160,10 +1199,10 @@ def insertPart(write bytes Bytes, index Int, addedBytes Bytes)
         unsafe_memcpyI8(bytesItems.unsafe_offsetI8(index), addedItems, addedLength)
 
 #override(STD) alwaysinline
-def repeat(noread type Bytes, item, count Int) Bytes
+def repeat(item Byte, count Int, noread type Bytes) Bytes
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var result Bytes = unsafe_bytes_createDummy(count)
     unsafe_memsetI8(result.unsafe_offsetI8(16), item, count)
     return result
@@ -1172,8 +1211,8 @@ def repeat(noread type Bytes, item, count Int) Bytes
 def repeatPart(part Bytes, count Int) Bytes
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    const partLength Int = part.length~()
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    const partLength Int = part.length()
     const resultLength Int = count * partLength
     var result Bytes = unsafe_bytes_createDummy(resultLength)
     const resultItems Int = result.unsafe_offsetI8(16)
@@ -1190,8 +1229,8 @@ attach Bytes to Multithreaded
 #override(STD) alwaysinline
 def reverseFromAtoB(write bytes Bytes, a, b Int)
     inthrow
-        if !(a >= 0 && a <= b && b <= bytes.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(a >= 0 && a <= b && b <= bytes.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var mutA Int = a
     var mutB Int = b
     if bytes.use?()
@@ -1213,10 +1252,10 @@ def reverseFromAtoB(write bytes Bytes, a, b Int)
 
 #alwaysinline nothrow
 def unsafe_bytes_simdReverseAndSwapParts(part1, part2 $Any)
-    llvm
+    IR
         ##llvmdeclare##llvm.bswap.i256##declare i256 @llvm.bswap.i256(i256)##
-        %##nreg##part1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##part2 i64## = extractvalue [2 x i64] %1, 1
+        %##nreg##part1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##part2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##part1 pointer## = inttoptr i64 %##reg##part1 i64## to i256*
         %##nreg##part2 pointer## = inttoptr i64 %##reg##part2 i64## to i256*
         %##nreg##part1## = load i256, i256* %##reg##part1 pointer##, align 1
@@ -1225,4 +1264,4 @@ def unsafe_bytes_simdReverseAndSwapParts(part1, part2 $Any)
         %##nreg##reversed part2## = call i256 @llvm.bswap.i256(i256 %##reg##part2##)
         store i256 %##reg##reversed part1##, i256* %##reg##part2 pointer##, align 1
         store i256 %##reg##reversed part2##, i256* %##reg##part1 pointer##, align 1
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer

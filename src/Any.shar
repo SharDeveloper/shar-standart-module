@@ -6,112 +6,105 @@ export group Any
 //@The function decrements the reference count by one and frees memory if necessary.
 //@The function cannot return an error.
 #this(Any)
-export def shar__rc_free(a This)
-    if a.inGroups?(Type)
-        a.type_rc_free()
+export def shar__rc_free(object This)
+    if object.inGroups?(Type)
+        object.type_rc_free()
 
 //@The function increments the reference count by one.
 //@The function cannot return an error.
 #this(Any) alwaysinline
-export def shar__rc_use(a This)
-    if a.inGroups?(Type)
-        a.type_rc_use()
+export def shar__rc_use(object This)
+    if object.inGroups?(Type)
+        object.type_rc_use()
 
 //@The function turns its argument into a constant.
 //@The function cannot return an error.
 #this(Any)
-export def shar__to_const(a This)
-    if a.inGroups?(Type)
-        a.type_to_const()
+export def shar__to_const(object This)
+    if object.inGroups?(Type)
+        object.type_to_const()
 
 //@The function finds out if the function argument is used in several places in the program.
 //@If the argument is of a type for which this function does not make sense, then the function return "false".
 #this(Any) alwaysinline
-export def use?(a This) Bool
-    return a.inGroups?(Type) && a.type_use?()
+export def use?(object This) Bool
+    return object.inGroups?(Type) && object.type_use?()
 
 //@The function finds out if the function argument is a constant.
 //@If the argument is of a type for which this function does not make sense, then the function return "false".
 #this(Any) alwaysinline
-export def constant?(a This) Bool
-    return a.inGroups?(Type) && a.type_constant?()
+export def constant?(object This) Bool
+    return object.inGroups?(Type) && object.type_constant?()
 
 //@The function returns a partial copy of the function argument.
 //@If the "STD::use?" or "STD::constant?" function is applied to the result of the "STD::clone" function, then the result of the application of these functions is "false".
 #this(Any)
-export def clone(a This) This
-    return a.inGroups?(Type).select(a.type_clone(), a)
+export def clone(object This) This
+    return object.inGroups?(Type).select(object.type_clone(), object)
 
 //@The function gets information about the content of the object. (used for debugging)
 //@The "level" argument indicates how many nesting levels the function is, when it is called recursively.
 #this(Any)
 export def dump(object This, level Int) String
-    var result String = "  ".repeatPart(level) + "Type: " + object.typeNumber~().getTypeName() + "\n"
     if object.inGroups?(Type)
-        const objectAsAnyType $Any = object
-        parse _, field = objectAsAnyType.toList()
-            result += field.dump(level + 1)
-    return result
+        return object.type_dump(level)
+    if !object.inGroups?(Enumeration)
+        return "  ".repeatPart(level) + "Type: " + object.typeNumber().getTypeName() + "\n"
+    return object.enum_dump(level)
 
 //@The function returns its argument.
 #this(Any) alwaysinline
-export def same(a This) This
-    return a
+export def same(object This) This
+    return object
 
 //@The function finds out if the type of the first and second arguments of the function are the same.
 #alwaysinline nothrow
-export def type?(noread a, noread type $Any) Bool
-    return a.typeNumber~() == type.typeNumber~()
+export def type?(noread type1, noread type2 $Any) Bool
+    return type1.typeNumber() == type2.typeNumber()
 
-//@The function returns its first argument if its type is equal to the type of the second argument of the function, otherwise it returns an error with the "enum::STD::error_invalidType" code.
+//@The function returns its first argument if its type is equal to the type of the second argument of the function, otherwise it returns an error with the "const::STD::eid_invalidType" code.
 #this(Any) alwaysinline
-export def type!(a This, noread type This) This
-    return a
+export def type!(object $Any, noread type This) This
+    return object
 
 //@The function returns the type number of its argument.
 //@Two distinct types are guaranteed to have two different numbers.
 #alwaysinline nothrow
-export def typeNumber~(noread a $Any) Int
-    llvm
-        %##nreg##type## = extractvalue [2 x i64] %0, 0
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##type##, 1
-        ret [2 x i64] %##reg##result##
+export def typeNumber(noread object $Any) Int
+    IR
+        %##nreg##type## = zext i32 %0 to i64
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##type##, 0
+        ret {i64, i32} %##reg##result##
 
 //@The function swaps the values of its arguments.
-//@If the arguments are of different types, then the function returns an error with the code "enum::STD::error_invalidType", and the arguments remain unchanged.
-#alwaysinline unsafewrite
-export def exchange(write a, write b $Any)
-    inthrow
-        if !a.type?(b)
-            throw(enum::error_invalidType, "Invalid type", nothing)
-    unsafe_exchange(a, b)
-
-#alwaysinline unsafewrite
-def unsafe_exchange(write a, write b $Any)
-    llvm
-        %##nreg##a pointer## = getelementptr [2 x i64], [2 x i64]* %0, i64 0, i32 1
-        %##nreg##b pointer## = getelementptr [2 x i64], [2 x i64]* %1, i64 0, i32 1
+//@If the arguments are of different types, then the function returns an error with the code "const::STD::eid_invalidType", and the arguments remain unchanged.
+#this(Any) alwaysinline
+export def exchange(write a, write b This)
+    IR
+        %##nreg##a pointer## = getelementptr {i64, i32}, {i64, i32}* %0, i64 0, i32 0
+        %##nreg##b pointer## = getelementptr {i64, i32}, {i64, i32}* %1, i64 0, i32 0
         %##nreg##a## = load i64, i64* %##reg##a pointer##, align 8
         %##nreg##b## = load i64, i64* %##reg##b pointer##, align 8
         store i64 %##reg##a##, i64* %##reg##b pointer##, align 8
         store i64 %##reg##b##, i64* %##reg##a pointer##, align 8
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 //@The function returns the type name whose number is specified by the function argument.
-//@If the type with the specified number does not exist, the function returns an error with the code "enum::STD::error_outOfRange".
+//@If the type with the specified number does not exist, the function returns an error with the code "const::STD::eid_outOfRange".
 export def getTypeName(typeNumber Int) String
     const result String = typeNumber.unsafe_getTypeName()
     inthrow
         if result == ""
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     return result
 
 #alwaysinline nothrow
 def unsafe_getTypeName(typeNumber $Any) String
-    llvm
-        %##nreg##type number## = extractvalue [2 x i64] %0, 1
-        %##nreg##type name## = call [2 x i64] @shar.type.number.to.type.name(i64 %##reg##type number##)
-        ret [2 x i64] %##reg##type name##
+    IR
+        %##nreg##type number i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##type number## = trunc i64 %##reg##type number i64## to i32
+        %##nreg##type name## = call {i64, i32} @shar.type.number.to.type.name(i32 %##reg##type number##)
+        ret {i64, i32} %##reg##type name##
 
 #alwaysinline nothrow
 export def nothing?(noread arg $Any) Bool

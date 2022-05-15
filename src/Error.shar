@@ -4,64 +4,37 @@ primitive Error
 
 attach Error to Independent
 
-export enum
-    error_invalidType
-    error_noReturnValue
-    error_noError
-    error_fail
-    error_nothingToLook
-    error_outOfRange
-    error_divisionByZero
-    error_invalidShiftsNumber
-    error_readFromString
-    error_compareWithNaN
-    error_unreachable
-    error_notASingleCopy
-    error_clone
-    error_invalidFileMode
-    error_invalidCharacter
-    error_accessContentsOfNotDirectory
-    error_cantReadFromFile
-    error_cantWriteToFile
+export const eid_invalidType                  Int = 0
+export const eid_noReturnValue                Int = 1
+export const eid_noError                      Int = 2
+export const eid_fail                         Int = 3
+
+export const eid_nothingToLook                Int = 4
+export const eid_outOfRange                   Int = 5
+export const eid_divisionByZero               Int = 6
+export const eid_invalidShiftsNumber          Int = 7
+export const eid_readFromString               Int = 8
+export const eid_compareWithNaN               Int = 9
+export const eid_unreachable                  Int = 10
+export const eid_notASingleCopy               Int = 11
+export const eid_clone                        Int = 12
+export const eid_invalidFileMode              Int = 13
+export const eid_invalidCharacter             Int = 14
+export const eid_accessContentsOfNotDirectory Int = 15
+export const eid_cantReadFromFile             Int = 16
+export const eid_cantWriteToFile              Int = 17
 
 //@The function returns an error with the code specified in the first argument of the function, and contains the message from the second argument of the function and data from the third argument.
 #cold
 export def throw(id Int, message String, data $Any)
-    llvm
-        %##nreg##unneeded 1## = call [2 x i64] ##ancntfunc##STD::shar__rc_use.STD::String##([2 x i64] %1)
-        %##nreg##unneeded 2## = call [2 x i64] ##ancntfunc##STD::shar__rc_use##([2 x i64] %2)
-        %##nreg##id## = extractvalue [2 x i64] %0, 1
-        %##nreg##message## = extractvalue [2 x i64] %1, 1
-        %##nreg##data type## = extractvalue [2 x i64] %2, 0
-        %##nreg##data value## = extractvalue [2 x i64] %2, 1
-        %##nreg##error memory## = call i64* @shar.malloc(i64 40)
-        store i64 %##reg##id##, i64* %##reg##error memory##, align 8
-        %##nreg##message data pointer## = getelementptr i64, i64* %##reg##error memory##, i64 1
-        store i64 %##reg##message##, i64* %##reg##message data pointer##, align 8
-        %##nreg##error not constant## = getelementptr i64, i64* %##reg##error memory##, i64 2
-        store i64 1, i64* %##reg##error not constant##, align 8
-        %##nreg##error data type## = getelementptr i64, i64* %##reg##error memory##, i64 3
-        store i64 %##reg##data type##, i64* %##reg##error data type##, align 8
-        %##nreg##error data value## = getelementptr i64, i64* %##reg##error memory##, i64 4
-        store i64 %##reg##data value##, i64* %##reg##error data value##, align 8
-        %##nreg##error memory i64## = ptrtoint i64* %##reg##error memory## to i64
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Error##, i64 0], i64 %##reg##error memory i64##, 1
-        ret [2 x i64] %##reg##result##
+    IR
+        %##nreg##unneeded 1## = call {i64, i32} ##ntfunc##STD::shar__rc_use.STD::String##({i64, i32} %1, i8* %3, i1 0)
+        %##nreg##unneeded 2## = call {i64, i32} ##ntfunc##STD::shar__rc_use##({i64, i32} %2, i8* %3, i1 0)
+        %##nreg##error## = call {i64, i32} @error__create({i64, i32} %0, {i64, i32} %1, {i64, i32} %2)
+        ret {i64, i32} %##reg##error##
 
 //@The function is used to find errors.
 //@A correctly running program should not call this function.
 #cold
 export def unreachable()
-    throw(enum::error_unreachable, "The program has reached a piece of code that should never have been executed.", nothing)
-
-#override(STD) alwaysinline
-def shar__rc_free(error Error)
-    return nothing
-
-#override(STD) alwaysinline
-def shar__rc_use(error Error)
-    return nothing
-
-#override(STD) alwaysinline
-def shar__to_const(error Error)
-    return nothing
+    throw(const::eid_unreachable, "The program has reached a piece of code that should never have been executed.", nothing)

@@ -1,5 +1,11 @@
 module Main
 
+def intArrayToBytes_Threads(array Array) Bytes
+    var result Bytes = Bytes()
+    parse _, int Int = array
+        result.addItem(intToByte(int))
+    return result
+
 def testThreads(write ok Int, write errorsCoordinates List)
     testThreads_Multithreaded(ok, errorsCoordinates)
     testThreads_Pipeline(ok, errorsCoordinates)
@@ -7,37 +13,7 @@ def testThreads(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testThreads_Multithreaded(write ok Int, write errorsCoordinates List)
-    var s1 String = "123".clone()
-    const s2 String = s1
-    var s3 String = "".clone()
-    const s4 String = s3
     test: ok, errorsCoordinates
-        true.prepareForThreads()
-        false.prepareForThreads() == false
-        [1, 2, 3].repackTo(Bytes).prepareForThreads() == [1, 2, 3].repackTo(Bytes)
-        [1, 2, 3].repackTo(Bytes).prepareForThreads().unsafe_getI64(0).inRange?(0, 2)
-        [].repackTo(Bytes).prepareForThreads() == [].repackTo(Bytes)
-        [].repackTo(Bytes).prepareForThreads().unsafe_getI64(0).inRange?(0, 2)
-        '1'.prepareForThreads() == '1'
-        'f'.prepareForThreads() == 'f'
-        12.prepareForThreads() == 12
-        -123.prepareForThreads() == -123
-        1.0.prepareForThreads() == 1.0
-        -12.0.prepareForThreads() == -12.0
-        "123".prepareForThreads() == "123"
-        "123".prepareForThreads().unsafe_getI64(0) == 0
-        "123".clone().prepareForThreads().unsafe_getI64(0) == 1
-        s1.prepareForThreads().unsafe_getI64(0) == 1
-        "".prepareForThreads() == ""
-        "".prepareForThreads().unsafe_getI64(0) == 0
-        "".clone().prepareForThreads().unsafe_getI64(0) == 1
-        s3.prepareForThreads().unsafe_getI64(0) == 1
-        s1.unsafe_getI64(0) == 2
-        s2.unsafe_getI64(0) == 2
-        s3.unsafe_getI64(0) == 2
-        s4.unsafe_getI64(0) == 2
-        intToTime(12).prepareForThreads() == intToTime(12)
-        intToTime(0).prepareForThreads() == intToTime(0)
         yield().nothing?()
         sleep(1).nothing?()
         sleep(0).nothing?()
@@ -47,11 +23,11 @@ def testThreads_Pipeline(write ok Int, write errorsCoordinates List)
     const p Pipeline = Pipeline()
     const pOut PipelineOut = PipelineOut(p)
     const pIn PipelineIn = PipelineIn(p)
-    var s1 String = "123".clone()
+    const s1 String = "123".clone()
     const s2 String = s1
-    var s3 String = "".clone()
+    const s3 String = "".clone()
     const s4 String = s3
-    var s5 String = "34".clone()
+    const s5 String = "34".clone()
     test: ok, errorsCoordinates
         p.pop().nothing?()
         pOut.pop().nothing?()
@@ -84,9 +60,9 @@ def testThreads_Pipeline(write ok Int, write errorsCoordinates List)
         pOut.pop().nothing?()
         pIn.push("123").nothing?()
         pOut.pop() == "123"
-        pOut.wait(0) : error_outOfRange
-        pOut.wait(-1) : error_outOfRange
-        pOut.wait(-9223372036854775808) : error_outOfRange
+        pOut.wait(0) : eid_outOfRange
+        pOut.wait(-1) : eid_outOfRange
+        pOut.wait(-9223372036854775808) : eid_outOfRange
     for :(counter Int = 0) counter < 65; counter++
         pIn.push(counter)
     var allOk Bool = true

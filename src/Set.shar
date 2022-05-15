@@ -24,7 +24,7 @@ def shar__rc_free(set Set)
     if counter > 1
         set.unsafe_set_setCounter(counter - 1)
     elif counter == 1
-        const itemTypeNumber Int = set.itemTypeNumber~()
+        const itemTypeNumber Int = set.itemTypeNumber()
         const slotsCount Int = set.unsafe_set_slotsCount()
         for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
             const slotAddress Int = set.unsafe_set_slotAddress(slotIndex)
@@ -48,7 +48,7 @@ def shar__rc_use(set Set)
 def shar__to_const(set Set)
     if set.unsafe_set_getCounter() != 0
         set.unsafe_set_setCounter(0)
-        const itemTypeNumber Int = set.itemTypeNumber~()
+        const itemTypeNumber Int = set.itemTypeNumber()
         const slotsCount Int = set.unsafe_set_slotsCount()
         for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
             const slotAddress Int = set.unsafe_set_slotAddress(slotIndex)
@@ -79,10 +79,10 @@ def unsafe_set_slotAddress(set, index $Any) Int
 def clone(set Set) Set
     const slotsCount Int = set.unsafe_set_slotsCount()
     const memSizeI64 Int = 3 * slotsCount + 4
-    const result Set = unsafe_object(Set.typeNumber~(), unsafe_malloc(memSizeI64 * 8))
+    const result Set = unsafe_object(Set.typeNumber(), unsafe_malloc(memSizeI64 * 8))
     unsafe_memcpyI64(result, set, memSizeI64)
     result.unsafe_set_setCounter(1)
-    const itemTypeNumber Int = result.itemTypeNumber~()
+    const itemTypeNumber Int = result.itemTypeNumber()
     for :(slotIndex Int = 0) slotIndex < slotsCount; slotIndex++
         const resultSlotAddress Int = result.unsafe_set_slotAddress(slotIndex)
         const slotLength Int = resultSlotAddress.unsafe_getI64(0)
@@ -114,23 +114,23 @@ attach Set to Empty
     //@The function returns a constant.
     #alwaysinline nothrow
     def createEmpty(noread type Set) Set
-        llvm
-            ret [2 x i64] [i64 ##tnum##STD::Set##, i64 ptrtoint ([4 x i64]* ##llvmconst##>private unnamed_addr constant [4 x i64] zeroinitializer, align 8<## to i64)]
+        IR
+            ret {i64, i32} {i64 ptrtoint ([4 x i64]* ##llvmconst##>private unnamed_addr constant [4 x i64] zeroinitializer, align 8<## to i64), i32 ##tnum##STD::Set##}
 
 attach Set to Long
     #alwaysinline nothrow
-    def length~(set Set) Int
+    def length(set Set) Int
         return set.unsafe_getI64(1)
 
 attach Set to Shar__sugar__getItem
-    //@If the search takes place in a non-empty set and the type of the searched item does not match the type of the already existing items, then the function returns an error with the code "enum::STD::error_invalidType".
+    //@If the search takes place in a non-empty set and the type of the searched item does not match the type of the already existing items, then the function returns an error with the code "const::STD::eid_invalidType".
     def shar__sugar__getItem(set Set, item ${Equal, Hashable}) Bool
         if set.empty?()
             return false
-        const itemTypeNumberInSet Int = set.itemTypeNumber~()
+        const itemTypeNumberInSet Int = set.itemTypeNumber()
         inthrow
-            if itemTypeNumberInSet != item.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.", nothing)
+            if itemTypeNumberInSet != item.typeNumber()
+                throw(const::eid_invalidType, "Invalid type.", nothing)
         const slotAddress Int = set.unsafe_set_slotAddress(item.getShortRandomizedHash() & (set.unsafe_set_slotsCount() - 1))
         const slotLength Int = slotAddress.unsafe_getI64(0)
         var result Bool = false
@@ -146,18 +146,18 @@ attach Set to Shar__sugar__getItem
         return result
 
 attach Set to Set
-    //@If an item is added to a non-empty set and the type of the added item does not match the type of already existing items, the function returns an error with the code "enum::STD::error_invalidType".
+    //@If an item is added to a non-empty set and the type of the added item does not match the type of already existing items, the function returns an error with the code "const::STD::eid_invalidType".
     def add(write set Set, item ${Equal, Hashable}) Bool
-        const itemTypeNumberInSet Int = set.itemTypeNumber~()
+        const itemTypeNumberInSet Int = set.itemTypeNumber()
         inthrow
-            if !(itemTypeNumberInSet == item.typeNumber~() ||  itemTypeNumberInSet == Nothing.typeNumber~())
-                throw(enum::error_invalidType, "Invalid type.", nothing)
+            if !(itemTypeNumberInSet == item.typeNumber() ||  itemTypeNumberInSet == Nothing.typeNumber())
+                throw(const::eid_invalidType, "Invalid type.", nothing)
         const slotsCount Int = set.unsafe_set_slotsCount()
-        const needToEnlarge Bool = set.length~() == slotsCount && slotsCount != 0x100000000
+        const needToEnlarge Bool = set.length() == slotsCount && slotsCount != 0x100000000
         var result Bool = false
         if needToEnlarge || set.use?()
             const newSlotsCount Int = set.empty?().select(16, needToEnlarge.select(slotsCount * 2, slotsCount))
-            const newSet Set = unsafe_set_create(newSlotsCount, item.typeNumber~())
+            const newSet Set = unsafe_set_create(newSlotsCount, item.typeNumber())
             parse _, itemInSet = set
                 if itemInSet == item
                     result = true
@@ -207,14 +207,14 @@ attach Set to Set
                 set.unsafe_setI64(1, set.unsafe_getI64(1) + 1)
         return result
 
-    //@If an item is deleted in a non-empty set and the type of the deleted item does not match the type of the existing items, the function returns an error with the code "enum::STD::error_invalidType".
+    //@If an item is deleted in a non-empty set and the type of the deleted item does not match the type of the existing items, the function returns an error with the code "const::STD::eid_invalidType".
     def remove(write set Set, item ${Equal, Hashable}) Bool
         if set.empty?()
             return false
-        const itemTypeNumberInSet Int = set.itemTypeNumber~()
+        const itemTypeNumberInSet Int = set.itemTypeNumber()
         inthrow
-            if itemTypeNumberInSet != item.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.", nothing)
+            if itemTypeNumberInSet != item.typeNumber()
+                throw(const::eid_invalidType, "Invalid type.", nothing)
         const slotsCount Int = set.unsafe_set_slotsCount()
         const slotAddress Int = set.unsafe_set_slotAddress(item.getShortRandomizedHash() & (slotsCount - 1))
         const slotLength Int = slotAddress.unsafe_getI64(0)
@@ -229,7 +229,7 @@ attach Set to Set
                         resultItemIndex = itemIndex + 1
                         end itemIndex
         if resultItemIndex != -1
-            if set.length~() == 1
+            if set.length() == 1
                 set = Set()
             elif !set.use?()
                 set.unsafe_setI64(1, set.unsafe_getI64(1) - 1)
@@ -261,7 +261,7 @@ attach Set to Set
 
 #alwaysinline nothrow
 def unsafe_set_create(slotsCount, itemTypeNumber Int) Set
-    const result Set = unsafe_object(Set.typeNumber~(), unsafe_malloc(slotsCount * 24 + 32))
+    const result Set = unsafe_object(Set.typeNumber(), unsafe_malloc(slotsCount * 24 + 32))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, 0)
     result.unsafe_setI64(2, itemTypeNumber)
@@ -311,7 +311,7 @@ attach Set to Iterable
     def parse__predicate(set Set, index Array) Bool
         return index[0] < set.unsafe_set_slotsCount()
 
-    #alwaysinline unsafewrite nothrow
+    #alwaysinline nothrow
     def parse__next(set Set, write index Array)
         const slotsCount Int = set.unsafe_set_slotsCount()
         const currentSlotIndex Int = index[0]
@@ -333,7 +333,7 @@ attach Set to Iterable
         const slotAddress Int = set.unsafe_set_slotAddress(index[0])
         const itemIndex Int = index[1]
         const otherItems Int = slotAddress.unsafe_getI64(2)
-        const result $Any = unsafe_object(set.itemTypeNumber~(), (itemIndex == 0).select(slotAddress.unsafe_getI64(1), otherItems.unsafe_getI64(itemIndex - 1)))
+        const result $Any = unsafe_object(set.itemTypeNumber(), (itemIndex == 0).select(slotAddress.unsafe_getI64(1), otherItems.unsafe_getI64(itemIndex - 1)))
         result.shar__rc_use()
         return result
 
@@ -342,11 +342,34 @@ attach Set to Iterable
         const slotAddress Int = set.unsafe_set_slotAddress(index[0])
         const itemIndex Int = index[1]
         const otherItems Int = slotAddress.unsafe_getI64(2)
-        const result $Any = unsafe_object(set.itemTypeNumber~(), (itemIndex == 0).select(slotAddress.unsafe_getI64(1), otherItems.unsafe_getI64(itemIndex - 1)))
+        const result $Any = unsafe_object(set.itemTypeNumber(), (itemIndex == 0).select(slotAddress.unsafe_getI64(1), otherItems.unsafe_getI64(itemIndex - 1)))
         result.shar__rc_use()
         return result
 
 attach Set to ItemTypeNumber
     #alwaysinline nothrow
-    def itemTypeNumber~(set Set) Int
+    def itemTypeNumber(set Set) Int
         return set.unsafe_getI64(2)
+
+//@If an error occurs while the function is running, the bytes remain unchanged.
+#this(Set)
+export def serializeSet(set This, write bytes Bytes)
+    const startLength Int = bytes.length()
+    set.length().serialize(bytes)
+    parse _, item = set
+        try
+            item.serialize(bytes)
+        catch id, message, data
+            bytes.delete(startLength, bytes.length() - startLength)
+            throw(id, message, data)
+
+//@If an error occurs while the function is running, the position remains unchanged.
+#this(Set)
+export def deserializeSet(noread type This, bytes Bytes, write position Int, noread itemType $BinarySerializable) This
+    var currentPosition Int = position
+    var result This = This.createEmpty()
+    const length Int = Int.deserialize(bytes, currentPosition)
+    for :(counter Int = 0) counter < length; counter++
+        result.add(itemType.deserialize(bytes, currentPosition))
+    position = currentPosition
+    return result

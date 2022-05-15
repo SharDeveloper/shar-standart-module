@@ -1,9 +1,15 @@
 module Main
 
+def intArrayToBytes_Int(array Array) Bytes
+    var result Bytes = Bytes()
+    parse _, int Int = array
+        result.addItem(intToByte(int))
+    return result
+
 def realAsInt_testInt(real Real) Int
-    llvm
-        %##nreg##result## = insertvalue [2 x i64] %0, i64 ##tnum##STD::Int##, 0
-        ret [2 x i64] %##reg##result##
+    IR
+        %##nreg##result## = insertvalue {i64, i32} %0, i32 ##tnum##STD::Int##, 1
+        ret {i64, i32} %##reg##result##
 
 def testInt(write ok Int, write errorsCoordinates List)
     testInt_Any(ok, errorsCoordinates)
@@ -12,7 +18,7 @@ def testInt(write ok Int, write errorsCoordinates List)
     testInt_Number(ok, errorsCoordinates)
     testInt_StringWriter(ok, errorsCoordinates)
     testInt_StringReader(ok, errorsCoordinates)
-    testInt_BitArray(ok, errorsCoordinates)
+    testInt_BitLogic(ok, errorsCoordinates)
     testInt_IntToChar(ok, errorsCoordinates)
     testInt_IntToReal(ok, errorsCoordinates)
     testInt_IntToTime(ok, errorsCoordinates)
@@ -21,6 +27,7 @@ def testInt(write ok Int, write errorsCoordinates List)
     testInt_HexToInt(ok, errorsCoordinates)
     testInt_BinarySerializable(ok, errorsCoordinates)
     testInt_Dump(ok, errorsCoordinates)
+    testInt_PrepareForThreads(ok, errorsCoordinates)
 
 #noinline
 def testInt_Any(write ok Int, write errorsCoordinates List)
@@ -135,27 +142,27 @@ def testInt_Ordered(write ok Int, write errorsCoordinates List)
         !(9223372036854775807 <= -9223372036854775807)
         !(9223372036854775807 <= -9223372036854775808)
         !(-9223372036854775807 <= -9223372036854775808)
-        compare(-9223372036854775808, 0) == enum::ord_less
-        compare(-1, 0) == enum::ord_less
-        compare(0, 1) == enum::ord_less
-        compare(0, 9223372036854775807) == enum::ord_less
-        compare(9223372036854775806, 9223372036854775807) == enum::ord_less
-        compare(-9223372036854775807, 9223372036854775807) == enum::ord_less
-        compare(-9223372036854775808, 9223372036854775807) == enum::ord_less
-        compare(-9223372036854775808, -9223372036854775807) == enum::ord_less
-        compare(-1, -1) == enum::ord_equal
-        compare(0, 0) == enum::ord_equal
-        compare(1, 1) == enum::ord_equal
-        compare(9223372036854775807, 9223372036854775807) == enum::ord_equal
-        compare(-9223372036854775808, -9223372036854775808) == enum::ord_equal
-        compare(0, -9223372036854775808) == enum::ord_great
-        compare(0, -1) == enum::ord_great
-        compare(1, 0) == enum::ord_great
-        compare(9223372036854775807, 0) == enum::ord_great
-        compare(9223372036854775807, 9223372036854775806) == enum::ord_great
-        compare(9223372036854775807, -9223372036854775807) == enum::ord_great
-        compare(9223372036854775807, -9223372036854775808) == enum::ord_great
-        compare(-9223372036854775807, -9223372036854775808) == enum::ord_great
+        compare(-9223372036854775808, 0).enumToInt() == CompareResult[less].enumToInt()
+        compare(-1, 0).enumToInt() == CompareResult[less].enumToInt()
+        compare(0, 1).enumToInt() == CompareResult[less].enumToInt()
+        compare(0, 9223372036854775807).enumToInt() == CompareResult[less].enumToInt()
+        compare(9223372036854775806, 9223372036854775807).enumToInt() == CompareResult[less].enumToInt()
+        compare(-9223372036854775807, 9223372036854775807).enumToInt() == CompareResult[less].enumToInt()
+        compare(-9223372036854775808, 9223372036854775807).enumToInt() == CompareResult[less].enumToInt()
+        compare(-9223372036854775808, -9223372036854775807).enumToInt() == CompareResult[less].enumToInt()
+        compare(-1, -1).enumToInt() == CompareResult[equal].enumToInt()
+        compare(0, 0).enumToInt() == CompareResult[equal].enumToInt()
+        compare(1, 1).enumToInt() == CompareResult[equal].enumToInt()
+        compare(9223372036854775807, 9223372036854775807).enumToInt() == CompareResult[equal].enumToInt()
+        compare(-9223372036854775808, -9223372036854775808).enumToInt() == CompareResult[equal].enumToInt()
+        compare(0, -9223372036854775808).enumToInt() == CompareResult[great].enumToInt()
+        compare(0, -1).enumToInt() == CompareResult[great].enumToInt()
+        compare(1, 0).enumToInt() == CompareResult[great].enumToInt()
+        compare(9223372036854775807, 0).enumToInt() == CompareResult[great].enumToInt()
+        compare(9223372036854775807, 9223372036854775806).enumToInt() == CompareResult[great].enumToInt()
+        compare(9223372036854775807, -9223372036854775807).enumToInt() == CompareResult[great].enumToInt()
+        compare(9223372036854775807, -9223372036854775808).enumToInt() == CompareResult[great].enumToInt()
+        compare(-9223372036854775807, -9223372036854775808).enumToInt() == CompareResult[great].enumToInt()
 
 #noinline
 def testInt_Number(write ok Int, write errorsCoordinates List)
@@ -199,8 +206,8 @@ def testInt_Number(write ok Int, write errorsCoordinates List)
         -9223372036854775807 * -1 == 9223372036854775807
         10 * 26 == 260
         9223372036854775807 * 701 == 9223372036854775107
-        0 / 0 : error_divisionByZero
-        1 / 0 : error_divisionByZero
+        0 / 0 : eid_divisionByZero
+        1 / 0 : eid_divisionByZero
         -9223372036854775808 / 1 == -9223372036854775808
         -1 / -9223372036854775808 == 0
         -9223372036854775808 / -1 == -9223372036854775808
@@ -213,8 +220,8 @@ def testInt_Number(write ok Int, write errorsCoordinates List)
         -144 / 12 == -12
         144 / -7 == -20
         -144 / -5 == 28
-        0 % 0 : error_divisionByZero
-        1 % 0 : error_divisionByZero
+        0 % 0 : eid_divisionByZero
+        1 % 0 : eid_divisionByZero
         -9223372036854775808 % 1 == 0
         -1 % -9223372036854775808 == -1
         -9223372036854775808 % -1 == 0
@@ -339,7 +346,7 @@ def testInt_Number(write ok Int, write errorsCoordinates List)
         int8 == -9223372036854775807
         (int9 /= 1000).nothing?()
         int9 == 10
-        int10 /= 0 : error_divisionByZero
+        int10 /= 0 : eid_divisionByZero
         int10 == 0
     int5 = -9223372036854775808
     int8 = 9223372036854775807
@@ -363,7 +370,7 @@ def testInt_Number(write ok Int, write errorsCoordinates List)
         int8 == 0
         (int9 %= 1000).nothing?()
         int9 == 0
-        int10 %= 0 : error_divisionByZero
+        int10 %= 0 : eid_divisionByZero
         int10 == 0
         0.abs() == 0
         -1.abs() == 1
@@ -445,27 +452,27 @@ def testInt_StringReader(write ok Int, write errorsCoordinates List)
         Int.fromString("-10") == -10
         Int.fromString("+10") == 10
         Int.fromString("+0010") == 10
-        Int.fromString("9223372036854775808") : error_readFromString
-        Int.fromString("9223372036854775809") : error_readFromString
-        Int.fromString("10000000000000000000") : error_readFromString
-        Int.fromString("-9223372036854775809") : error_readFromString
-        Int.fromString("-9223372036854775810") : error_readFromString
-        Int.fromString("-15656156193372036854775808") : error_readFromString
-        Int.fromString("3a") : error_readFromString
-        Int.fromString("3 ") : error_readFromString
-        Int.fromString("5645a") : error_readFromString
-        Int.fromString("a5456") : error_readFromString
-        Int.fromString(" 4") : error_readFromString
-        Int.fromString("- 3") : error_readFromString
-        Int.fromString("3-") : error_readFromString
-        Int.fromString("+-3") : error_readFromString
-        Int.fromString("-+3") : error_readFromString
-        Int.fromString("+") : error_readFromString
-        Int.fromString("-") : error_readFromString
-        Int.fromString("") : error_readFromString
+        Int.fromString("9223372036854775808") : eid_readFromString
+        Int.fromString("9223372036854775809") : eid_readFromString
+        Int.fromString("10000000000000000000") : eid_readFromString
+        Int.fromString("-9223372036854775809") : eid_readFromString
+        Int.fromString("-9223372036854775810") : eid_readFromString
+        Int.fromString("-15656156193372036854775808") : eid_readFromString
+        Int.fromString("3a") : eid_readFromString
+        Int.fromString("3 ") : eid_readFromString
+        Int.fromString("5645a") : eid_readFromString
+        Int.fromString("a5456") : eid_readFromString
+        Int.fromString(" 4") : eid_readFromString
+        Int.fromString("- 3") : eid_readFromString
+        Int.fromString("3-") : eid_readFromString
+        Int.fromString("+-3") : eid_readFromString
+        Int.fromString("-+3") : eid_readFromString
+        Int.fromString("+") : eid_readFromString
+        Int.fromString("-") : eid_readFromString
+        Int.fromString("") : eid_readFromString
 
 #noinline
-def testInt_BitArray(write ok Int, write errorsCoordinates List)
+def testInt_BitLogic(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         (-6148914691236517206 & 6148914691236517205) == 0
         (6148914691236517205 & -6148914691236517206) == 0
@@ -492,18 +499,18 @@ def testInt_BitArray(write ok Int, write errorsCoordinates List)
         (-9223372036854775808 << 63) == 0
         (-1 << 63) == -9223372036854775808
         (7 << 2) == 28
-        (0 << 64) : error_invalidShiftsNumber
-        (0 << 67) : error_invalidShiftsNumber
-        (1 << 64) : error_invalidShiftsNumber
-        (1 << 67) : error_invalidShiftsNumber
-        (-1 << 64) : error_invalidShiftsNumber
-        (-1 << 67) : error_invalidShiftsNumber
-        (-1 << -1) : error_invalidShiftsNumber
-        (0 << -1) : error_invalidShiftsNumber
-        (1 << -1) : error_invalidShiftsNumber
-        (-1 << -9223372036854775808) : error_invalidShiftsNumber
-        (0 << -9223372036854775808) : error_invalidShiftsNumber
-        (1 << -9223372036854775808) : error_invalidShiftsNumber
+        (0 << 64) : eid_invalidShiftsNumber
+        (0 << 67) : eid_invalidShiftsNumber
+        (1 << 64) : eid_invalidShiftsNumber
+        (1 << 67) : eid_invalidShiftsNumber
+        (-1 << 64) : eid_invalidShiftsNumber
+        (-1 << 67) : eid_invalidShiftsNumber
+        (-1 << -1) : eid_invalidShiftsNumber
+        (0 << -1) : eid_invalidShiftsNumber
+        (1 << -1) : eid_invalidShiftsNumber
+        (-1 << -9223372036854775808) : eid_invalidShiftsNumber
+        (0 << -9223372036854775808) : eid_invalidShiftsNumber
+        (1 << -9223372036854775808) : eid_invalidShiftsNumber
         (0 >> 1) == 0
         (0 >> 63) == 0
         (1 >> 63) == 0
@@ -511,103 +518,18 @@ def testInt_BitArray(write ok Int, write errorsCoordinates List)
         (-9223372036854775808 >> 63) == 1
         (-1 >> 63) == 1
         (7 >> 2) == 1
-        (0 >> 64) : error_invalidShiftsNumber
-        (0 >> 67) : error_invalidShiftsNumber
-        (1 >> 64) : error_invalidShiftsNumber
-        (1 >> 67) : error_invalidShiftsNumber
-        (-1 >> 64) : error_invalidShiftsNumber
-        (-1 >> 67) : error_invalidShiftsNumber
-        (-1 << -1) : error_invalidShiftsNumber
-        (0 << -1) : error_invalidShiftsNumber
-        (1 << -1) : error_invalidShiftsNumber
-        (-1 << -9223372036854775808) : error_invalidShiftsNumber
-        (0 << -9223372036854775808) : error_invalidShiftsNumber
-        (1 << -9223372036854775808) : error_invalidShiftsNumber
-        0.getBit(0) == false
-        0.getBit(1) == false
-        0.getBit(2) == false
-        0.getBit(63) == false
-        1.getBit(0) == true
-        1.getBit(1) == false
-        1.getBit(2) == false
-        1.getBit(63) == false
-        2.getBit(0) == false
-        2.getBit(1) == true
-        2.getBit(2) == false
-        2.getBit(63) == false
-        -1.getBit(0) == true
-        -1.getBit(1) == true
-        -1.getBit(2) == true
-        -1.getBit(63) == true
-        -9223372036854775808.getBit(0) == false
-        -9223372036854775808.getBit(1) == false
-        -9223372036854775808.getBit(2) == false
-        -9223372036854775808.getBit(63) == true
-        0.getBit(64) : error_outOfRange
-        0.getBit(9223372036854775807) : error_outOfRange
-        0.getBit(9223372036854775806) : error_outOfRange
-        0.getBit(-1) : error_outOfRange
-        0.getBit(-9223372036854775808) : error_outOfRange
-        -1.getBit(64) : error_outOfRange
-        -1.getBit(9223372036854775807) : error_outOfRange
-        -1.getBit(9223372036854775806) : error_outOfRange
-        -1.getBit(-1) : error_outOfRange
-        -1.getBit(-9223372036854775808) : error_outOfRange
-        1.getBit(64) : error_outOfRange
-        1.getBit(9223372036854775807) : error_outOfRange
-        1.getBit(9223372036854775806) : error_outOfRange
-        1.getBit(-1) : error_outOfRange
-        1.getBit(-9223372036854775808) : error_outOfRange
-        0.setBit$(0, true) == 1
-        0.setBit$(0, false) == 0
-        0.setBit$(1, true) == 2
-        0.setBit$(2, true) == 4
-        0.setBit$(63, true) == -9223372036854775808
-        0.setBit$(63, false) == 0
-        1.setBit$(0, true) == 1
-        1.setBit$(0, false) == 0
-        1.setBit$(1, true) == 3
-        1.setBit$(2, true) == 5
-        1.setBit$(63, true) == -9223372036854775807
-        1.setBit$(63, false) == 1
-        2.setBit$(0, true) == 3
-        2.setBit$(1, true) == 2
-        2.setBit$(2, true) == 6
-        2.setBit$(2, false) == 2
-        2.setBit$(63, true) == -9223372036854775806
-        -1.setBit$(0, true) == -1
-        -1.setBit$(0, false) == -2
-        -1.setBit$(1, true) == -1
-        -1.setBit$(2, false) == -5
-        -1.setBit$(63, true) == -1
-        -1.setBit$(63, false) == 9223372036854775807
-        -9223372036854775808.setBit$(0, true) == -9223372036854775807
-        -9223372036854775808.setBit$(0, false) == -9223372036854775808
-        -9223372036854775808.setBit$(1, true) == -9223372036854775806
-        -9223372036854775808.setBit$(2, true) == -9223372036854775804
-        -9223372036854775808.setBit$(63, true) == -9223372036854775808
-        0.setBit$(64, true) : error_outOfRange
-        0.setBit$(64, false) : error_outOfRange
-        0.setBit$(9223372036854775807, true) : error_outOfRange
-        0.setBit$(9223372036854775806, false) : error_outOfRange
-        0.setBit$(-1, true) : error_outOfRange
-        0.setBit$(-1, false) : error_outOfRange
-        0.setBit$(-9223372036854775808, true) : error_outOfRange
-        -1.setBit$(64, true) : error_outOfRange
-        -1.setBit$(9223372036854775807, true) : error_outOfRange
-        -1.setBit$(9223372036854775806, false) : error_outOfRange
-        -1.setBit$(-1, true) : error_outOfRange
-        -1.setBit$(-9223372036854775808, true) : error_outOfRange
-        1.setBit$(64, false) : error_outOfRange
-        1.setBit$(9223372036854775807, false) : error_outOfRange
-        1.setBit$(9223372036854775806, true) : error_outOfRange
-        1.setBit$(-1, true) : error_outOfRange
-        1.setBit$(-9223372036854775808, false) : error_outOfRange
-        0.bitsCount~() == 64
-        -1.not() == 0
-        1.not() == -2
-        -9223372036854775808.not() == 9223372036854775807
-        -9223372036854775808.not().not() == -9223372036854775808
+        (0 >> 64) : eid_invalidShiftsNumber
+        (0 >> 67) : eid_invalidShiftsNumber
+        (1 >> 64) : eid_invalidShiftsNumber
+        (1 >> 67) : eid_invalidShiftsNumber
+        (-1 >> 64) : eid_invalidShiftsNumber
+        (-1 >> 67) : eid_invalidShiftsNumber
+        (-1 << -1) : eid_invalidShiftsNumber
+        (0 << -1) : eid_invalidShiftsNumber
+        (1 << -1) : eid_invalidShiftsNumber
+        (-1 << -9223372036854775808) : eid_invalidShiftsNumber
+        (0 << -9223372036854775808) : eid_invalidShiftsNumber
+        (1 << -9223372036854775808) : eid_invalidShiftsNumber
     var int1 Int = -6148914691236517206
     var int2 Int = 6148914691236517205
     var int3 Int = 6148914691236517205
@@ -722,29 +644,29 @@ def testInt_BitArray(write ok Int, write errorsCoordinates List)
     var int11 Int = 0
     var int12 Int = 1
     test: ok, errorsCoordinates
-        (int1 <<= 64) : error_invalidShiftsNumber
+        (int1 <<= 64) : eid_invalidShiftsNumber
         int1 == 0
-        (int2 <<= 67) : error_invalidShiftsNumber
+        (int2 <<= 67) : eid_invalidShiftsNumber
         int2 == 0
-        (int3 <<= 64) : error_invalidShiftsNumber
+        (int3 <<= 64) : eid_invalidShiftsNumber
         int3 == 1
-        (int4 <<= 67) : error_invalidShiftsNumber
+        (int4 <<= 67) : eid_invalidShiftsNumber
         int4 == 1
-        (int5 <<= 64) : error_invalidShiftsNumber
+        (int5 <<= 64) : eid_invalidShiftsNumber
         int5 == -1
-        (int6 <<= 67) : error_invalidShiftsNumber
+        (int6 <<= 67) : eid_invalidShiftsNumber
         int6 == -1
-        (int7 <<= -1) : error_invalidShiftsNumber
+        (int7 <<= -1) : eid_invalidShiftsNumber
         int7 == -1
-        (int8 <<= -1) : error_invalidShiftsNumber
+        (int8 <<= -1) : eid_invalidShiftsNumber
         int8 == 0
-        (int9 <<= -1) : error_invalidShiftsNumber
+        (int9 <<= -1) : eid_invalidShiftsNumber
         int9 == 1
-        (int10 <<= -9223372036854775808) : error_invalidShiftsNumber
+        (int10 <<= -9223372036854775808) : eid_invalidShiftsNumber
         int10 == -1
-        (int11 <<= -9223372036854775808) : error_invalidShiftsNumber
+        (int11 <<= -9223372036854775808) : eid_invalidShiftsNumber
         int11 == 0
-        (int12 <<= -9223372036854775808) : error_invalidShiftsNumber
+        (int12 <<= -9223372036854775808) : eid_invalidShiftsNumber
         int12 == 1
     int1 = 0
     int2 = 0
@@ -759,142 +681,42 @@ def testInt_BitArray(write ok Int, write errorsCoordinates List)
     int11 = 0
     int12 = 1
     test: ok, errorsCoordinates
-        (int1 >>= 64) : error_invalidShiftsNumber
+        (int1 >>= 64) : eid_invalidShiftsNumber
         int1 == 0
-        (int2 >>= 67) : error_invalidShiftsNumber
+        (int2 >>= 67) : eid_invalidShiftsNumber
         int2 == 0
-        (int3 >>= 64) : error_invalidShiftsNumber
+        (int3 >>= 64) : eid_invalidShiftsNumber
         int3 == 1
-        (int4 >>= 67) : error_invalidShiftsNumber
+        (int4 >>= 67) : eid_invalidShiftsNumber
         int4 == 1
-        (int5 >>= 64) : error_invalidShiftsNumber
+        (int5 >>= 64) : eid_invalidShiftsNumber
         int5 == -1
-        (int6 >>= 67) : error_invalidShiftsNumber
+        (int6 >>= 67) : eid_invalidShiftsNumber
         int6 == -1
-        (int7 >>= -1) : error_invalidShiftsNumber
+        (int7 >>= -1) : eid_invalidShiftsNumber
         int7 == -1
-        (int8 >>= -1) : error_invalidShiftsNumber
+        (int8 >>= -1) : eid_invalidShiftsNumber
         int8 == 0
-        (int9 >>= -1) : error_invalidShiftsNumber
+        (int9 >>= -1) : eid_invalidShiftsNumber
         int9 == 1
-        (int10 >>= -9223372036854775808) : error_invalidShiftsNumber
+        (int10 >>= -9223372036854775808) : eid_invalidShiftsNumber
         int10 == -1
-        (int11 >>= -9223372036854775808) : error_invalidShiftsNumber
+        (int11 >>= -9223372036854775808) : eid_invalidShiftsNumber
         int11 == 0
-        (int12 >>= -9223372036854775808) : error_invalidShiftsNumber
+        (int12 >>= -9223372036854775808) : eid_invalidShiftsNumber
         int12 == 1
-    int1 = 0
-    int2 = 0
-    int3 = 0
-    int4 = 0
-    int5 = 0
-    int6 = 0
-    int7 = 1
-    int8 = 1
-    int9 = 1
-    int10 = 1
-    int11 = 1
-    int12 = 1
-    test: ok, errorsCoordinates
-        int1.setBit(0, true).nothing?()
-        int1 == 1
-        int2.setBit(0, false).nothing?()
-        int2 == 0
-        int3.setBit(1, true).nothing?()
-        int3 == 2
-        int4.setBit(2, true).nothing?()
-        int4 == 4
-        int5.setBit(63, true).nothing?()
-        int5 == -9223372036854775808
-        int6.setBit(63, false).nothing?()
-        int6 == 0
-        int7.setBit(0, true).nothing?()
-        int7 == 1
-        int8.setBit(0, false).nothing?()
-        int8 == 0
-        int9.setBit(1, true).nothing?()
-        int9 == 3
-        int10.setBit(2, true).nothing?()
-        int10 == 5
-        int11.setBit(63, true).nothing?()
-        int11 == -9223372036854775807
-        int12.setBit(63, false).nothing?()
-        int12 == 1
-    int1 = 2
-    int2 = 2
-    int3 = 4
-    int4 = 2
-    int5 = 2
-    int6 = -1
-    int7 = -1
-    int8 = -1
-    int9 = -1
-    int10 = -1
-    int11 = -1
-    int12 = -9223372036854775808
-    test: ok, errorsCoordinates
-        int1.setBit(0, true).nothing?()
-        int1 == 3
-        int2.setBit(1, true).nothing?()
-        int2 == 2
-        int3.setBit(1, true).nothing?()
-        int3 == 6
-        int4.setBit(2, false).nothing?()
-        int4 == 2
-        int5.setBit(63, true).nothing?()
-        int5 == -9223372036854775806
-        int6.setBit(0, true).nothing?()
-        int6 == -1
-        int7.setBit(0, false).nothing?()
-        int7 == -2
-        int8.setBit(1, true).nothing?()
-        int8 == -1
-        int9.setBit(2, false).nothing?()
-        int9 == -5
-        int10.setBit(63, true).nothing?()
-        int10 == -1
-        int11.setBit(63, false).nothing?()
-        int11 == 9223372036854775807
-        int12.setBit(0, true).nothing?()
-        int12 == -9223372036854775807
-    int1 = -9223372036854775808
-    int2 = -9223372036854775808
-    int3 = -9223372036854775808
-    int4 = -9223372036854775808
-    test: ok, errorsCoordinates
-        int1.setBit(0, false).nothing?()
-        int1 == -9223372036854775808
-        int2.setBit(1, true).nothing?()
-        int2 == -9223372036854775806
-        int3.setBit(2, true).nothing?()
-        int3 == -9223372036854775804
-        int4.setBit(63, true).nothing?()
-        int4 == -9223372036854775808
-        int5.setBit(64, true) : error_outOfRange
-        int5 == -9223372036854775806
-        int5.setBit(64, false) : error_outOfRange
-        int5 == -9223372036854775806
-        int5.setBit(9223372036854775807, true) : error_outOfRange
-        int5 == -9223372036854775806
-        int5.setBit(9223372036854775806, false) : error_outOfRange
-        int5 == -9223372036854775806
-        int5.setBit(-1, true) : error_outOfRange
-        int5 == -9223372036854775806
-        int5.setBit(-1, false) : error_outOfRange
-        int5 == -9223372036854775806
-        int5.setBit(-9223372036854775808, true) : error_outOfRange
-        int5 == -9223372036854775806
 
 #noinline
 def testInt_IntToChar(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        intToChar(0) == '\0000'
+        intToChar(0) == '\000000'
         intToChar(32) == ' '
-        intToChar(255) == '\00ff'
-        intToChar(65535) == '\ffff'
-        intToChar(-1) : error_outOfRange
-        intToChar(-9223372036854775808) : error_outOfRange
-        intToChar(65536) : error_outOfRange
+        intToChar(255) == '\0000ff'
+        intToChar(65535) == '\00ffff'
+        intToChar(0x10ffff) == '\10ffff'
+        intToChar(-1) : eid_outOfRange
+        intToChar(-9223372036854775808) : eid_outOfRange
+        intToChar(0x110000) : eid_outOfRange
 
 #noinline
 def testInt_IntToReal(write ok Int, write errorsCoordinates List)
@@ -909,8 +731,8 @@ def testInt_IntToTime(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         intToTime(0).type?(Time)
         intToTime(9223372036854775807).type?(Time)
-        intToTime(-1) : error_outOfRange
-        intToTime(-9223372036854775808) : error_outOfRange
+        intToTime(-1) : eid_outOfRange
+        intToTime(-9223372036854775808) : eid_outOfRange
 
 #noinline
 def testInt_Hashed(write ok Int, write errorsCoordinates List)
@@ -953,13 +775,13 @@ def testInt_HexToInt(write ok Int, write errorsCoordinates List)
         "0x1".hexToInt() == 1
         "0xFFFFFFFFFFFFFFFF".hexToInt() == -1
         "0x48B8220012200810".hexToInt() == 5239975550145005584
-        "48B8220012200810".hexToInt() : error_readFromString
-        "0x48B82200122008100".hexToInt() : error_readFromString
-        "".hexToInt() : error_readFromString
-        "0x".hexToInt() : error_readFromString
-        "-0x1".hexToInt() : error_readFromString
-        "-0x2".hexToInt() : error_readFromString
-        "-0x".hexToInt() : error_readFromString
+        "48B8220012200810".hexToInt() : eid_readFromString
+        "0x48B82200122008100".hexToInt() : eid_readFromString
+        "".hexToInt() : eid_readFromString
+        "0x".hexToInt() : eid_readFromString
+        "-0x1".hexToInt() : eid_readFromString
+        "-0x2".hexToInt() : eid_readFromString
+        "-0x".hexToInt() : eid_readFromString
 
 #noinline
 def testInt_BinarySerializable(write ok Int, write errorsCoordinates List)
@@ -967,34 +789,34 @@ def testInt_BinarySerializable(write ok Int, write errorsCoordinates List)
     var position Int = 0
     test: ok, errorsCoordinates
         0.serialize(bytes).nothing?()
-        bytes == [0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes)
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Int()
         0xfc1b0234.serialize(bytes).nothing?()
-        bytes == [0, 0, 0, 0, 0, 0, 0, 0, 0x34, 2, 0x1b, 0xfc, 0, 0, 0, 0].repackTo(Bytes)
+        bytes == [0, 0, 0, 0, 0, 0, 0, 0, 0x34, 2, 0x1b, 0xfc, 0, 0, 0, 0].intArrayToBytes_Int()
         Int.deserialize(bytes, position) == 0
         position == 8
         Int.deserialize(bytes, position) == 0xfc1b0234
         position == 16
-        Int.deserialize(bytes, position) : error_outOfRange
+        Int.deserialize(bytes, position) : eid_outOfRange
     position = 0
     test: ok, errorsCoordinates
-        Int.deserialize([0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Int(), position) : eid_outOfRange
         position == 0
-        Int.deserialize([0].repackTo(Bytes), position) : error_outOfRange
+        Int.deserialize([0].intArrayToBytes_Int(), position) : eid_outOfRange
         position == 0
-        Int.deserialize([].repackTo(Bytes), position) : error_outOfRange
+        Int.deserialize([].intArrayToBytes_Int(), position) : eid_outOfRange
         position == 0
     position = 1
     test: ok, errorsCoordinates
-        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Int(), position) : eid_outOfRange
     position = -1
     test: ok, errorsCoordinates
-        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Int(), position) : eid_outOfRange
     position = -9223372036854775808
     test: ok, errorsCoordinates
-        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Int(), position) : eid_outOfRange
     position = 9223372036854775807
     test: ok, errorsCoordinates
-        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].repackTo(Bytes), position) : error_outOfRange
+        Int.deserialize([0, 0, 0, 0, 0, 0, 0, 0].intArrayToBytes_Int(), position) : eid_outOfRange
 
 #noinline
 def testInt_Dump(write ok Int, write errorsCoordinates List)
@@ -1003,3 +825,12 @@ def testInt_Dump(write ok Int, write errorsCoordinates List)
         0.dump(1) == "  Type: STD::Int = 0\n"
         -123.dump(0) == "Type: STD::Int = -123\n"
         -123.dump(1) == "  Type: STD::Int = -123\n"
+
+#noinline
+def testInt_PrepareForThreads(write ok Int, write errorsCoordinates List)
+    test: ok, errorsCoordinates
+        0.prepareForThreads() == 0
+        0xfc1b0234.prepareForThreads() == 0xfc1b0234
+        -1.prepareForThreads() == -1
+        -9223372036854775808.prepareForThreads() == -9223372036854775808
+        9223372036854775807.prepareForThreads() == 9223372036854775807

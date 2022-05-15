@@ -1,0 +1,13 @@
+module STD
+
+//@Members of the "STD::Put" group contain objects that can be accessed by some identifier.
+export group Put
+    //@The function returns the object by the specified identifier, passed as the second function argument, and writes the third function argument instead.
+    //@If the function returns an error, the first argument to the function remains unchanged.
+    put(write This, $Any, $Any) $Any
+
+//@A group contains objects that store objects of the same type.
+export group ItemTypeNumber
+    //@The function returns the type number of the items.
+    //@The function cannot return any errors.
+    itemTypeNumber(This) Int

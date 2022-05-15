@@ -1,55 +1,94 @@
 module Main
 
-primitive TestSet_BadInt
+type TestSet_BadInt
+    i Int
 
 attach TestSet_BadInt to Equal
 
 attach TestSet_BadInt to Shar__sugar__equal
     #alwaysinline nothrow
     def shar__sugar__equal(integer1, integer2 TestSet_BadInt) Bool
-        llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
-            %##nreg##result i1## = icmp eq i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+        return integer1.i~() == integer2.i~()
 
 attach TestSet_BadInt to Shar__sugar__notEqual
     #alwaysinline nothrow
     def shar__sugar__notEqual(integer1, integer2 TestSet_BadInt) Bool
-        llvm
-            %##nreg##integer1## = extractvalue [2 x i64] %0, 1
-            %##nreg##integer2## = extractvalue [2 x i64] %1, 1
-            %##nreg##result i1## = icmp ne i64 %##reg##integer1##, %##reg##integer2##
-            %##nreg##result i64## = zext i1 %##reg##result i1## to i64
-            %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Bool##, i64 0], i64 %##reg##result i64##, 1
-            ret [2 x i64] %##reg##result##
+        return integer1.i~() == integer2.i~()
 
 attach TestSet_BadInt to Hashable
     #alwaysinline nothrow
     def getHash(int TestSet_BadInt) Int
-        return int.set_toGood() & 15
+        return int.i~() & 15
 
     #alwaysinline nothrow
     def getRandomizedHash(int TestSet_BadInt) Int
-        return int.set_toGood() & 15
+        return int.i~() & 15
 
 attach TestSet_BadInt to StringWriter
     #inline nothrow
     def toString(int TestSet_BadInt) String
-        return int.set_toGood().toString()
-
-#alwaysinline nothrow
-def set_toGood(int TestSet_BadInt) Int
-    return int.unsafe_getValue()
+        return int.i~().toString()
 
 #alwaysinline nothrow
 def set_toBad(int Int) TestSet_BadInt
-    return unsafe_object(TestSet_BadInt.typeNumber~(), int)
+    return TestSet_BadInt{i: int}
 
 def unsafe_set_getCounter(set $Any) Int
     return set.unsafe_getI64(0)
+
+type TestSet
+    s Set
+
+def TestSet(set Set) TestSet
+    return TestSet{s :set}
+
+def toSet(testSet TestSet) Set
+    return testSet.s~()
+
+attach TestSet to Empty
+    def createEmpty(noread type TestSet) TestSet
+        return TestSet(Set())
+
+attach TestSet to Long
+    def length(set TestSet) Int
+        return set.toSet().length()
+
+attach TestSet to Shar__sugar__getItem
+    def shar__sugar__getItem(set TestSet, item ${Equal, Hashable}) Bool
+        return set.toSet()[item]
+
+attach TestSet to Set
+    def add(write set TestSet, item ${Equal, Hashable}) Bool
+        var set_ Set = set.toSet()
+        const result Bool = set_.add(item)
+        set = TestSet(set_)
+        return result
+
+    def remove(write set TestSet, item ${Equal, Hashable}) Bool
+        var set_ Set = set.s`(Set())
+        const result Bool = set_.remove(item)
+        set.s`(set_)
+        return result
+
+attach TestSet to Iterable
+    def parse__init(set TestSet) Array
+        return set.toSet().parse__init()
+
+    def parse__predicate(set TestSet, index Array) Bool
+        return set.toSet().parse__predicate(index)
+
+    def parse__next(set TestSet, write index Array)
+        set.toSet().parse__next(index)
+
+    def parse__get__key(set TestSet, index Array) $Any
+        return set.toSet().parse__get__key(index)
+
+    def parse__get__item(set TestSet, index Array) $Any
+        return set.toSet().parse__get__item(index)
+
+attach TestSet to ItemTypeNumber
+    def itemTypeNumber(set TestSet) Int
+        return set.toSet().itemTypeNumber()
 
 def testSet(write ok Int, write errorsCoordinates List)
     testSet_MemoryManagement(ok, errorsCoordinates)
@@ -58,6 +97,7 @@ def testSet(write ok Int, write errorsCoordinates List)
     testSet_Part3(ok, errorsCoordinates)
     testSet_Part4(ok, errorsCoordinates)
     testSet_Dump(ok, errorsCoordinates)
+    testSet_Serialize(ok, errorsCoordinates)
 
 #noinline
 def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
@@ -97,7 +137,7 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
         !d3.add("2")
         v.unsafe_getI64(0) == 3
         k.unsafe_getI64(0) == 3
-    var d4 Array = [d3, d3]
+    const d4 Array = [d3, d3]
     d4.same()
     test: ok, errorsCoordinates
         unsafe_set_getCounter(d1) == 3
@@ -227,49 +267,49 @@ def testSet_MemoryManagement(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d1.length~() == 300
-        d3.length~() == 300
-        d5.length~() == 400
+        d1.length() == 300
+        d3.length() == 300
+        d5.length() == 400
 
 #noinline
 def testSet_Part1(write ok Int, write errorsCoordinates List)
     const ed Set = Set()
     var d Set = Set()
-    var s String = "123".clone()
+    const s String = "123".clone()
     test: ok, errorsCoordinates
-        ed.length~() == 0
-        ed.itemTypeNumber~() == Nothing.typeNumber~()
+        ed.length() == 0
+        ed.itemTypeNumber() == Nothing.typeNumber()
         !ed[12]
         !ed[0]
         !ed["asdf"]
         !ed[""]
         !ed['c']
         !d.add(0)
-        d.length~() == 1
-        d.itemTypeNumber~() == Int.typeNumber~()
+        d.length() == 1
+        d.itemTypeNumber() == Int.typeNumber()
         !d[12]
         d[0]
-        d["asdf"] : error_invalidType
-        d[""]: error_invalidType
-        d['c'] : error_invalidType
-        d.add("") : error_invalidType
+        d["asdf"] : eid_invalidType
+        d[""]: eid_invalidType
+        d['c'] : eid_invalidType
+        d.add("") : eid_invalidType
         d.add(0)
-        d.length~() == 1
-        d.itemTypeNumber~() == Int.typeNumber~()
+        d.length() == 1
+        d.itemTypeNumber() == Int.typeNumber()
         !d[12]
         d[0]
         !d.add(-1)
-        d.length~() == 2
-        d.itemTypeNumber~() == Int.typeNumber~()
+        d.length() == 2
+        d.itemTypeNumber() == Int.typeNumber()
         !d[1]
         d[0]
         d[-1]
-        d["asdf"] : error_invalidType
-        d[""]: error_invalidType
-        d['c'] : error_invalidType
+        d["asdf"] : eid_invalidType
+        d[""]: eid_invalidType
+        d['c'] : eid_invalidType
         !d.add(3589)
-        d.length~() == 3
-        d.itemTypeNumber~() == Int.typeNumber~()
+        d.length() == 3
+        d.itemTypeNumber() == Int.typeNumber()
         !d[-2]
         d[0]
         d[-1]
@@ -277,60 +317,60 @@ def testSet_Part1(write ok Int, write errorsCoordinates List)
         d.add(0)
         d.add(-1)
         d.add(3589)
-        d.length~() == 3
-        d.itemTypeNumber~() == Int.typeNumber~()
+        d.length() == 3
+        d.itemTypeNumber() == Int.typeNumber()
         !d[1]
         d[0]
         d[-1]
         d[3589]
-        d.remove('c') : error_invalidType
-        d.remove("1010") : error_invalidType
+        d.remove('c') : eid_invalidType
+        d.remove("1010") : eid_invalidType
         !d.remove(20)
         !d.remove(-2)
         d.remove(3589)
-        d.length~() == 2
-        d.itemTypeNumber~() == Int.typeNumber~()
+        d.length() == 2
+        d.itemTypeNumber() == Int.typeNumber()
         d[0]
         d[-1]
         !d[3589]
         d.remove(0)
-        d.length~() == 1
-        d.itemTypeNumber~() == Int.typeNumber~()
+        d.length() == 1
+        d.itemTypeNumber() == Int.typeNumber()
         !d[0]
         d[-1]
         !d[3589]
         d.remove(-1)
-        d.length~() == 0
-        d.itemTypeNumber~() == Nothing.typeNumber~()
+        d.length() == 0
+        d.itemTypeNumber() == Nothing.typeNumber()
         !d[0]
         !d[-1]
         !d[3589]
         !d.add(s)
-        d.length~() == 1
-        d.itemTypeNumber~() == String.typeNumber~()
+        d.length() == 1
+        d.itemTypeNumber() == String.typeNumber()
         s.unsafe_getI64(0) == 2
-        d[0] : error_invalidType
+        d[0] : eid_invalidType
         d[s]
         !d[""]
         !d["1230"]
         !d.add("fg")
-        d.length~() == 2
-        d.itemTypeNumber~() == String.typeNumber~()
+        d.length() == 2
+        d.itemTypeNumber() == String.typeNumber()
         s.unsafe_getI64(0) == 2
-        d[-12] : error_invalidType
+        d[-12] : eid_invalidType
         d[s]
         d["fg"]
         !d[""]
         d.remove(s)
-        d.length~() == 1
-        d.itemTypeNumber~() == String.typeNumber~()
+        d.length() == 1
+        d.itemTypeNumber() == String.typeNumber()
         s.unsafe_getI64(0) == 1
-        d[0] : error_invalidType
+        d[0] : eid_invalidType
         d["fg"]
         !d[s]
         d.remove("fg")
-        d.length~() == 0
-        d.itemTypeNumber~() == Nothing.typeNumber~()
+        d.length() == 0
+        d.itemTypeNumber() == Nothing.typeNumber()
         s.unsafe_getI64(0) == 1
 
 #noinline
@@ -344,7 +384,7 @@ def testSet_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 0
+        d.length() == 0
     allOk = false
     try
         for :(index Int = 0) index < 200; index++
@@ -355,7 +395,7 @@ def testSet_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     var count Int = 0
     try
@@ -379,7 +419,7 @@ def testSet_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -390,7 +430,7 @@ def testSet_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 100
+        d.length() == 100
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -421,7 +461,7 @@ def testSet_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 100
+        d.length() == 100
     allOk = false
     try
         for :(index Int = 1) index < 200; index += 2
@@ -432,7 +472,7 @@ def testSet_Part2(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 0
+        d.length() == 0
 
 #noinline
 def testSet_Part3(write ok Int, write errorsCoordinates List)
@@ -450,7 +490,7 @@ def testSet_Part3(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     try
         for :(index Int = 0) index < 200; index++
@@ -461,7 +501,7 @@ def testSet_Part3(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -472,7 +512,7 @@ def testSet_Part3(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 100
+        d.length() == 100
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -503,7 +543,7 @@ def testSet_Part3(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 100
+        d.length() == 100
     allOk = false
     try
         for :(index Int = 1) index < 200; index += 2
@@ -514,7 +554,7 @@ def testSet_Part3(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 0
+        d.length() == 0
 
 #noinline
 def testSet_Part4(write ok Int, write errorsCoordinates List)
@@ -529,13 +569,13 @@ def testSet_Part4(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     var count Int = 0
     try
-        parse :(parse) key, value = d
+        parse :(parse) key TestSet_BadInt, value = d
             count++
-            allOk = value == key && key.set_toGood().inRange?(0, 200)
+            allOk = value == key && key.i~().inRange?(0, 200)
             if !allOk
                 end parse
     catch
@@ -553,7 +593,7 @@ def testSet_Part4(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 200
+        d.length() == 200
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -564,7 +604,7 @@ def testSet_Part4(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 100
+        d.length() == 100
     allOk = false
     try
         for :(index Int = 0) index < 200; index += 2
@@ -595,7 +635,7 @@ def testSet_Part4(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 100
+        d.length() == 100
     allOk = false
     try
         for :(index Int = 1) index < 200; index += 2
@@ -606,7 +646,7 @@ def testSet_Part4(write ok Int, write errorsCoordinates List)
         allOk = false
     test: ok, errorsCoordinates
         allOk
-        d.length~() == 0
+        d.length() == 0
 
 #noinline
 def testSet_Dump(write ok Int, write errorsCoordinates List)
@@ -618,3 +658,63 @@ def testSet_Dump(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         d.dump(0) == "Type: STD::Set = [\n  Type: STD::Int = 12\n]\n"
         d.dump(1) == "  Type: STD::Set = [\n    Type: STD::Int = 12\n  ]\n"
+
+#noinline
+def testSet_Serialize(write ok Int, write errorsCoordinates List)
+    var s TestSet = TestSet(Set())
+    s.add("10")
+    s.add("1")
+    s.add("7")
+    s.add("1fg")
+    s.add("sse")
+    s.add("123")
+    s.add("fb4")
+    var b Bytes = Bytes()
+    test: ok, errorsCoordinates
+        s.serializeSet(b).nothing?()
+    s = TestSet(Set())
+    var p Int = 0
+    s = TestSet.deserializeSet(b, p, String)
+    test: ok, errorsCoordinates
+        p == b.length()
+        s.length() == 7
+        s["10"]
+        s["1"]
+        s["7"]
+        s["1fg"]
+        s["sse"]
+        s["123"]
+        s["fb4"]
+        !s[""]
+        !s["222"]
+    b = Bytes()
+    test: ok, errorsCoordinates
+        TestSet(Set()).serializeSet(b).nothing?()
+    p = 0
+    s = TestSet.deserializeSet(b, p, String)
+    test: ok, errorsCoordinates
+        p == b.length()
+        s.length() == 0
+    s.add(123)
+    s.add(3)
+    s.add(8)
+    s.add(33)
+    s.add(1233)
+    s.add(66)
+    b = Bytes()
+    test: ok, errorsCoordinates
+        s.serializeSet(b).nothing?()
+    s = TestSet(Set())
+    p = 0
+    s = TestSet.deserializeSet(b, p, Int)
+    test: ok, errorsCoordinates
+        p == b.length()
+        s.length() == 6
+        s[123]
+        s[3]
+        s[8]
+        s[33]
+        s[1233]
+        s[66]
+        !s[-1]
+        !s[-21]

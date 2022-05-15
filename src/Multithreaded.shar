@@ -8,21 +8,27 @@ export group Multithreaded
 //@A call to this function indicates that the current thread does not currently require processor time.
 #alwaysinline nothrow
 export def yield()
-    llvm
-        call void @shar__yield()
-        ret [2 x i64] zeroinitializer
+    IR
+        call void @worker__yield()
+        ret {i64, i32} zeroinitializer
 
 //@When this function is called, the current thread pauses its work for a time not less than the specified number of milliseconds, but the work is resumed as soon as possible.
 #alwaysinline
 export def sleep(milliseconds Int)
     inthrow
         if milliseconds < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     unsafe_sleep(milliseconds)
 
 #alwaysinline nothrow
 def unsafe_sleep(milliseconds $Any)
-    llvm
-        %##nreg##milliseconds## = extractvalue [2 x i64] %0, 1
-        call void @shar__sleep(i64 %##reg##milliseconds##)
-        ret [2 x i64] zeroinitializer
+    IR
+        call void @worker__sleep({i64, i32} %0)
+        ret {i64, i32} zeroinitializer
+
+//@The function returns a unique worker ID.
+#alwaysinline nothrow
+export def getWorkerID() Int
+    IR
+        %##nreg##result## = call {i64, i32} @worker__id(i8* %0)
+        ret {i64, i32} %##reg##result##

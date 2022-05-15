@@ -34,11 +34,11 @@ def testList(write ok Int, write errorsCoordinates List)
 
 #noinline
 def testList_MemoryManagement(write ok Int, write errorsCoordinates List)
-    var int Int = 1
-    var list1 List = {int, 2, 3}
+    const int Int = 1
+    var list1 List = {int, 2, 3}.clone()
     var list2 List = {list1, 2, 3}
-    var list3 List = {int, 2, 3}
-    var list4 List = {list3, 2, 3}
+    var list3 List = {int, 2, 3}.clone()
+    const list4 List = {list3, 2, 3}
     test: ok, errorsCoordinates
         unsafe_list_getCounter(list1) == 2
         unsafe_list_getCounter(list2) == 1
@@ -48,7 +48,7 @@ def testList_MemoryManagement(write ok Int, write errorsCoordinates List)
         parse :(parse) index, item = list2
             count++
             allOk = index.inRange?(0, 3)
-            if !allOk || !(item.typeNumber~() == Int.typeNumber~() || item.typeNumber~() == List.typeNumber~())
+            if !allOk || !(item.typeNumber() == Int.typeNumber() || item.typeNumber() == List.typeNumber())
                 allOk = false
                 end parse
     catch
@@ -82,7 +82,7 @@ def testList_MemoryManagement(write ok Int, write errorsCoordinates List)
         !list4.constant?()
     list1 = list1.clone()
     list2 = list3.clone()
-    var list5 List = list4.clone()
+    const list5 List = list4.clone()
     test: ok, errorsCoordinates
         unsafe_list_getCounter(list1) == 1
         unsafe_list_getCounter(list2) == 1
@@ -142,9 +142,9 @@ def testList_MemoryManagement(write ok Int, write errorsCoordinates List)
         nothing
     test: ok, errorsCoordinates
         allOk
-        list1.length~() == 300
-        list2.length~() == 400
-        list3.length~() == 300
+        list1.length() == 300
+        list2.length() == 400
+        list3.length() == 300
 
 #noinline
 def testList_Equal(write ok Int, write errorsCoordinates List)
@@ -213,20 +213,20 @@ def testList_GetFromAToLast(write ok Int, write errorsCoordinates List)
         {1, 2}[2:] == {}
         {1, 2}[1:] == {2}
         {1, 2}[0:] == {1, 2}
-        {}[-9223372036854775808:] : error_outOfRange
-        {}[9223372036854775807:] : error_outOfRange
-        {}[-1:] : error_outOfRange
-        {}[1:] : error_outOfRange
-        {}[2:] : error_outOfRange
+        {}[-9223372036854775808:] : eid_outOfRange
+        {}[9223372036854775807:] : eid_outOfRange
+        {}[-1:] : eid_outOfRange
+        {}[1:] : eid_outOfRange
+        {}[2:] : eid_outOfRange
         {1, 2, 3}[0:] == {1, 2, 3}
         {1, 2, 3}[1:] == {2, 3}
         {1, 2, 3}[2:] == {3}
         {1, 2, 3}[3:] == {}
-        {1, 2, 3}[-9223372036854775808:] : error_outOfRange
-        {1, 2, 3}[9223372036854775807:] : error_outOfRange
-        {1, 2, 3}[-1:] : error_outOfRange
-        {1, 2, 3}[4:] : error_outOfRange
-        {1, 2, 3}[5:] : error_outOfRange
+        {1, 2, 3}[-9223372036854775808:] : eid_outOfRange
+        {1, 2, 3}[9223372036854775807:] : eid_outOfRange
+        {1, 2, 3}[-1:] : eid_outOfRange
+        {1, 2, 3}[4:] : eid_outOfRange
+        {1, 2, 3}[5:] : eid_outOfRange
 
 #noinline
 def testList_GetFromFirstToA(write ok Int, write errorsCoordinates List)
@@ -237,20 +237,20 @@ def testList_GetFromFirstToA(write ok Int, write errorsCoordinates List)
         {1, 2}[:2] == {1, 2}
         {1, 2}[:1] == {1}
         {1, 2}[:0] == {}
-        {}[:-9223372036854775808] : error_outOfRange
-        {}[:9223372036854775807] : error_outOfRange
-        {}[:-1] : error_outOfRange
-        {}[:1] : error_outOfRange
-        {}[:2] : error_outOfRange
+        {}[:-9223372036854775808] : eid_outOfRange
+        {}[:9223372036854775807] : eid_outOfRange
+        {}[:-1] : eid_outOfRange
+        {}[:1] : eid_outOfRange
+        {}[:2] : eid_outOfRange
         {1, 2, 3}[:0] == {}
         {1, 2, 3}[:1] == {1}
         {1, 2, 3}[:2] == {1, 2}
         {1, 2, 3}[:3] == {1, 2, 3}
-        {1, 2, 3}[:-9223372036854775808] : error_outOfRange
-        {1, 2, 3}[:9223372036854775807] : error_outOfRange
-        {1, 2, 3}[:-1] : error_outOfRange
-        {1, 2, 3}[:4] : error_outOfRange
-        {1, 2, 3}[:5] : error_outOfRange
+        {1, 2, 3}[:-9223372036854775808] : eid_outOfRange
+        {1, 2, 3}[:9223372036854775807] : eid_outOfRange
+        {1, 2, 3}[:-1] : eid_outOfRange
+        {1, 2, 3}[:4] : eid_outOfRange
+        {1, 2, 3}[:5] : eid_outOfRange
 
 #noinline
 def testList_GetRange(write ok Int, write errorsCoordinates List)
@@ -263,34 +263,34 @@ def testList_GetRange(write ok Int, write errorsCoordinates List)
         {1.1, 2}[1:2] == {2}
         {1.2, 2}[0:2] == {1.2, 2}
         {1, 2}[2:2] == {}
-        {}[-9223372036854775808:-9223372036854775808] : error_outOfRange
-        {}[-9223372036854775808:-1] : error_outOfRange
-        {}[-9223372036854775808:9223372036854775807] : error_outOfRange
-        {}[9223372036854775807:9223372036854775807] : error_outOfRange
-        {}[-1:-1] : error_outOfRange
-        {}[-1:0] : error_outOfRange
-        {}[0:-1] : error_outOfRange
-        {}[0:1] : error_outOfRange
-        {}[1:0] : error_outOfRange
-        {}[1:1] : error_outOfRange
-        {}[2:1] : error_outOfRange
-        {}[2:0] : error_outOfRange
-        {}[2:-1] : error_outOfRange
-        {}[2:-9223372036854775808] : error_outOfRange
-        {}[2:9223372036854775807] : error_outOfRange
-        {1, 2.4, 'a'}[-9223372036854775808:-9223372036854775808] : error_outOfRange
-        {1, 2.4, 'a'}[-9223372036854775808:-1] : error_outOfRange
-        {1, 2.4, 'a'}[-9223372036854775808:9223372036854775807] : error_outOfRange
-        {1, 2.4, 'a'}[9223372036854775807:9223372036854775807] : error_outOfRange
-        {1, 2.4, 'a'}[-1:-1] : error_outOfRange
-        {1, 2.4, 'a'}[-1:0] : error_outOfRange
-        {1, 2.4, 'a'}[0:-1] : error_outOfRange
-        {1, 2.4, 'a'}[1:0] : error_outOfRange
-        {1, 2.4, 'a'}[2:1] : error_outOfRange
-        {1, 2.4, 'a'}[2:0] : error_outOfRange
-        {1, 2.4, 'a'}[2:-1] : error_outOfRange
-        {1, 2.4, 'a'}[2:-9223372036854775808] : error_outOfRange
-        {1, 2.4, 'a'}[2:9223372036854775807] : error_outOfRange
+        {}[-9223372036854775808:-9223372036854775808] : eid_outOfRange
+        {}[-9223372036854775808:-1] : eid_outOfRange
+        {}[-9223372036854775808:9223372036854775807] : eid_outOfRange
+        {}[9223372036854775807:9223372036854775807] : eid_outOfRange
+        {}[-1:-1] : eid_outOfRange
+        {}[-1:0] : eid_outOfRange
+        {}[0:-1] : eid_outOfRange
+        {}[0:1] : eid_outOfRange
+        {}[1:0] : eid_outOfRange
+        {}[1:1] : eid_outOfRange
+        {}[2:1] : eid_outOfRange
+        {}[2:0] : eid_outOfRange
+        {}[2:-1] : eid_outOfRange
+        {}[2:-9223372036854775808] : eid_outOfRange
+        {}[2:9223372036854775807] : eid_outOfRange
+        {1, 2.4, 'a'}[-9223372036854775808:-9223372036854775808] : eid_outOfRange
+        {1, 2.4, 'a'}[-9223372036854775808:-1] : eid_outOfRange
+        {1, 2.4, 'a'}[-9223372036854775808:9223372036854775807] : eid_outOfRange
+        {1, 2.4, 'a'}[9223372036854775807:9223372036854775807] : eid_outOfRange
+        {1, 2.4, 'a'}[-1:-1] : eid_outOfRange
+        {1, 2.4, 'a'}[-1:0] : eid_outOfRange
+        {1, 2.4, 'a'}[0:-1] : eid_outOfRange
+        {1, 2.4, 'a'}[1:0] : eid_outOfRange
+        {1, 2.4, 'a'}[2:1] : eid_outOfRange
+        {1, 2.4, 'a'}[2:0] : eid_outOfRange
+        {1, 2.4, 'a'}[2:-1] : eid_outOfRange
+        {1, 2.4, 'a'}[2:-9223372036854775808] : eid_outOfRange
+        {1, 2.4, 'a'}[2:9223372036854775807] : eid_outOfRange
         {1, 2, 3 ,4 ,5 ,6, 7}[0:7] == {1, 2, 3 ,4 ,5 ,6, 7}
         {1, 2, 3 ,4 ,5 ,6, 7}[1:7] == {2, 3 ,4 ,5 ,6, 7}
         {1, 2, 3 ,4 ,5 ,6, 7}[0:6] == {1, 2, 3 ,4 ,5 ,6}
@@ -298,28 +298,28 @@ def testList_GetRange(write ok Int, write errorsCoordinates List)
         {1, 2, 3 ,4 ,5 ,6, 7}[2:5] == {3 ,4 ,5}
         {1, 2, 3 ,4 ,5 ,6, 7}[4:4] == {}
         {1, 2, 3 ,4 ,5 ,6, 7}[7:7] == {}
-        {1, 2, 3 ,4 ,5 ,6, 7}[8:8] : error_outOfRange
+        {1, 2, 3 ,4 ,5 ,6, 7}[8:8] : eid_outOfRange
 
 #noinline
 def testList_GetItem(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        {}[0] : error_outOfRange
-        {}[1] : error_outOfRange
-        {}[-1] : error_outOfRange
-        {}[-9223372036854775808] : error_outOfRange
-        {}[9223372036854775807] : error_outOfRange
+        {}[0] : eid_outOfRange
+        {}[1] : eid_outOfRange
+        {}[-1] : eid_outOfRange
+        {}[-9223372036854775808] : eid_outOfRange
+        {}[9223372036854775807] : eid_outOfRange
         {1}[0] == 1
-        {1}[1] : error_outOfRange
-        {1}[-1] : error_outOfRange
-        {1}[-9223372036854775808] : error_outOfRange
-        {1}[9223372036854775807] : error_outOfRange
+        {1}[1] : eid_outOfRange
+        {1}[-1] : eid_outOfRange
+        {1}[-9223372036854775808] : eid_outOfRange
+        {1}[9223372036854775807] : eid_outOfRange
         {1, 2.2, '3'}[0] == 1
         {1, 2.2, '3'}[1] == 2.2
         {1, 2.2, '3'}[2] == '3'
-        {1, 2.2, '3'}[3] : error_outOfRange
-        {1, 2.2, '3'}[-1] : error_outOfRange
-        {1, 2.2, '3'}[-9223372036854775808] : error_outOfRange
-        {1, 2.2, '3'}[9223372036854775807] : error_outOfRange
+        {1, 2.2, '3'}[3] : eid_outOfRange
+        {1, 2.2, '3'}[-1] : eid_outOfRange
+        {1, 2.2, '3'}[-9223372036854775808] : eid_outOfRange
+        {1, 2.2, '3'}[9223372036854775807] : eid_outOfRange
 
 #noinline
 def testList_Add(write ok Int, write errorsCoordinates List)
@@ -425,10 +425,10 @@ def testList_Hashable(write ok Int, write errorsCoordinates List)
 #noinline
 def testList_Long(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        {}.length~() == 0
-        {123}.length~() == 1
-        {10, 23}.length~() == 2
-        {10, 23, 0}.length~() == 3
+        {}.length() == 0
+        {123}.length() == 1
+        {10, 23}.length() == 2
+        {10, 23, 0}.length() == 3
 
 #noinline
 def testList_Empty(write ok Int, write errorsCoordinates List)
@@ -501,29 +501,29 @@ def testList_Container(write ok Int, write errorsCoordinates List)
         list5 == {1, 2.2, "3"}
         list6.setItem(0, nothing).nothing?()
         list6[0].nothing?()
-        list5.setItem(-1, 1) : error_outOfRange
+        list5.setItem(-1, 1) : eid_outOfRange
         list5 == {1, 2.2, "3"}
-        list5.setItem(4, 1) : error_outOfRange
+        list5.setItem(4, 1) : eid_outOfRange
         list5 == {1, 2.2, "3"}
-        list5.setItem(-9223372036854775808, 1) : error_outOfRange
+        list5.setItem(-9223372036854775808, 1) : eid_outOfRange
         list5 == {1, 2.2, "3"}
-        list5.setItem(9223372036854775807, 1) : error_outOfRange
+        list5.setItem(9223372036854775807, 1) : eid_outOfRange
         list5 == {1, 2.2, "3"}
-        list1.setItem(-1, 1) : error_outOfRange
+        list1.setItem(-1, 1) : eid_outOfRange
         list1 == {1.0}
-        list1.setItem(1, 1) : error_outOfRange
+        list1.setItem(1, 1) : eid_outOfRange
         list1 == {1.0}
-        list1.setItem(-9223372036854775808, 1) : error_outOfRange
+        list1.setItem(-9223372036854775808, 1) : eid_outOfRange
         list1 == {1.0}
-        list1.setItem(9223372036854775807, 1) : error_outOfRange
+        list1.setItem(9223372036854775807, 1) : eid_outOfRange
         list1 == {1.0}
-        list2.setItem(-1, 1) : error_outOfRange
+        list2.setItem(-1, 1) : eid_outOfRange
         list2 == {'1', 2.2}
-        list2.setItem(2, 1) : error_outOfRange
+        list2.setItem(2, 1) : eid_outOfRange
         list2 == {'1', 2.2}
-        list2.setItem(-9223372036854775808, 1) : error_outOfRange
+        list2.setItem(-9223372036854775808, 1) : eid_outOfRange
         list2 == {'1', 2.2}
-        list2.setItem(9223372036854775807, 1) : error_outOfRange
+        list2.setItem(9223372036854775807, 1) : eid_outOfRange
         list2 == {'1', 2.2}
     list1 = {1}.clone()
     list2 = {1, 2.2}.clone()
@@ -544,29 +544,29 @@ def testList_Container(write ok Int, write errorsCoordinates List)
         list5 == {1, 2.2, "3"}
         list6.setItem(0, nothing).nothing?()
         list6[0].nothing?()
-        list5.setItem(-1, 1) : error_outOfRange
+        list5.setItem(-1, 1) : eid_outOfRange
         list5 == {1, 2.2, "3"}
-        list5.setItem(4, 1) : error_outOfRange
+        list5.setItem(4, 1) : eid_outOfRange
         list5 == {1, 2.2, "3"}
-        list5.setItem(-9223372036854775808, 1) : error_outOfRange
+        list5.setItem(-9223372036854775808, 1) : eid_outOfRange
         list5 == {1, 2.2, "3"}
-        list5.setItem(9223372036854775807, 1) : error_outOfRange
+        list5.setItem(9223372036854775807, 1) : eid_outOfRange
         list5 == {1, 2.2, "3"}
-        list1.setItem(-1, 1) : error_outOfRange
+        list1.setItem(-1, 1) : eid_outOfRange
         list1 == {1.0}
-        list1.setItem(1, 1) : error_outOfRange
+        list1.setItem(1, 1) : eid_outOfRange
         list1 == {1.0}
-        list1.setItem(-9223372036854775808, 1) : error_outOfRange
+        list1.setItem(-9223372036854775808, 1) : eid_outOfRange
         list1 == {1.0}
-        list1.setItem(9223372036854775807, 1) : error_outOfRange
+        list1.setItem(9223372036854775807, 1) : eid_outOfRange
         list1 == {1.0}
-        list2.setItem(-1, 1) : error_outOfRange
+        list2.setItem(-1, 1) : eid_outOfRange
         list2 == {'1', 2.2}
-        list2.setItem(2, 1) : error_outOfRange
+        list2.setItem(2, 1) : eid_outOfRange
         list2 == {'1', 2.2}
-        list2.setItem(-9223372036854775808, 1) : error_outOfRange
+        list2.setItem(-9223372036854775808, 1) : eid_outOfRange
         list2 == {'1', 2.2}
-        list2.setItem(9223372036854775807, 1) : error_outOfRange
+        list2.setItem(9223372036854775807, 1) : eid_outOfRange
         list2 == {'1', 2.2}
 
 #noinline
@@ -575,27 +575,27 @@ def testList_Put(write ok Int, write errorsCoordinates List)
     var l2 List = {1}
     var l3 List = {1, 2, 3, 4}
     test: ok, errorsCoordinates
-        l1.put(0, 2) : error_outOfRange
+        l1.put(0, 2) : eid_outOfRange
         l1 == {}
-        l1.put(1, 2) : error_outOfRange
+        l1.put(1, 2) : eid_outOfRange
         l1 == {}
-        l1.put(9223372036854775807, 2) : error_outOfRange
+        l1.put(9223372036854775807, 2) : eid_outOfRange
         l1 == {}
-        l1.put(-1, 2) : error_outOfRange
+        l1.put(-1, 2) : eid_outOfRange
         l1 == {}
-        l1.put(-9223372036854775808, 2) : error_outOfRange
+        l1.put(-9223372036854775808, 2) : eid_outOfRange
         l1 == {}
         l2.put(0, '2') == 1
         l2 == {'2'}
         l2.put(0, 3) == '2'
         l2 == {3}
-        l2.put(1, 0) : error_outOfRange
+        l2.put(1, 0) : eid_outOfRange
         l2 == {3}
-        l2.put(9223372036854775807, 0) : error_outOfRange
+        l2.put(9223372036854775807, 0) : eid_outOfRange
         l2 == {3}
-        l2.put(-1, 0) : error_outOfRange
+        l2.put(-1, 0) : eid_outOfRange
         l2 == {3}
-        l2.put(-9223372036854775808, 0) : error_outOfRange
+        l2.put(-9223372036854775808, 0) : eid_outOfRange
         l2 == {3}
         l3.put(0, '-') == 1
         l3 == {'-', 2, 3, 4}
@@ -603,13 +603,13 @@ def testList_Put(write ok Int, write errorsCoordinates List)
         l3 == {'-', 3, 3, 4}
         l3.put(3, '0') == 4
         l3 == {'-', 3, 3, '0'}
-        l3.put(4, 1) : error_outOfRange
+        l3.put(4, 1) : eid_outOfRange
         l3 == {'-', 3, 3, '0'}
-        l3.put(9223372036854775807, 1) : error_outOfRange
+        l3.put(9223372036854775807, 1) : eid_outOfRange
         l3 == {'-', 3, 3, '0'}
-        l3.put(-1, 1) : error_outOfRange
+        l3.put(-1, 1) : eid_outOfRange
         l3 == {'-', 3, 3, '0'}
-        l3.put(-9223372036854775808, 1) : error_outOfRange
+        l3.put(-9223372036854775808, 1) : eid_outOfRange
         l3 == {'-', 3, 3, '0'}
 
 #noinline
@@ -644,45 +644,45 @@ def testList_Swap(write ok Int, write errorsCoordinates List)
     var a4 List = {1, '2', "3"}
     var a5 List = {1, '2', "3", [4], 5}
     test: ok, errorsCoordinates
-        a1.swap(0, 0) : error_outOfRange
+        a1.swap(0, 0) : eid_outOfRange
         a1 == {}
-        a1.swap(-1, 0) : error_outOfRange
+        a1.swap(-1, 0) : eid_outOfRange
         a1 == {}
-        a1.swap(-1, -1) : error_outOfRange
+        a1.swap(-1, -1) : eid_outOfRange
         a1 == {}
-        a1.swap(0, -1) : error_outOfRange
+        a1.swap(0, -1) : eid_outOfRange
         a1 == {}
-        a1.swap(9223372036854775807, 0) : error_outOfRange
+        a1.swap(9223372036854775807, 0) : eid_outOfRange
         a1 == {}
-        a1.swap(0, 9223372036854775807) : error_outOfRange
+        a1.swap(0, 9223372036854775807) : eid_outOfRange
         a1 == {}
-        a1.swap(0, 1) : error_outOfRange
+        a1.swap(0, 1) : eid_outOfRange
         a1 == {}
-        a1.swap(1, 1) : error_outOfRange
+        a1.swap(1, 1) : eid_outOfRange
         a1 == {}
-        a1.swap(1, 0) : error_outOfRange
+        a1.swap(1, 0) : eid_outOfRange
         a1 == {}
-        a1.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a1.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a1 == {}
         a2.swap(0, 0).nothing?()
         a2 == {1}
-        a2.swap(1, 1) : error_outOfRange
+        a2.swap(1, 1) : eid_outOfRange
         a2 == {1}
-        a2.swap(-1, 0) : error_outOfRange
+        a2.swap(-1, 0) : eid_outOfRange
         a2 == {1}
-        a2.swap(-1, -1) : error_outOfRange
+        a2.swap(-1, -1) : eid_outOfRange
         a2 == {1}
-        a2.swap(0, -1) : error_outOfRange
+        a2.swap(0, -1) : eid_outOfRange
         a2 == {1}
-        a2.swap(9223372036854775807, 0) : error_outOfRange
+        a2.swap(9223372036854775807, 0) : eid_outOfRange
         a2 == {1}
-        a2.swap(0, 9223372036854775807) : error_outOfRange
+        a2.swap(0, 9223372036854775807) : eid_outOfRange
         a2 == {1}
-        a2.swap(0, 1) : error_outOfRange
+        a2.swap(0, 1) : eid_outOfRange
         a2 == {1}
-        a2.swap(1, 0) : error_outOfRange
+        a2.swap(1, 0) : eid_outOfRange
         a2 == {1}
-        a2.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a2.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a2 == {1}
         a3.swap(0, 0).nothing?()
         a3 == {1, '2'}
@@ -692,23 +692,23 @@ def testList_Swap(write ok Int, write errorsCoordinates List)
         a3 == {'2', 1}
         a3.swap(1, 0).nothing?()
         a3 == {1, '2'}
-        a3.swap(2, 2) : error_outOfRange
+        a3.swap(2, 2) : eid_outOfRange
         a3 == {1, '2'}
-        a3.swap(-1, 0) : error_outOfRange
+        a3.swap(-1, 0) : eid_outOfRange
         a3 == {1, '2'}
-        a3.swap(-1, -1) : error_outOfRange
+        a3.swap(-1, -1) : eid_outOfRange
         a3 == {1, '2'}
-        a3.swap(0, -1) : error_outOfRange
+        a3.swap(0, -1) : eid_outOfRange
         a3 == {1, '2'}
-        a3.swap(9223372036854775807, 0) : error_outOfRange
+        a3.swap(9223372036854775807, 0) : eid_outOfRange
         a3 == {1, '2'}
-        a3.swap(0, 9223372036854775807) : error_outOfRange
+        a3.swap(0, 9223372036854775807) : eid_outOfRange
         a3 == {1, '2'}
-        a3.swap(0, 2) : error_outOfRange
+        a3.swap(0, 2) : eid_outOfRange
         a3 == {1, '2'}
-        a3.swap(2, 0) : error_outOfRange
+        a3.swap(2, 0) : eid_outOfRange
         a3 == {1, '2'}
-        a3.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a3.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a3 == {1, '2'}
         a4.swap(0, 0).nothing?()
         a4 == {1, '2', "3"}
@@ -726,25 +726,25 @@ def testList_Swap(write ok Int, write errorsCoordinates List)
         a4 == {'2', "3", 1}
         a4.swap(2, 0).nothing?()
         a4 == {1, "3", '2'}
-        a4.swap(3, 3) : error_outOfRange
+        a4.swap(3, 3) : eid_outOfRange
         a4 == {1, "3", '2'}
-        a4.swap(-1, 0) : error_outOfRange
+        a4.swap(-1, 0) : eid_outOfRange
         a4 == {1, "3", '2'}
-        a4.swap(-1, -1) : error_outOfRange
+        a4.swap(-1, -1) : eid_outOfRange
         a4 == {1, "3", '2'}
-        a4.swap(0, -1) : error_outOfRange
+        a4.swap(0, -1) : eid_outOfRange
         a4 == {1, "3", '2'}
-        a4.swap(9223372036854775807, 0) : error_outOfRange
+        a4.swap(9223372036854775807, 0) : eid_outOfRange
         a4 == {1, "3", '2'}
-        a4.swap(0, 9223372036854775807) : error_outOfRange
+        a4.swap(0, 9223372036854775807) : eid_outOfRange
         a4 == {1, "3", '2'}
-        a4.swap(0, 3) : error_outOfRange
+        a4.swap(0, 3) : eid_outOfRange
         a4 == {1, "3", '2'}
-        a4.swap(3, 0) : error_outOfRange
+        a4.swap(3, 0) : eid_outOfRange
         a4 == {1, "3", '2'}
-        a4.swap(3, 1) : error_outOfRange
+        a4.swap(3, 1) : eid_outOfRange
         a4 == {1, "3", '2'}
-        a4.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a4.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a4 == {1, "3", '2'}
         a5.swap(0, 0).nothing?()
         a5 == {1, '2', "3", [4], 5}
@@ -770,25 +770,25 @@ def testList_Swap(write ok Int, write errorsCoordinates List)
         a5 == {5, "3", '2', [4], 1}
         a5.swap(4, 0).nothing?()
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(5, 5) : error_outOfRange
+        a5.swap(5, 5) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(-1, 0) : error_outOfRange
+        a5.swap(-1, 0) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(-1, -1) : error_outOfRange
+        a5.swap(-1, -1) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(0, -1) : error_outOfRange
+        a5.swap(0, -1) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(9223372036854775807, 0) : error_outOfRange
+        a5.swap(9223372036854775807, 0) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(0, 9223372036854775807) : error_outOfRange
+        a5.swap(0, 9223372036854775807) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(0, 5) : error_outOfRange
+        a5.swap(0, 5) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(5, 0) : error_outOfRange
+        a5.swap(5, 0) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(5, 1) : error_outOfRange
+        a5.swap(5, 1) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
-        a5.swap(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        a5.swap(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         a5 == {1, "3", '2', [4], 5}
     a1 = {"1".clone(), "2".clone(), "3".clone()}
     test: ok, errorsCoordinates
@@ -800,15 +800,15 @@ def testList_Swap(write ok Int, write errorsCoordinates List)
         a1[0].unsafe_getI64(0) == 2
         a1[1].unsafe_getI64(0) == 2
         a1[2].unsafe_getI64(0) == 2
-        a1.swap(0, 3) : error_outOfRange
+        a1.swap(0, 3) : eid_outOfRange
         a1[0].unsafe_getI64(0) == 2
         a1[1].unsafe_getI64(0) == 2
         a1[2].unsafe_getI64(0) == 2
-        a1.swap(-1, 0) : error_outOfRange
+        a1.swap(-1, 0) : eid_outOfRange
         a1[0].unsafe_getI64(0) == 2
         a1[1].unsafe_getI64(0) == 2
         a1[2].unsafe_getI64(0) == 2
-        a1.swap(0, -1) : error_outOfRange
+        a1.swap(0, -1) : eid_outOfRange
         a1[0].unsafe_getI64(0) == 2
         a1[1].unsafe_getI64(0) == 2
         a1[2].unsafe_getI64(0) == 2
@@ -818,13 +818,13 @@ def testList_Swap(write ok Int, write errorsCoordinates List)
         a1.swap(0, 2).nothing?()
         a1 == {"3", '2', 1}
         a2 == {1, '2', "3"}
-        a1.swap(0, -1) : error_outOfRange
+        a1.swap(0, -1) : eid_outOfRange
         a1 == {"3", '2', 1}
         a2 == {1, '2', "3"}
-        a1.swap(0, 3) : error_outOfRange
+        a1.swap(0, 3) : eid_outOfRange
         a1 == {"3", '2', 1}
         a2 == {1, '2', "3"}
-        a1.swap(3, 0) : error_outOfRange
+        a1.swap(3, 0) : eid_outOfRange
         a1 == {"3", '2', 1}
         a2 == {1, '2', "3"}
 
@@ -832,52 +832,52 @@ def testList_Swap(write ok Int, write errorsCoordinates List)
 def testList_Delete$(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         {}.delete$(0, 0) == {}
-        {}.delete$(1, 0) : error_outOfRange
-        {}.delete$(9223372036854775807, 0) : error_outOfRange
-        {}.delete$(-1, 0) : error_outOfRange
-        {}.delete$(-9223372036854775808, 0) : error_outOfRange
-        {}.delete$(0, 1) : error_outOfRange
-        {}.delete$(0, 9223372036854775807) : error_outOfRange
-        {}.delete$(0, -1) : error_outOfRange
-        {}.delete$(0, -9223372036854775808) : error_outOfRange
+        {}.delete$(1, 0) : eid_outOfRange
+        {}.delete$(9223372036854775807, 0) : eid_outOfRange
+        {}.delete$(-1, 0) : eid_outOfRange
+        {}.delete$(-9223372036854775808, 0) : eid_outOfRange
+        {}.delete$(0, 1) : eid_outOfRange
+        {}.delete$(0, 9223372036854775807) : eid_outOfRange
+        {}.delete$(0, -1) : eid_outOfRange
+        {}.delete$(0, -9223372036854775808) : eid_outOfRange
         {1}.delete$(0, 0) == {1}
         {1}.delete$(1, 0) == {1}
         {1}.delete$(0, 1) == {}
-        {1}.delete$(1, 1) : error_outOfRange
-        {1}.delete$(9223372036854775807, 0) : error_outOfRange
-        {1}.delete$(-1, 0) : error_outOfRange
-        {1}.delete$(-9223372036854775808, 0) : error_outOfRange
-        {1}.delete$(0, 2) : error_outOfRange
-        {1}.delete$(0, 9223372036854775807) : error_outOfRange
-        {1}.delete$(0, -1) : error_outOfRange
-        {1}.delete$(0, -9223372036854775808) : error_outOfRange
+        {1}.delete$(1, 1) : eid_outOfRange
+        {1}.delete$(9223372036854775807, 0) : eid_outOfRange
+        {1}.delete$(-1, 0) : eid_outOfRange
+        {1}.delete$(-9223372036854775808, 0) : eid_outOfRange
+        {1}.delete$(0, 2) : eid_outOfRange
+        {1}.delete$(0, 9223372036854775807) : eid_outOfRange
+        {1}.delete$(0, -1) : eid_outOfRange
+        {1}.delete$(0, -9223372036854775808) : eid_outOfRange
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(0, 0) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(0, 1) == {2, 3, 4, 5, 6, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(0, 2) == {3, 4, 5, 6, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(0, 9) == {}
-        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(0, 10) : error_outOfRange
+        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(0, 10) : eid_outOfRange
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(1, 0) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(1, 1) == {1, 3, 4, 5, 6, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(1, 2) == {1, 4, 5, 6, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(1, 8) == {1}
-        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(1, 9) : error_outOfRange
+        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(1, 9) : eid_outOfRange
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(4, 0) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(4, 1) == {1, 2, 3, 4, 6, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(4, 2) == {1, 2, 3, 4, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(4, 5) == {1, 2, 3, 4}
-        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(4, 6) : error_outOfRange
+        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(4, 6) : eid_outOfRange
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(8, 0) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(8, 1) == {1, 2, 3, 4, 5, 6, 7, 8}
-        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(8, 2) : error_outOfRange
+        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(8, 2) : eid_outOfRange
         {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(9, 0) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(9, 1) : error_outOfRange
-    var l1 List = {1}.clone()
-    var l2 List = {2}.clone()
-    var l3 List = {3}.clone()
-    var l4 List = {l1, l2, l3}
-    var l5 List = {l1, l2, l3}.clone()
-    var l6 List = l4.delete$(1, 1)
-    var l7 List = l5.delete$(1, 1)
+        {1, 2, 3, 4, 5, 6, 7, 8, 9}.delete$(9, 1) : eid_outOfRange
+    const l1 List = {1}.clone()
+    const l2 List = {2}.clone()
+    const l3 List = {3}.clone()
+    const l4 List = {l1, l2, l3}
+    const l5 List = {l1, l2, l3}.clone()
+    const l6 List = l4.delete$(1, 1)
+    const l7 List = l5.delete$(1, 1)
     test: ok, errorsCoordinates
         l6 == {{1}, {3}}
         l7 == {{1}, {3}}
@@ -897,53 +897,53 @@ def testList_Delete(write ok Int, write errorsCoordinates List)
     var c4 List = {1, 2, 3, 4, 5, 6, 7, 8, 9}
     var c5 List = {1, 2, 3, 4, 5, 6, 7, 8, 9}.clone()
     var c6 List = {1, 2, 3, 4, 5, 6, 7, 8, 9}.clone()
-    var c7 List = c6
+    const c7 List = c6
     test: ok, errorsCoordinates
         c1.delete(0, 0).nothing?()
         c1 == {}
-        c1.delete(1, 0) : error_outOfRange
+        c1.delete(1, 0) : eid_outOfRange
         c1 == {}
-        c1.delete(9223372036854775807, 0) : error_outOfRange
+        c1.delete(9223372036854775807, 0) : eid_outOfRange
         c1 == {}
-        c1.delete(-1, 0) : error_outOfRange
+        c1.delete(-1, 0) : eid_outOfRange
         c1 == {}
-        c1.delete(-9223372036854775808, 0) : error_outOfRange
+        c1.delete(-9223372036854775808, 0) : eid_outOfRange
         c1 == {}
-        c1.delete(0, 1) : error_outOfRange
+        c1.delete(0, 1) : eid_outOfRange
         c1 == {}
-        c1.delete(0, 9223372036854775807) : error_outOfRange
+        c1.delete(0, 9223372036854775807) : eid_outOfRange
         c1 == {}
-        c1.delete(0, -1) : error_outOfRange
+        c1.delete(0, -1) : eid_outOfRange
         c1 == {}
-        c1.delete(0, -9223372036854775808) : error_outOfRange
+        c1.delete(0, -9223372036854775808) : eid_outOfRange
         c1 == {}
         c2.delete(0, 0).nothing?()
         c2 == {1}
         c2.delete(1, 0).nothing?()
         c2 == {1}
-        c2.delete(0, 2) : error_outOfRange
+        c2.delete(0, 2) : eid_outOfRange
         c2 == {1}
-        c2.delete(0, 9223372036854775807) : error_outOfRange
+        c2.delete(0, 9223372036854775807) : eid_outOfRange
         c2 == {1}
-        c2.delete(0, -1) : error_outOfRange
+        c2.delete(0, -1) : eid_outOfRange
         c2 == {1}
-        c2.delete(0, -9223372036854775807) : error_outOfRange
+        c2.delete(0, -9223372036854775807) : eid_outOfRange
         c2 == {1}
-        c2.delete(2, 0) : error_outOfRange
+        c2.delete(2, 0) : eid_outOfRange
         c2 == {1}
-        c2.delete(9223372036854775807, 0) : error_outOfRange
+        c2.delete(9223372036854775807, 0) : eid_outOfRange
         c2 == {1}
-        c2.delete(-1, 0) : error_outOfRange
+        c2.delete(-1, 0) : eid_outOfRange
         c2 == {1}
-        c2.delete(-9223372036854775808, 0) : error_outOfRange
+        c2.delete(-9223372036854775808, 0) : eid_outOfRange
         c2 == {1}
-        c3.delete(0, 10) : error_outOfRange
+        c3.delete(0, 10) : eid_outOfRange
         c3 == {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        c3.delete(1, 9) : error_outOfRange
+        c3.delete(1, 9) : eid_outOfRange
         c3 == {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        c3.delete(4, 6) : error_outOfRange
+        c3.delete(4, 6) : eid_outOfRange
         c3 == {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        c3.delete(9, 1) : error_outOfRange
+        c3.delete(9, 1) : eid_outOfRange
         c3 == {1, 2, 3, 4, 5, 6, 7, 8, 9}
         c3.delete(0, 0).nothing?()
         c3 == {1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -976,14 +976,14 @@ def testList_Delete(write ok Int, write errorsCoordinates List)
         c6.delete(8, 0).nothing?()
         c6 == {1, 2, 3, 4, 5, 6, 7, 8}
         c7 == {1, 2, 3, 4, 5, 6, 7, 8, 9}
-    var l1 List = {1}.clone()
-    var l2 List = {2}.clone()
-    var l3 List = {3}.clone()
+    const l1 List = {1}.clone()
+    const l2 List = {2}.clone()
+    const l3 List = {3}.clone()
     var l4 List = {l1, l2, l3}
     var l5 List = {l1, l2, l3}.clone()
     var l6 List = {l1, l2, l3}.clone()
     var l7 List = l6
-    var l8 List = l2
+    const l8 List = l2
     test: ok, errorsCoordinates
         l4.delete(1, 1).nothing?()
         l5.delete(1, 1).nothing?()
@@ -1006,30 +1006,30 @@ def testList_Delete(write ok Int, write errorsCoordinates List)
 #noinline
 def testList_Insert$(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        {}.insert$(1, 1) : error_outOfRange
-        {}.insert$(9223372036854775807, 1) : error_outOfRange
-        {}.insert$(-1, 1) : error_outOfRange
-        {}.insert$(-9223372036854775808, 1) : error_outOfRange
+        {}.insert$(1, 1) : eid_outOfRange
+        {}.insert$(9223372036854775807, 1) : eid_outOfRange
+        {}.insert$(-1, 1) : eid_outOfRange
+        {}.insert$(-9223372036854775808, 1) : eid_outOfRange
         {}.insert$(0, 1) == {1}
-        {1}.insert$(2, 1) : error_outOfRange
-        {1}.insert$(9223372036854775807, 1) : error_outOfRange
-        {1}.insert$(-1, 1) : error_outOfRange
-        {1}.insert$(-9223372036854775808, 1) : error_outOfRange
+        {1}.insert$(2, 1) : eid_outOfRange
+        {1}.insert$(9223372036854775807, 1) : eid_outOfRange
+        {1}.insert$(-1, 1) : eid_outOfRange
+        {1}.insert$(-9223372036854775808, 1) : eid_outOfRange
         {1}.insert$(0, 2) == {2, 1}
         {1}.insert$(1, 2) == {1, 2}
         {1, 2, 3, 4, 5}.insert$(0, 'a') == {'a', 1, 2, 3, 4, 5}
         {1, 2, 3, 4, 5}.insert$(2, 'a') == {1, 2, 'a', 3, 4, 5}
         {1, 2, 3, 4, 5}.insert$(3, 'a') == {1, 2, 3, 'a', 4, 5}
         {1, 2, 3, 4, 5}.insert$(5, 'a') == {1, 2, 3, 4, 5, 'a'}
-    var l1 List = {1}.clone()
-    var l2 List = {2}.clone()
-    var l3 List = {3}.clone()
-    var l4 List = {l1, l2, l3}
-    var l5 List = {l1, l2, l3}.clone()
-    var l6 List = l4.insert$(3, l1)
-    var l7 List = l4.insert$(0, l1)
-    var l8 List = l5.insert$(3, l1)
-    var l9 List = l5.insert$(0, l1)
+    const l1 List = {1}.clone()
+    const l2 List = {2}.clone()
+    const l3 List = {3}.clone()
+    const l4 List = {l1, l2, l3}
+    const l5 List = {l1, l2, l3}.clone()
+    const l6 List = l4.insert$(3, l1)
+    const l7 List = l4.insert$(0, l1)
+    const l8 List = l5.insert$(3, l1)
+    const l9 List = l5.insert$(0, l1)
     test: ok, errorsCoordinates
         l6 == {{1}, {2}, {3}, {1}}
         l7 == {{1}, {1}, {2}, {3}}
@@ -1050,23 +1050,23 @@ def testList_Insert(write ok Int, write errorsCoordinates List)
     var c1 List = {}
     var c2 List = {1}
     test: ok, errorsCoordinates
-        c1.insert(1, 1) : error_outOfRange
+        c1.insert(1, 1) : eid_outOfRange
         c1 == {}
-        c1.insert(9223372036854775807, 1) : error_outOfRange
+        c1.insert(9223372036854775807, 1) : eid_outOfRange
         c1 == {}
-        c1.insert(-1, 1) : error_outOfRange
+        c1.insert(-1, 1) : eid_outOfRange
         c1 == {}
-        c1.insert(-9223372036854775808, 1) : error_outOfRange
+        c1.insert(-9223372036854775808, 1) : eid_outOfRange
         c1 == {}
         c1.insert(0, 1).nothing?()
         c1 == {1}
-        c1.insert(2, 1) : error_outOfRange
+        c1.insert(2, 1) : eid_outOfRange
         c1 == {1}
-        c1.insert(9223372036854775807, 1) : error_outOfRange
+        c1.insert(9223372036854775807, 1) : eid_outOfRange
         c1 == {1}
-        c1.insert(-1, 1) : error_outOfRange
+        c1.insert(-1, 1) : eid_outOfRange
         c1 == {1}
-        c1.insert(-9223372036854775808, 1) : error_outOfRange
+        c1.insert(-9223372036854775808, 1) : eid_outOfRange
         c1 == {1}
         c1.insert(0, 2).nothing?()
         c1 == {2, 1}
@@ -1080,22 +1080,22 @@ def testList_Insert(write ok Int, write errorsCoordinates List)
         c2 == {'a', 3,  1, 'f', 2}
         c2.insert(3, 1.0).nothing?()
         c2 == {'a', 3,  1, 1.0, 'f', 2}
-        c2.insert(7, 1) : error_outOfRange
+        c2.insert(7, 1) : eid_outOfRange
         c2 == {'a', 3,  1, 1.0, 'f', 2}
-        c2.insert(9223372036854775807, 1) : error_outOfRange
+        c2.insert(9223372036854775807, 1) : eid_outOfRange
         c2 == {'a', 3,  1, 1.0, 'f', 2}
-        c2.insert(-1, 1) : error_outOfRange
+        c2.insert(-1, 1) : eid_outOfRange
         c2 == {'a', 3,  1, 1.0, 'f', 2}
-        c2.insert(-9223372036854775808, 1) : error_outOfRange
+        c2.insert(-9223372036854775808, 1) : eid_outOfRange
         c2 == {'a', 3,  1, 1.0, 'f', 2}
-    var l1 List = {1}.clone()
-    var l2 List = {2}.clone()
-    var l3 List = {3}.clone()
+    const l1 List = {1}.clone()
+    const l2 List = {2}.clone()
+    const l3 List = {3}.clone()
     var l4 List = {l1, l2, l3}
     var l5 List = {l1, l2, l3}.clone()
     var l6 List = {l1, l2, l3}.clone()
     var l7 List = l6
-    var l8 List = l2
+    const l8 List = l2
     test: ok, errorsCoordinates
         l4.insert(0, l1).nothing?()
         l4.insert(4, l1).nothing?()
@@ -1122,17 +1122,17 @@ def testList_Insert(write ok Int, write errorsCoordinates List)
 #noinline
 def testList_InsertPart$(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        {}.insertPart$(1, {1}) : error_outOfRange
-        {}.insertPart$(9223372036854775807, {1}) : error_outOfRange
-        {}.insertPart$(-1, {1}) : error_outOfRange
-        {}.insertPart$(-9223372036854775808, {1}) : error_outOfRange
+        {}.insertPart$(1, {1}) : eid_outOfRange
+        {}.insertPart$(9223372036854775807, {1}) : eid_outOfRange
+        {}.insertPart$(-1, {1}) : eid_outOfRange
+        {}.insertPart$(-9223372036854775808, {1}) : eid_outOfRange
         {}.insertPart$(0, {}) == {}
         {}.insertPart$(0, {1}) == {1}
         {}.insertPart$(0, {1, 2, 3}) == {1, 2, 3}
-        {1}.insertPart$(2, {1}) : error_outOfRange
-        {1}.insertPart$(9223372036854775807, {1}) : error_outOfRange
-        {1}.insertPart$(-1, {1}) : error_outOfRange
-        {1}.insertPart$(-9223372036854775808, {1}) : error_outOfRange
+        {1}.insertPart$(2, {1}) : eid_outOfRange
+        {1}.insertPart$(9223372036854775807, {1}) : eid_outOfRange
+        {1}.insertPart$(-1, {1}) : eid_outOfRange
+        {1}.insertPart$(-9223372036854775808, {1}) : eid_outOfRange
         {1}.insertPart$(0, {}) == {1}
         {1}.insertPart$(1, {}) == {1}
         {1}.insertPart$(0, {2}) == {2, 1}
@@ -1142,15 +1142,15 @@ def testList_InsertPart$(write ok Int, write errorsCoordinates List)
         {1, 2, 3, 4, 5}.insertPart$(2, {-1, -2}) == {1, 2, -1, -2, 3, 4, 5}
         {1, 2, 3, 4, 5}.insertPart$(3, {-1, -2}) == {1, 2, 3, -1, -2, 4, 5}
         {1, 2, 3, 4, 5}.insertPart$(5, {-1, -2}) == {1, 2, 3, 4, 5, -1, -2}
-    var l1 List = {1}.clone()
-    var l2 List = {2}.clone()
-    var l3 List = {3}.clone()
-    var l4 List = {l1, l2, l3}
-    var l5 List = {l1, l2, l3}.clone()
-    var l6 List = l4.insertPart$(2, l5)
-    var l7 List = l4.insertPart$(1, l5)
-    var l8 List = l5.insertPart$(2, l4)
-    var l9 List = l5.insertPart$(1, l4)
+    const l1 List = {1}.clone()
+    const l2 List = {2}.clone()
+    const l3 List = {3}.clone()
+    const l4 List = {l1, l2, l3}
+    const l5 List = {l1, l2, l3}.clone()
+    const l6 List = l4.insertPart$(2, l5)
+    const l7 List = l4.insertPart$(1, l5)
+    const l8 List = l5.insertPart$(2, l4)
+    const l9 List = l5.insertPart$(1, l4)
     test: ok, errorsCoordinates
         l6 == {{1}, {2}, {1}, {2}, {3}, {3}}
         l7 == {{1}, {1}, {2}, {3}, {2}, {3}}
@@ -1171,25 +1171,25 @@ def testList_InsertPart(write ok Int, write errorsCoordinates List)
     var c1 List = {}
     var c2 List = {1}
     test: ok, errorsCoordinates
-        c1.insertPart(1, {1}) : error_outOfRange
+        c1.insertPart(1, {1}) : eid_outOfRange
         c1 == {}
-        c1.insertPart(9223372036854775807, {1}) : error_outOfRange
+        c1.insertPart(9223372036854775807, {1}) : eid_outOfRange
         c1 == {}
-        c1.insertPart(-1, {1}) : error_outOfRange
+        c1.insertPart(-1, {1}) : eid_outOfRange
         c1 == {}
-        c1.insertPart(-9223372036854775808, {1}) : error_outOfRange
+        c1.insertPart(-9223372036854775808, {1}) : eid_outOfRange
         c1 == {}
         c1.insertPart(0, {}).nothing?()
         c1 == {}
         c1.insertPart(0, {1}).nothing?()
         c1 == {1}
-        c1.insertPart(2, {1}) : error_outOfRange
+        c1.insertPart(2, {1}) : eid_outOfRange
         c1 == {1}
-        c1.insertPart(9223372036854775807, {1}) : error_outOfRange
+        c1.insertPart(9223372036854775807, {1}) : eid_outOfRange
         c1 == {1}
-        c1.insertPart(-1, {1}) : error_outOfRange
+        c1.insertPart(-1, {1}) : eid_outOfRange
         c1 == {1}
-        c1.insertPart(-9223372036854775808, {1}) : error_outOfRange
+        c1.insertPart(-9223372036854775808, {1}) : eid_outOfRange
         c1 == {1}
         c1.insertPart(0, {}).nothing?()
         c1 == {1}
@@ -1213,14 +1213,14 @@ def testList_InsertPart(write ok Int, write errorsCoordinates List)
         c2 == {2, 1, 3, 3, 1, 2}
         c2.insertPart(6, {-1, -2}).nothing?()
         c2 == {2, 1, 3, 3, 1, 2, -1, -2}
-    var l1 List = {1}.clone()
-    var l2 List = {2}.clone()
-    var l3 List = {3}.clone()
+    const l1 List = {1}.clone()
+    const l2 List = {2}.clone()
+    const l3 List = {3}.clone()
     var l4 List = {l1, l2, l3}
     var l5 List = {l1, l2, l3}.clone()
     var l6 List = {l1, l2, l3}.clone()
     var l7 List = l6
-    var l8 List = l2
+    const l8 List = l2
     test: ok, errorsCoordinates
         l4.insertPart(2, l5).nothing?()
         l5.insertPart(2, l6).nothing?()
@@ -1243,22 +1243,22 @@ def testList_InsertPart(write ok Int, write errorsCoordinates List)
 #noinline
 def testList_Repeat(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
-        List.repeat(12, 0) == {}
-        List.repeat(12, 1) == {12}
-        List.repeat(12, 2) == {12, 12}
-        List.repeat(12, 10) == {12, 12, 12, 12, 12, 12, 12, 12, 12, 12}
-        List.repeat(12, 11) == {12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12}
-        List.repeat(12, 16) == {12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12}
-        List.repeat(12, -1) : error_outOfRange
-        List.repeat(12, -2) : error_outOfRange
-        List.repeat(12, -9223372036854775808) : error_outOfRange
-    var l1 List = {1}.clone()
+        12.repeat(0, List) == {}
+        12.repeat(1, List) == {12}
+        12.repeat(2, List) == {12, 12}
+        12.repeat(10, List) == {12, 12, 12, 12, 12, 12, 12, 12, 12, 12}
+        12.repeat(11, List) == {12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12}
+        12.repeat(16, List) == {12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12}
+        12.repeat(-1, List) : eid_outOfRange
+        12.repeat(-2, List) : eid_outOfRange
+        12.repeat(-9223372036854775808, List) : eid_outOfRange
+    const l1 List = {1}.clone()
     test: ok, errorsCoordinates
         l1.unsafe_getI64(0) == 1
-    var l2 List = List.repeat(l1, 0)
+    const l2 List = l1.repeat(0, List)
     test: ok, errorsCoordinates
         l1.unsafe_getI64(0) == 1
-    var l3 List = List.repeat(l1, 3)
+    const l3 List = l1.repeat(3, List)
     test: ok, errorsCoordinates
         l1.unsafe_getI64(0) == 4
         l2 == {}
@@ -1269,39 +1269,39 @@ def testList_RepeatPart(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         {}.repeatPart(0) == {}
         {}.repeatPart(120) == {}
-        {}.repeatPart(-1) : error_outOfRange
-        {}.repeatPart(-9223372036854775808) : error_outOfRange
+        {}.repeatPart(-1) : eid_outOfRange
+        {}.repeatPart(-9223372036854775808) : eid_outOfRange
         {13}.repeatPart(0) == {}
         {13}.repeatPart(1) == {13}
         {13}.repeatPart(2) == {13, 13}
         {13}.repeatPart(10) == {13, 13, 13, 13, 13, 13, 13, 13, 13, 13}
         {13}.repeatPart(11) == {13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13}
         {13}.repeatPart(16) == {13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13}
-        {13}.repeatPart(-1) : error_outOfRange
-        {13}.repeatPart(-9223372036854775808) : error_outOfRange
+        {13}.repeatPart(-1) : eid_outOfRange
+        {13}.repeatPart(-9223372036854775808) : eid_outOfRange
         {13, "a", 1.0}.repeatPart(0) == {}
         {13, "a", 1.0}.repeatPart(1) == {13, "a", 1.0}
         {13, "a", 1.0}.repeatPart(2) == {13, "a", 1.0, 13, "a", 1.0}
         {13, "a", 1.0}.repeatPart(10) == {13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0}
         {13, "a", 1.0}.repeatPart(11) == {13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0}
         {13, "a", 1.0}.repeatPart(16) == {13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0, 13, "a", 1.0}
-        {13, "a", 1.0}.repeatPart(-1) : error_outOfRange
-        {13, "a", 1.0}.repeatPart(-9223372036854775808) : error_outOfRange
-    var l1 List = {1}.clone()
-    var l2 List = {l1}.clone()
+        {13, "a", 1.0}.repeatPart(-1) : eid_outOfRange
+        {13, "a", 1.0}.repeatPart(-9223372036854775808) : eid_outOfRange
+    const l1 List = {1}.clone()
+    const l2 List = {l1}.clone()
     test: ok, errorsCoordinates
         l1.unsafe_getI64(0) == 2
         l2.unsafe_getI64(0) == 1
         l1 == {1}
         l2 == {{1}}
-    var l3 List = l2.repeatPart(0)
+    const l3 List = l2.repeatPart(0)
     test: ok, errorsCoordinates
         l1.unsafe_getI64(0) == 2
         l2.unsafe_getI64(0) == 1
         l1 == {1}
         l2 == {{1}}
         l3 == {}
-    var l4 List = l2.repeatPart(3)
+    const l4 List = l2.repeatPart(3)
     test: ok, errorsCoordinates
         l1.unsafe_getI64(0) == 5
         l2.unsafe_getI64(0) == 1
@@ -1315,21 +1315,21 @@ def testList_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         c.reverseFromAtoB(0, 0).nothing?()
         c == {}
-        c.reverseFromAtoB(0, 1) : error_outOfRange
+        c.reverseFromAtoB(0, 1) : eid_outOfRange
         c == {}
-        c.reverseFromAtoB(1, 1) : error_outOfRange
+        c.reverseFromAtoB(1, 1) : eid_outOfRange
         c == {}
-        c.reverseFromAtoB(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : eid_outOfRange
         c == {}
-        c.reverseFromAtoB(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : eid_outOfRange
         c == {}
-        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : eid_outOfRange
         c == {}
-        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : eid_outOfRange
         c == {}
-        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : eid_outOfRange
         c == {}
-        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         c == {}
     c = {1}
     test: ok, errorsCoordinates
@@ -1339,25 +1339,25 @@ def testList_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
         c == {1}
         c.reverseFromAtoB(1, 1).nothing?()
         c == {1}
-        c.reverseFromAtoB(0, 2) : error_outOfRange
+        c.reverseFromAtoB(0, 2) : eid_outOfRange
         c == {1}
-        c.reverseFromAtoB(2, 1) : error_outOfRange
+        c.reverseFromAtoB(2, 1) : eid_outOfRange
         c == {1}
-        c.reverseFromAtoB(1, 2) : error_outOfRange
+        c.reverseFromAtoB(1, 2) : eid_outOfRange
         c == {1}
-        c.reverseFromAtoB(2, 2) : error_outOfRange
+        c.reverseFromAtoB(2, 2) : eid_outOfRange
         c == {1}
-        c.reverseFromAtoB(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : eid_outOfRange
         c == {1}
-        c.reverseFromAtoB(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : eid_outOfRange
         c == {1}
-        c.reverseFromAtoB(-9223372036854775808, 1) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 1) : eid_outOfRange
         c == {1}
-        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : eid_outOfRange
         c == {1}
-        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : eid_outOfRange
         c == {1}
-        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         c == {1}
     c = {1, 2}
     test: ok, errorsCoordinates
@@ -1373,25 +1373,25 @@ def testList_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
         c == {1, 2}
         c.reverseFromAtoB(0, 2).nothing?()
         c == {2, 1}
-        c.reverseFromAtoB(0, 3) : error_outOfRange
+        c.reverseFromAtoB(0, 3) : eid_outOfRange
         c == {2, 1}
-        c.reverseFromAtoB(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : eid_outOfRange
         c == {2, 1}
-        c.reverseFromAtoB(1, 3) : error_outOfRange
+        c.reverseFromAtoB(1, 3) : eid_outOfRange
         c == {2, 1}
-        c.reverseFromAtoB(3, 3) : error_outOfRange
+        c.reverseFromAtoB(3, 3) : eid_outOfRange
         c == {2, 1}
-        c.reverseFromAtoB(1, 0) : error_outOfRange
+        c.reverseFromAtoB(1, 0) : eid_outOfRange
         c == {2, 1}
-        c.reverseFromAtoB(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : eid_outOfRange
         c == {2, 1}
-        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : eid_outOfRange
         c == {2, 1}
-        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : eid_outOfRange
         c == {2, 1}
-        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : eid_outOfRange
         c == {2, 1}
-        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         c == {2, 1}
     c = {1, 2, 3, 4, 5, 6, 7, 8, 9}
     test: ok, errorsCoordinates
@@ -1411,27 +1411,27 @@ def testList_ReverseFromAtoB(write ok Int, write errorsCoordinates List)
         c == {6, 7, 8, 9, 1, 2, 3, 4, 5}
         c.reverseFromAtoB(3, 7).nothing?()
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(0, 10) : error_outOfRange
+        c.reverseFromAtoB(0, 10) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(3, 0) : error_outOfRange
+        c.reverseFromAtoB(3, 0) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(9, 0) : error_outOfRange
+        c.reverseFromAtoB(9, 0) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(10, 0) : error_outOfRange
+        c.reverseFromAtoB(10, 0) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(3, -1) : error_outOfRange
+        c.reverseFromAtoB(3, -1) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(-1, -1) : error_outOfRange
+        c.reverseFromAtoB(-1, -1) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(-9223372036854775808, 0) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 0) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(0, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(0, -9223372036854775808) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(0, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(0, 9223372036854775807) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : error_outOfRange
+        c.reverseFromAtoB(-9223372036854775808, 9223372036854775807) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
-        c.reverseFromAtoB(9223372036854775807, -9223372036854775808) : error_outOfRange
+        c.reverseFromAtoB(9223372036854775807, -9223372036854775808) : eid_outOfRange
         c == {6, 7, 8, 3, 2, 1, 9, 4, 5}
 
 #noinline
@@ -1439,7 +1439,7 @@ def testList_Dump(write ok Int, write errorsCoordinates List)
     test: ok, errorsCoordinates
         {}.dump(0) == "Type: STD::List = []\n"
         {}.dump(1) == "  Type: STD::List = []\n"
-        {1}.dump(0) == "Type: STD::List = [\n  0:\n    Type: STD::Int = 1\n]\n"
-        {1}.dump(1) == "  Type: STD::List = [\n    0:\n      Type: STD::Int = 1\n  ]\n"
-        {1, nothing}.dump(0) == "Type: STD::List = [\n  0:\n    Type: STD::Int = 1\n  1:\n    Type: STD::Nothing\n]\n"
-        {1, nothing}.dump(1) == "  Type: STD::List = [\n    0:\n      Type: STD::Int = 1\n    1:\n      Type: STD::Nothing\n  ]\n"
+        {1}.dump(0) == "Type: STD::List = [\n  0: Type: STD::Int = 1\n]\n"
+        {1}.dump(1) == "  Type: STD::List = [\n    0: Type: STD::Int = 1\n  ]\n"
+        {1, nothing}.dump(0) == "Type: STD::List = [\n  0: Type: STD::Int = 1\n  1: Type: STD::Nothing\n]\n"
+        {1, nothing}.dump(1) == "  Type: STD::List = [\n    0: Type: STD::Int = 1\n    1: Type: STD::Nothing\n  ]\n"

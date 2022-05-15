@@ -1,3 +1,6 @@
+# 0.5
+- The module has been redesigned to support sharc version 0.5. (see the sharc changelog for details)
+
 # 0.4
 - Added the ability to transfer data to the catcher when throwing exceptions.
 - Added pattern matching.

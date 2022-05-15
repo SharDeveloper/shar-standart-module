@@ -12,7 +12,7 @@ def shar__rc_free(array Array)
     if counter > 1
         array.unsafe_setI64(0, counter - 1)
     elif counter == 1
-        for :(index Int = 0) index < array.length~(); index++
+        for :(index Int = 0) index < array.length(); index++
             array.unsafe_array_getItem(index).shar__rc_free()
         array.unsafe_free()
 
@@ -25,7 +25,7 @@ def shar__rc_use(array Array)
 #override(STD)
 def shar__to_const(array Array)
     if array.unsafe_getI64(0) != 0
-        for :(index Int = 0) index < array.length~(); index++
+        for :(index Int = 0) index < array.length(); index++
             array.unsafe_array_getItem(index).shar__to_const()
         array.unsafe_setI64(0, 0)
 
@@ -39,7 +39,7 @@ def constant?(array Array) Bool
 
 #override(STD) nothrow
 def clone(array Array) Array
-    var result Array = unsafe_array_createDummy(array.length~(), array.itemTypeNumber~())
+    var result Array = unsafe_array_createDummy(array.length(), array.itemTypeNumber())
     parse index, item = array
         result.unsafe_array_setItemInDummy(index, item)
     return result
@@ -51,7 +51,7 @@ def dump(array Array, level Int) String
     if !array.empty?()
         result += "\n"
         parse index, item = array
-            result += levelSpaces + "  " + index.toString() + ":\n" + item.dump(level + 2)
+            result += levelSpaces + "  " + index.toString() + ":" + item.dump(level + 1)[level * 2 + 1:]
         result += levelSpaces
     result += "]\n"
     return result
@@ -59,28 +59,28 @@ def dump(array Array, level Int) String
 attach Array to Equal
 
 attach Array to Shar__sugar__equal
-    //@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "enum::STD::error_invalidType" code.
-    //@If at least one array is not empty and the type of its items is not a member of the "STD::Equal" group, the function returns an error with the "enum::STD::error_invalidType" code.
+    //@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "const::STD::eid_invalidType" code.
+    //@If at least one array is not empty and the type of its items is not a member of the "STD::Equal" group, the function returns an error with the "const::STD::eid_invalidType" code.
     #alwaysinline
     def shar__sugar__equal(array1, array2 Array) Bool
-        const item1TypeNumber Int = array1.itemTypeNumber~()
-        const item2TypeNumber Int = array2.itemTypeNumber~()
+        const item1TypeNumber Int = array1.itemTypeNumber()
+        const item2TypeNumber Int = array2.itemTypeNumber()
         if {
             !(
                 (
                     item1TypeNumber == item2TypeNumber &&
-                    (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber~())
+                    (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber())
                 ) || (
-                    item1TypeNumber == Nothing.typeNumber~() && item2TypeNumber.unsafe_inEqualGroup?()
+                    item1TypeNumber == Nothing.typeNumber() && item2TypeNumber.unsafe_inEqualGroup?()
                 ) || (
-                    item2TypeNumber == Nothing.typeNumber~() && item1TypeNumber.unsafe_inEqualGroup?()
+                    item2TypeNumber == Nothing.typeNumber() && item1TypeNumber.unsafe_inEqualGroup?()
                 )
             )
         }
-            throw(enum::error_invalidType, "Invalid type.", nothing)
-        var result Bool = array1.length~() == array2.length~()
+            throw(const::eid_invalidType, "Invalid type.", nothing)
+        var result Bool = array1.length() == array2.length()
         if result
-            for :(index Int = 0) index < array1.length~(); index++
+            for :(index Int = 0) index < array1.length(); index++
                 const item1Value Int = array1.unsafe_getI64(index + 3)
                 const item2Value Int = array2.unsafe_getI64(index + 3)
                 result = unsafe_equal(item1TypeNumber, item1Value, item1TypeNumber, item2Value)
@@ -89,8 +89,8 @@ attach Array to Shar__sugar__equal
         return result
 
 attach Array to Shar__sugar__notEqual
-    //@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "enum::STD::error_invalidType" code.
-    //@If at least one array is not empty and the type of its items is not a member of the "STD::Equal" group, the function returns an error with the "enum::STD::error_invalidType" code.
+    //@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "const::STD::eid_invalidType" code.
+    //@If at least one array is not empty and the type of its items is not a member of the "STD::Equal" group, the function returns an error with the "const::STD::eid_invalidType" code.
     #alwaysinline
     def shar__sugar__notEqual(array1, array2 Array) Bool
         return !(array1 == array2)
@@ -100,61 +100,80 @@ attach Array to Ordered
     //@If array "a" is empty, and array "b" is not empty, then array "a" is less than array "b".
     //@If array "a" has zero or more items equal to the same number of items in array "b", and the next item of array "a" is less than the next item of array "b", then array "a" is less than array "b".
     //@If array "a" is equal to the beginning of array "b", but at the same time array "b" contains more items than array "a", then array "a" is less than array "b".
-    //@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "enum::STD::error_invalidType" code.
-    //@If at least one array is not empty and the type of its items is not a member of the "STD::Ordered" group, the function returns an error with the "enum::STD::error_invalidType" code.
+    //@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "const::STD::eid_invalidType" code.
+    //@If at least one array is not empty and the type of its items is not a member of the "STD::Ordered" group, the function returns an error with the "const::STD::eid_invalidType" code.
     #alwaysinline
-    def compare(array1, array2 Array) Int
-        const item1TypeNumber Int = array1.itemTypeNumber~()
-        const item2TypeNumber Int = array2.itemTypeNumber~()
+    def compare(array1, array2 Array) CompareResult
+        const item1TypeNumber Int = array1.itemTypeNumber()
+        const item2TypeNumber Int = array2.itemTypeNumber()
         if {
             !(
                 (
                     item1TypeNumber == item2TypeNumber &&
-                    (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber~())
+                    (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber())
                 ) || (
-                    item1TypeNumber == Nothing.typeNumber~() && item2TypeNumber.unsafe_inEqualGroup?()
+                    item1TypeNumber == Nothing.typeNumber() && item2TypeNumber.unsafe_inEqualGroup?()
                 ) || (
-                    item2TypeNumber == Nothing.typeNumber~() && item1TypeNumber.unsafe_inEqualGroup?()
+                    item2TypeNumber == Nothing.typeNumber() && item1TypeNumber.unsafe_inEqualGroup?()
                 )
             )
         }
-            throw(enum::error_invalidType, "Invalid type.", nothing)
-        const generalLength Int = array1.length~().min(array2.length~())
+            throw(const::eid_invalidType, "Invalid type.", nothing)
+        const generalLength Int = array1.length().min(array2.length())
         if generalLength != 0
             for :(index Int = 0) index < generalLength; index++
-                const compareResult Int = array1[index].compare(array2[index])
-                if compareResult != enum::ord_equal
+                const compareResult CompareResult = array1[index].compare(array2[index])
+                eSwitch compareResult
+                case equal
+                    nothing
+                case less, great
                     return compareResult
-        return array1.length~().compare(array2.length~())
+        return array1.length().compare(array2.length())
 
 attach Array to Shar__sugar__less
     //@This function is a special case of the "STD::compare" function and has the same behavior.
     #alwaysinline
     def shar__sugar__less(array1, array2 Array) Bool
-        return array1.compare(array2) == enum::ord_less
+        eSwitch array1.compare(array2)
+        case less
+            return true
+        case equal, great
+            return false
 
 attach Array to Shar__sugar__great
     //@This function is a special case of the "STD::compare" function and has the same behavior.
     #alwaysinline
     def shar__sugar__great(array1, array2 Array) Bool
-        return array1.compare(array2) == enum::ord_great
+        eSwitch array1.compare(array2)
+        case great
+            return true
+        case equal, less
+            return false
 
 attach Array to Shar__sugar__lessOrEqual
     //@This function is a special case of the "STD::compare" function and has the same behavior.
     #alwaysinline
     def shar__sugar__lessOrEqual(array1, array2 Array) Bool
-        return array1.compare(array2) != enum::ord_great
+        eSwitch array1.compare(array2)
+        case less, equal
+            return true
+        case great
+            return false
 
 attach Array to Shar__sugar__greatOrEqual
     //@This function is a special case of the "STD::compare" function and has the same behavior.
     #alwaysinline
     def shar__sugar__greatOrEqual(array1, array2 Array) Bool
-        return array1.compare(array2) != enum::ord_less
+        eSwitch array1.compare(array2)
+        case equal, great
+            return true
+        case less
+            return false
 
 attach Array to Shar__sugar__getFromAToLast
     #alwaysinline
     def shar__sugar__getFromAToLast(array Array, a Int) Array
-        return array[a : array.length~()]
+        return array[a : array.length()]
 
 attach Array to Shar__sugar__getFromFirstToA
     #alwaysinline
@@ -165,12 +184,12 @@ attach Array to Shar__sugar__getRange
     #alwaysinline
     def shar__sugar__getRange(array Array, from, to Int) Array
         inthrow
-            if !(from >= 0 && from <= to && to <= array.length~())
-                throw(enum::error_outOfRange, "Out of range.", nothing)
+            if !(from >= 0 && from <= to && to <= array.length())
+                throw(const::eid_outOfRange, "Out of range.", nothing)
         const length Int = to - from
         var result Array = []
         if length != 0
-            result = unsafe_array_createDummy(length, array.itemTypeNumber~())
+            result = unsafe_array_createDummy(length, array.itemTypeNumber())
             for :(index Int = 0) index < length; index++
                 result.unsafe_array_setItemInDummy(index, array[from + index])
         return result
@@ -179,8 +198,8 @@ attach Array to Shar__sugar__getItem
     #alwaysinline
     def shar__sugar__getItem(array Array, index Int) $Any
         inthrow
-            if !index.inRange?(0, array.length~())
-                throw(enum::error_outOfRange, "Out of range.", nothing)
+            if !index.inRange?(0, array.length())
+                throw(const::eid_outOfRange, "Out of range.", nothing)
         return array.unsafe_array_getItem(index)
 
 #alwaysinline nothrow
@@ -197,13 +216,13 @@ attach Array to Shar__sugar__add
         if array.empty?()
             return addedArray
         inthrow
-            if array.itemTypeNumber~() != addedArray.itemTypeNumber~()
-                throw(enum::error_invalidType, "Invalid type.", nothing)
-        var result Array = unsafe_array_createDummy(array.length~() + addedArray.length~(), array.itemTypeNumber~())
+            if array.itemTypeNumber() != addedArray.itemTypeNumber()
+                throw(const::eid_invalidType, "Invalid type.", nothing)
+        var result Array = unsafe_array_createDummy(array.length() + addedArray.length(), array.itemTypeNumber())
         parse index, item = array
             result.unsafe_array_setItemInDummy(index, item)
         parse index, item = addedArray
-            result.unsafe_array_setItemInDummy(index + array.length~(), item)
+            result.unsafe_array_setItemInDummy(index + array.length(), item)
         return result
 
 attach Array to Shar__sugar__addSet
@@ -215,13 +234,13 @@ attach Array to Shar__sugar__addSet
             array = addedArray
             return
         inthrow
-            if array.itemTypeNumber~() != addedArray.itemTypeNumber~()
-                throw(enum::error_invalidType, "Invalid type.", nothing)
+            if array.itemTypeNumber() != addedArray.itemTypeNumber()
+                throw(const::eid_invalidType, "Invalid type.", nothing)
         if array.use?()
             array = array + addedArray
             return
-        const startArrayLength Int = array.length~()
-        const newLength Int = startArrayLength + addedArray.length~()
+        const startArrayLength Int = array.length()
+        const newLength Int = startArrayLength + addedArray.length()
         array.unsafe_setI64(1, newLength)
         array.unsafe_realloc(newLength * 8 + 24)
         parse index, item = addedArray
@@ -237,14 +256,14 @@ attach Array to StringWriter
             parse _, item = array
                 result += item.toString()
                 result += ", "
-            result.delete(result.length~() - 1, 1)
-            result.unsafe_setI16(result.length~() + 7, ']')
+            result.delete(result.length() - 1, 1)
+            result.unsafe_setI32(result.length() + 3, ']')
         return result
 
 attach Array to Hashable
     #alwaysinline
     def getHash(array Array) Int
-        var result Int = array.length~()
+        var result Int = array.length()
         result += result << 10
         result ^= result >> 6
         parse _, item = array
@@ -261,7 +280,7 @@ attach Array to Hashable
         const randomNumber Int = const::staticRandomNumber
         const rightShifts Int = (randomNumber & 0xf) + 32
         const leftShifts Int = ((randomNumber & 0xf0) >> 4) + 32
-        var result Int = randomNumber + array.length~()
+        var result Int = randomNumber + array.length()
         result += result << 10
         result ^= result >> 6
         parse _, item = array
@@ -276,7 +295,7 @@ attach Array to Hashable
 
 attach Array to Long
     #alwaysinline nothrow
-    def length~(array Array) Int
+    def length(array Array) Int
         return array.unsafe_getI64(1)
 
 attach Array to Empty
@@ -286,12 +305,13 @@ attach Array to Empty
         return []
 
 attach Array to Put
+    //@If the index is less than zero, or greater than the index of the last item, then the function returns an error with the code "const::STD::eid_outOfRange".
     #alwaysinline
     def put(write array Array, index Int, newItem $Any) $Any
         const oldItem $Any = array[index]
         inthrow
-            if array.itemTypeNumber~() != newItem.typeNumber~()
-                throw(enum::error_invalidType, "Invalid type.", nothing)
+            if array.itemTypeNumber() != newItem.typeNumber()
+                throw(const::eid_invalidType, "Invalid type.", nothing)
         if array.use?()
             array = array.clone()
         array.unsafe_array_setItem(index, newItem)
@@ -304,9 +324,9 @@ attach Array to Iterable
 
     #alwaysinline nothrow
     def parse__predicate(array Array, index Int) Bool
-        return index != array.length~()
+        return index != array.length()
 
-    #alwaysinline unsafewrite nothrow
+    #alwaysinline nothrow
     def parse__next(array Array, write index Int)
         index++
 
@@ -325,12 +345,12 @@ attach Array to Container
             array = [newItem]
             return
         inthrow
-            if newItem.typeNumber~() != array.itemTypeNumber~()
-                throw(enum::error_invalidType, "Invalid type.", nothing)
-        const oldLength Int = array.length~()
+            if newItem.typeNumber() != array.itemTypeNumber()
+                throw(const::eid_invalidType, "Invalid type.", nothing)
+        const oldLength Int = array.length()
         const newLength Int = oldLength + 1
         if array.use?()
-            var newArray Array = unsafe_array_createDummy(newLength, newItem.typeNumber~())
+            const newArray Array = unsafe_array_createDummy(newLength, newItem.typeNumber())
             parse index, item = array
                 newArray.unsafe_array_setItemInDummy(index, item)
             array = newArray
@@ -342,12 +362,12 @@ attach Array to Container
     #inline
     def addItem$(array Array, newItem $Any) Array
         inthrow
-            if !(array.empty?() || newItem.typeNumber~() == array.itemTypeNumber~()) || newItem.nothing?()
-                throw(enum::error_invalidType, "Invalid type.", nothing)
-        var newArray Array = unsafe_array_createDummy(array.length~() + 1, newItem.typeNumber~())
+            if !(array.empty?() || newItem.typeNumber() == array.itemTypeNumber()) || newItem.nothing?()
+                throw(const::eid_invalidType, "Invalid type.", nothing)
+        var newArray Array = unsafe_array_createDummy(array.length() + 1, newItem.typeNumber())
         parse index, item = array
             newArray.unsafe_array_setItemInDummy(index, item)
-        newArray.unsafe_array_setItemInDummy(array.length~(), newItem)
+        newArray.unsafe_array_setItemInDummy(array.length(), newItem)
         return newArray
 
 #alwaysinline nothrow
@@ -358,7 +378,7 @@ def unsafe_array_setItem(array, index, newItem $Any)
 
 #alwaysinline nothrow
 def unsafe_array_createDummy(length, itemTypeNumber $Any) Array
-    const result Array = unsafe_object(Array.typeNumber~(), unsafe_malloc(length * 8 + 24))
+    const result Array = unsafe_object(Array.typeNumber(), unsafe_malloc(length * 8 + 24))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, length)
     result.unsafe_setI64(2, itemTypeNumber)
@@ -371,12 +391,12 @@ def unsafe_array_setItemInDummy(array, index, item $Any)
 
 attach Array to ItemTypeNumber
     #alwaysinline nothrow
-    def itemTypeNumber~(array Array) Int
+    def itemTypeNumber(array Array) Int
         return array.unsafe_getI64(2)
 
 #override(STD)
 def quicksort(write array Array, beginIndex, endEdge Int, rise Bool, randomNumber Int)
-    const itemTypeNumber Int = array.itemTypeNumber~()
+    const itemTypeNumber Int = array.itemTypeNumber()
     var leftIndex Int = beginIndex
     var rightEdge Int = endEdge
     for :(mainLoop)
@@ -446,7 +466,7 @@ def quicksort(write array Array, beginIndex, endEdge Int, rise Bool, randomNumbe
 
 #override(STD)
 def toHeap(write array Array, currentIndex, beginIndex, endEdge Int, rise Bool)
-    const itemTypeNumber Int = array.itemTypeNumber~()
+    const itemTypeNumber Int = array.itemTypeNumber()
     var mutCurrentIndex Int = currentIndex
     for :(loop)
         var largestIndex Int = mutCurrentIndex
@@ -468,7 +488,7 @@ def toHeap(write array Array, currentIndex, beginIndex, endEdge Int, rise Bool)
 
 #override(STD) alwaysinline
 def insertionSort(write array Array, beginIndex, endEdge Int, rise Bool)
-    const itemTypeNumber Int = array.itemTypeNumber~()
+    const itemTypeNumber Int = array.itemTypeNumber()
     if rise
         for :(sortedPartEndIndex Int = beginIndex + 1) sortedPartEndIndex < endEdge; sortedPartEndIndex++
             for :(currentIndex Int = sortedPartEndIndex) currentIndex > beginIndex && (unsafe_less(itemTypeNumber, array.unsafe_getI64(currentIndex + 3), itemTypeNumber, array.unsafe_getI64(currentIndex + 2))); currentIndex--
@@ -482,7 +502,7 @@ def insertionSort(write array Array, beginIndex, endEdge Int, rise Bool)
 
 #override(STD)
 def mergeBlocks(write array Array, leftBegin, leftEndRightBegin, rightEnd Int, rise Bool)
-    const itemTypeNumber Int = array.itemTypeNumber~()
+    const itemTypeNumber Int = array.itemTypeNumber()
     var mutLeftBegin Int = leftBegin
     var mutLeftEndRightBegin Int = leftEndRightBegin
     var mutRightEnd Int = rightEnd
@@ -569,27 +589,27 @@ def mergeBlocks(write array Array, leftBegin, leftEndRightBegin, rightEnd Int, r
         end mainLoop
 
 //@Comparison occurs from the beginning of the array to the end. The comparison is carried out until the result is clear.
-//@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "enum::STD::error_invalidType" code.
-//@If at least one array is not empty and the type of its items is not a member of the "STD::Equal" group, the function returns an error with the "enum::STD::error_invalidType" code.
+//@If the item types of the two arrays are different, and both arrays are not empty, then the function returns an error with the "const::STD::eid_invalidType" code.
+//@If at least one array is not empty and the type of its items is not a member of the "STD::Equal" group, the function returns an error with the "const::STD::eid_invalidType" code.
 #override(STD) alwaysinline
 def partsEqual?(array1 Array, from1 Int, array2 Array, from2, length Int) Bool
-    const item1TypeNumber Int = array1.itemTypeNumber~()
-    const item2TypeNumber Int = array2.itemTypeNumber~()
+    const item1TypeNumber Int = array1.itemTypeNumber()
+    const item2TypeNumber Int = array2.itemTypeNumber()
     if {
             !(
                 (
                     item1TypeNumber == item2TypeNumber &&
-                    (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber~())
+                    (item1TypeNumber.unsafe_inEqualGroup?() || item1TypeNumber == Nothing.typeNumber())
                 ) || (
-                    item1TypeNumber == Nothing.typeNumber~() && item2TypeNumber.unsafe_inEqualGroup?()
+                    item1TypeNumber == Nothing.typeNumber() && item2TypeNumber.unsafe_inEqualGroup?()
                 ) || (
-                    item2TypeNumber == Nothing.typeNumber~() && item1TypeNumber.unsafe_inEqualGroup?()
+                    item2TypeNumber == Nothing.typeNumber() && item1TypeNumber.unsafe_inEqualGroup?()
                 )
             )
         }
-        throw(enum::error_invalidType, "Invalid type.", nothing)
-    const array1Length Int = array1.length~()
-    const array2Length Int = array2.length~()
+        throw(const::eid_invalidType, "Invalid type.", nothing)
+    const array1Length Int = array1.length()
+    const array2Length Int = array2.length()
     var result Bool = {
         from1 >= 0 && from1 <= array1Length &&
         from2 >= 0 && from2 <= array2Length &&
@@ -607,8 +627,8 @@ def partsEqual?(array1 Array, from1 Int, array2 Array, from2, length Int) Bool
 #override(STD) alwaysinline
 def swap(write array Array, position1, position2 Int)
     inthrow
-        if !(position1.inRange?(0, array.length~()) && position2.inRange?(0, array.length~()))
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(position1.inRange?(0, array.length()) && position2.inRange?(0, array.length()))
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if array.use?()
         array = array.clone()
     const items Int = array.unsafe_offsetI64(3)
@@ -618,34 +638,34 @@ def swap(write array Array, position1, position2 Int)
 
 #override(STD)
 def delete$(array Array, from, count Int) Array
-    const oldLength Int = array.length~()
+    const oldLength Int = array.length()
     const newLength Int = oldLength - count
     inthrow
         if {
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if count == 0
         return array
     if newLength == 0
         return []
-    var result Array = unsafe_array_createDummy(newLength, array.itemTypeNumber~())
+    var result Array = unsafe_array_createDummy(newLength, array.itemTypeNumber())
     for :(index Int = 0) index < from; index++
         result.unsafe_array_setItemInDummy(index, array.unsafe_array_getItem(index))
-    for :(index Int = from + count) index < array.length~(); index++
+    for :(index Int = from + count) index < array.length(); index++
         result.unsafe_array_setItemInDummy(index - count, array.unsafe_array_getItem(index))
     return result
 
 #override(STD)
 def delete(write array Array, from, count Int)
-    const oldLength Int = array.length~()
+    const oldLength Int = array.length()
     inthrow
         if {
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if count == 0
         return
     const newLength Int = oldLength - count
@@ -653,10 +673,10 @@ def delete(write array Array, from, count Int)
         array = []
         return
     if array.use?()
-        var newArray Array = unsafe_array_createDummy(newLength, array.itemTypeNumber~())
+        const newArray Array = unsafe_array_createDummy(newLength, array.itemTypeNumber())
         for :(index Int = 0) index < from; index++
             newArray.unsafe_array_setItemInDummy(index, array.unsafe_array_getItem(index))
-        for :(index Int = from + count) index < array.length~(); index++
+        for :(index Int = from + count) index < array.length(); index++
             newArray.unsafe_array_setItemInDummy(index - count, array.unsafe_array_getItem(index))
         array = newArray
     else
@@ -672,14 +692,14 @@ def delete(write array Array, from, count Int)
 
 #override(STD) inline
 def insert$(array Array, index Int, newItem $Any) Array
-    const oldLength Int = array.length~()
+    const oldLength Int = array.length()
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-        if !(array.empty?() || newItem.typeNumber~() == array.itemTypeNumber~()) || newItem.nothing?()
-            throw(enum::error_invalidType, "Invalid type.", nothing)
-    var result Array = unsafe_array_createDummy(newLength, newItem.typeNumber~())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+        if !(array.empty?() || newItem.typeNumber() == array.itemTypeNumber()) || newItem.nothing?()
+            throw(const::eid_invalidType, "Invalid type.", nothing)
+    var result Array = unsafe_array_createDummy(newLength, newItem.typeNumber())
     for :(arrayIndex Int = 0) arrayIndex < index; arrayIndex++
         result.unsafe_array_setItemInDummy(arrayIndex, array.unsafe_array_getItem(arrayIndex))
     result.unsafe_array_setItemInDummy(index, newItem)
@@ -689,15 +709,15 @@ def insert$(array Array, index Int, newItem $Any) Array
 
 #override(STD) inline
 def insert(write array Array, index Int, newItem $Any)
-    const oldLength Int = array.length~()
+    const oldLength Int = array.length()
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-        if !(array.empty?() || newItem.typeNumber~() == array.itemTypeNumber~()) || newItem.nothing?()
-            throw(enum::error_invalidType, "Invalid type.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+        if !(array.empty?() || newItem.typeNumber() == array.itemTypeNumber()) || newItem.nothing?()
+            throw(const::eid_invalidType, "Invalid type.", nothing)
     if array.use?()
-        var newArray Array = unsafe_array_createDummy(newLength, newItem.typeNumber~())
+        const newArray Array = unsafe_array_createDummy(newLength, newItem.typeNumber())
         for :(arrayIndex Int = 0) arrayIndex < index; arrayIndex++
             newArray.unsafe_array_setItemInDummy(arrayIndex, array.unsafe_array_getItem(arrayIndex))
         newArray.unsafe_array_setItemInDummy(index, newItem)
@@ -713,18 +733,18 @@ def insert(write array Array, index Int, newItem $Any)
 
 #override(STD) inline
 def insertPart$(array Array, index Int, addedArray Array) Array
-    const oldLength Int = array.length~()
-    const addedLength Int = addedArray.length~()
+    const oldLength Int = array.length()
+    const addedLength Int = addedArray.length()
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return array
     inthrow
-        if !(oldLength == 0 || array.itemTypeNumber~() == addedArray.itemTypeNumber~())
-            throw(enum::error_invalidType, "Invalid type.", nothing)
-    var result Array = unsafe_array_createDummy(newLength, addedArray.itemTypeNumber~())
+        if !(oldLength == 0 || array.itemTypeNumber() == addedArray.itemTypeNumber())
+            throw(const::eid_invalidType, "Invalid type.", nothing)
+    var result Array = unsafe_array_createDummy(newLength, addedArray.itemTypeNumber())
     for :(arrayIndex Int = 0) arrayIndex < index; arrayIndex++
         result.unsafe_array_setItemInDummy(arrayIndex, array.unsafe_array_getItem(arrayIndex))
     parse offset, item = addedArray
@@ -735,19 +755,19 @@ def insertPart$(array Array, index Int, addedArray Array) Array
 
 #override(STD) inline
 def insertPart(write array Array, index Int, addedArray Array)
-    const oldLength Int = array.length~()
-    const addedLength Int = addedArray.length~()
+    const oldLength Int = array.length()
+    const addedLength Int = addedArray.length()
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return
     inthrow
-        if !(oldLength == 0 || array.itemTypeNumber~() == addedArray.itemTypeNumber~())
-            throw(enum::error_invalidType, "Invalid type.", nothing)
+        if !(oldLength == 0 || array.itemTypeNumber() == addedArray.itemTypeNumber())
+            throw(const::eid_invalidType, "Invalid type.", nothing)
     if array.use?()
-        var newArray Array = unsafe_array_createDummy(newLength, addedArray.itemTypeNumber~())
+        const newArray Array = unsafe_array_createDummy(newLength, addedArray.itemTypeNumber())
         for :(arrayIndex Int = 0) arrayIndex < index; arrayIndex++
             newArray.unsafe_array_setItemInDummy(arrayIndex, array.unsafe_array_getItem(arrayIndex))
         parse offset, item = addedArray
@@ -764,15 +784,15 @@ def insertPart(write array Array, index Int, addedArray Array)
             array.unsafe_array_setItemInDummy(index + offset, item)
 
 #override(STD) alwaysinline
-def repeat(noread type Array, item $Any, count Int) Array
+def repeat(item $Any, count Int, noread type Array) Array
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if count == 0
         return []
     if item.nothing?()
-        throw(enum::error_invalidType, "Invalid type.", nothing)
-    var result Array = unsafe_array_createDummy(count, item.typeNumber~())
+        throw(const::eid_invalidType, "Invalid type.", nothing)
+    var result Array = unsafe_array_createDummy(count, item.typeNumber())
     for :(index Int = 0) index < count; index++
         result.unsafe_array_setItemInDummy(index, item)
     return result
@@ -781,12 +801,12 @@ def repeat(noread type Array, item $Any, count Int) Array
 def repeatPart(part Array, count Int) Array
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    const partLength Int = part.length~()
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    const partLength Int = part.length()
     const resultLength Int = count * partLength
     if partLength == 0 || count == 0
         return []
-    var result Array = unsafe_array_createDummy(resultLength, part.itemTypeNumber~())
+    var result Array = unsafe_array_createDummy(resultLength, part.itemTypeNumber())
     for :(index Int = 0) index < resultLength; index += partLength
         parse offset, item = part
             result.unsafe_array_setItemInDummy(index + offset, item)
@@ -795,8 +815,8 @@ def repeatPart(part Array, count Int) Array
 #override(STD) alwaysinline
 def reverseFromAtoB(write array Array, a, b Int)
     inthrow
-        if !(a >= 0 && a <= b && b <= array.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(a >= 0 && a <= b && b <= array.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var mutA Int = a
     var mutB Int = b
     if array.use?()
@@ -818,9 +838,9 @@ def reverseFromAtoB(write array Array, a, b Int)
 
 #alwaysinline nothrow
 def unsafe_array_simdReverseAndSwapParts(part1, part2 $Any)
-    llvm
-        %##nreg##part1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##part2 i64## = extractvalue [2 x i64] %1, 1
+    IR
+        %##nreg##part1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##part2 i64## = extractvalue {i64, i32} %1, 0
         %##nreg##part1 pointer## = inttoptr i64 %##reg##part1 i64## to <4 x i64>*
         %##nreg##part2 pointer## = inttoptr i64 %##reg##part2 i64## to <4 x i64>*
         %##nreg##part1## = load <4 x i64>, <4 x i64>* %##reg##part1 pointer##, align 8
@@ -829,7 +849,7 @@ def unsafe_array_simdReverseAndSwapParts(part1, part2 $Any)
         %##nreg##reversed part2## = shufflevector <4 x i64> %##reg##part2##, <4 x i64> undef, <4 x i32> <i32 3, i32 2, i32 1, i32 0>
         store <4 x i64> %##reg##reversed part1##, <4 x i64>* %##reg##part2 pointer##, align 8
         store <4 x i64> %##reg##reversed part2##, <4 x i64>* %##reg##part1 pointer##, align 8
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 attach Array to Shar__sugar__patternMatch
     #alwaysinline

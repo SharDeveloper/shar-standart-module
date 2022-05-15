@@ -36,8 +36,8 @@ def constant?(string String) Bool
 
 #override(STD) inline nothrow
 def clone(string String) String
-    var result String = unsafe_string_createDummy(string.length~())
-    unsafe_memcpyI16(result.unsafe_offsetI64(2), string.unsafe_offsetI64(2), string.length~())
+    var result String = unsafe_string_createDummy(string.length())
+    unsafe_memcpyI32(result.unsafe_offsetI64(2), string.unsafe_offsetI64(2), string.length())
     return result
 
 #override(STD) nothrow
@@ -46,7 +46,7 @@ def dump(string String, level Int) String
 
 #alwaysinline nothrow
 def unsafe_string_createDummy(length $Any) String
-    const result String = unsafe_object(String.typeNumber~(), unsafe_malloc(length * 2 + 16))
+    const result String = unsafe_object(String.typeNumber(), unsafe_malloc(length * 4 + 16))
     result.unsafe_setI64(0, 1)
     result.unsafe_setI64(1, length)
     return result
@@ -56,119 +56,152 @@ attach String to Equal
 attach String to Shar__sugar__equal
     #alwaysinline nothrow
     def shar__sugar__equal(string1, string2 String) Bool
-        return string1.compare(string2) == enum::ord_equal
+        eSwitch string1.compare(string2)
+        case equal
+            return true
+        case less, great
+            return false
 
 attach String to Shar__sugar__notEqual
     #alwaysinline nothrow
     def shar__sugar__notEqual(string1, string2 String) Bool
-        return string1.compare(string2) != enum::ord_equal
+        eSwitch string1.compare(string2)
+        case less, great
+            return true
+        case equal
+            return false
 
 attach String to Ordered
     #alwaysinline nothrow
-    def compare(string1, string2 String) Int
-        const length1 Int = string1.length~()
-        const length2 Int = string2.length~()
+    def compare(string1, string2 String) CompareResult
+        const length1 Int = string1.length()
+        const length2 Int = string2.length()
         const generalLength Int = length1.min(length2)
-        return unsafe_string_compare(string1.unsafe_offsetI64(2), string2.unsafe_offsetI64(2), generalLength, length1, length2)
+        switch unsafe_string_compare(string1.unsafe_offsetI64(2), string2.unsafe_offsetI64(2), generalLength, length1, length2)
+        case 0
+            return CompareResult[equal]
+        case 1
+            return CompareResult[less]
+        case 2
+            return CompareResult[great]
+        default
+            unreachable()
+        return string1.length().compare(string2.length())
 
-#alwaysinline nothrow
+#inline nothrow
 def unsafe_string_compare(address1, address2, generalLength, length1, length2 $Any) Int
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address s1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address s1## = inttoptr i64 %##reg##address s1 i64## to <16 x i16>*
-        %##nreg##address s2 i64## = extractvalue [2 x i64] %1, 1
-        %##nreg##address s2## = inttoptr i64 %##reg##address s2 i64## to <16 x i16>*
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
-        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
+        %##nreg##address s1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##address s1## = inttoptr i64 %##reg##address s1 i64## to <8 x i32>*
+        %##nreg##address s2 i64## = extractvalue {i64, i32} %1, 0
+        %##nreg##address s2## = inttoptr i64 %##reg##address s2 i64## to <8 x i32>*
+        %##nreg##length## = extractvalue {i64, i32} %2, 0
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 8
         br i1 %##reg##use simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##simd loop##:
         %##nreg##remain chars 1## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##address s1 1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##address s2 1## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##vector from address s1## = load <16 x i16>, <16 x i16>* %##reg##address s1 1##, align 2
-        %##nreg##vector from address s2## = load <16 x i16>, <16 x i16>* %##reg##address s2 1##, align 2
-        %##nreg##vector compare result## = icmp ne <16 x i16> %##reg##vector from address s1##, %##reg##vector from address s2##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
-        %##nreg##vectors not equal?## = icmp ne i16 %##reg##vector compare result i16##, 0
+        %##nreg##address s1 1## = phi <8 x i32>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
+        %##nreg##address s2 1## = phi <8 x i32>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
+        %##nreg##vector from address s1## = load <8 x i32>, <8 x i32>* %##reg##address s1 1##, align 4
+        %##nreg##vector from address s2## = load <8 x i32>, <8 x i32>* %##reg##address s2 1##, align 4
+        %##nreg##vector compare result## = icmp ne <8 x i32> %##reg##vector from address s1##, %##reg##vector from address s2##
+        %##nreg##vector compare result i8## = bitcast <8 x i1> %##reg##vector compare result## to i8
+        %##nreg##vectors not equal?## = icmp ne i8 %##reg##vector compare result i8##, 0
         br i1 %##reg##vectors not equal?##, label %##reg##vector not equal label##, label %##reg##vector equal label##
         ##nreg##vector equal label##:
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##new simd address s1## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s1 1##, i64 1
-        %##nreg##new simd address s2## = getelementptr <16 x i16>, <16 x i16>* %##reg##address s2 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
+        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 8
+        %##nreg##new simd address s1## = getelementptr <8 x i32>, <8 x i32>* %##reg##address s1 1##, i64 1
+        %##nreg##new simd address s2## = getelementptr <8 x i32>, <8 x i32>* %##reg##address s2 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 8
         br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##vector not equal label##:
-        ##llvmdeclare##llvm.cttz.i16##declare i16 @llvm.cttz.i16(i16, i1)##
-        %##nreg##vector index## = call i16 @llvm.cttz.i16(i16 %##reg##vector compare result i16##, i1 1)
-        %##nreg##char from vector s1## = extractelement <16 x i16> %##reg##vector from address s1##, i16 %##reg##vector index##
-        %##nreg##char from vector s2## = extractelement <16 x i16> %##reg##vector from address s2##, i16 %##reg##vector index##
-        %##nreg##simd less## = icmp ult i16 %##reg##char from vector s1##, %##reg##char from vector s2##
-        %##nreg##simd result i64## = select i1 %##reg##simd less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##simd result i64##, 1
-        ret [2 x i64] %##reg##simd result##
+        ##llvmdeclare##llvm.cttz.i8##declare i8 @llvm.cttz.i8(i8, i1)##
+        %##nreg##vector index## = call i8 @llvm.cttz.i8(i8 %##reg##vector compare result i8##, i1 1)
+        %##nreg##char from vector s1## = extractelement <8 x i32> %##reg##vector from address s1##, i8 %##reg##vector index##
+        %##nreg##char from vector s2## = extractelement <8 x i32> %##reg##vector from address s2##, i8 %##reg##vector index##
+        %##nreg##simd less## = icmp ult i32 %##reg##char from vector s1##, %##reg##char from vector s2##
+        %##nreg##simd result i64## = select i1 %##reg##simd less##, i64 1, i64 2
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##simd result i64##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##scalar label##:
         %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##vector equal label##]
-        %##nreg##vector address s1## = phi <16 x i16>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
-        %##nreg##vector address s2## = phi <16 x i16>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
-        %##nreg##address s1 2## = bitcast <16 x i16>* %##reg##vector address s1## to i16*
-        %##nreg##address s2 2## = bitcast <16 x i16>* %##reg##vector address s2## to i16*
+        %##nreg##vector address s1## = phi <8 x i32>* [%##reg##address s1##, %##reg##start##], [%##reg##new simd address s1##, %##reg##vector equal label##]
+        %##nreg##vector address s2## = phi <8 x i32>* [%##reg##address s2##, %##reg##start##], [%##reg##new simd address s2##, %##reg##vector equal label##]
+        %##nreg##address s1 2## = bitcast <8 x i32>* %##reg##vector address s1## to i32*
+        %##nreg##address s2 2## = bitcast <8 x i32>* %##reg##vector address s2## to i32*
         %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
         br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##scalar loop##:
         %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##equal label##]
-        %##nreg##address s1 3## = phi i16* [%##reg##address s1 2##, %##reg##scalar label##], [%##reg##new address s1 3##, %##reg##equal label##]
-        %##nreg##address s2 3## = phi i16* [%##reg##address s2 2##, %##reg##scalar label##], [%##reg##new address s2 3##, %##reg##equal label##]
-        %##nreg##char from address s1## = load i16, i16* %##reg##address s1 3##, align 2
-        %##nreg##char from address s2## = load i16, i16* %##reg##address s2 3##, align 2
-        %##nreg##chars not equal?## = icmp ne i16 %##reg##char from address s1##, %##reg##char from address s2##
+        %##nreg##address s1 3## = phi i32* [%##reg##address s1 2##, %##reg##scalar label##], [%##reg##new address s1 3##, %##reg##equal label##]
+        %##nreg##address s2 3## = phi i32* [%##reg##address s2 2##, %##reg##scalar label##], [%##reg##new address s2 3##, %##reg##equal label##]
+        %##nreg##char from address s1## = load i32, i32* %##reg##address s1 3##, align 4
+        %##nreg##char from address s2## = load i32, i32* %##reg##address s2 3##, align 4
+        %##nreg##chars not equal?## = icmp ne i32 %##reg##char from address s1##, %##reg##char from address s2##
         br i1 %##reg##chars not equal?##, label %##reg##not equal label##, label %##reg##equal label##
         ##nreg##equal label##:
         %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
-        %##nreg##new address s1 3## = getelementptr i16, i16* %##reg##address s1 3##, i64 1
-        %##nreg##new address s2 3## = getelementptr i16, i16* %##reg##address s2 3##, i64 1
+        %##nreg##new address s1 3## = getelementptr i32, i32* %##reg##address s1 3##, i64 1
+        %##nreg##new address s2 3## = getelementptr i32, i32* %##reg##address s2 3##, i64 1
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##not equal label##:
-        %##nreg##scalar less## = icmp ult i16 %##reg##char from address s1##, %##reg##char from address s2##
-        %##nreg##scalar result i64## = select i1 %##reg##scalar less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##scalar result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar result i64##, 1
-        ret [2 x i64] %##reg##scalar result##
+        %##nreg##scalar less## = icmp ult i32 %##reg##char from address s1##, %##reg##char from address s2##
+        %##nreg##scalar result i64## = select i1 %##reg##scalar less##, i64 1, i64 2
+        %##nreg##scalar result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##scalar result i64##, 0
+        ret {i64, i32} %##reg##scalar result##
         ##nreg##end label##:
-        %##nreg##length s1## = extractvalue [2 x i64] %3, 1
-        %##nreg##length s2## = extractvalue [2 x i64] %4, 1
+        %##nreg##length s1## = extractvalue {i64, i32} %3, 0
+        %##nreg##length s2## = extractvalue {i64, i32} %4, 0
         %##nreg##less## = icmp ult i64 %##reg##length s1##, %##reg##length s2##
         %##nreg##equal## = icmp eq i64 %##reg##length s1##, %##reg##length s2##
-        %##nreg##less or great## = select i1 %##reg##less##, i64 ##enum##STD::ord_less##, i64 ##enum##STD::ord_great##
-        %##nreg##result i64## = select i1 %##reg##equal##, i64 ##enum##STD::ord_equal##, i64 %##reg##less or great##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result i64##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##less or great## = select i1 %##reg##less##, i64 1, i64 2
+        %##nreg##result i64## = select i1 %##reg##equal##, i64 0, i64 %##reg##less or great##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##
 
 attach String to Shar__sugar__less
     #alwaysinline nothrow
     def shar__sugar__less(string1, string2 String) Bool
-        return string1.compare(string2) == enum::ord_less
+        eSwitch string1.compare(string2)
+        case less
+            return true
+        case equal, great
+            return false
 
 attach String to Shar__sugar__great
     #alwaysinline nothrow
     def shar__sugar__great(string1, string2 String) Bool
-        return string1.compare(string2) == enum::ord_great
+        eSwitch string1.compare(string2)
+        case great
+            return true
+        case less, equal
+            return false
 
 attach String to Shar__sugar__lessOrEqual
     #alwaysinline nothrow
     def shar__sugar__lessOrEqual(string1, string2 String) Bool
-        return string1.compare(string2) != enum::ord_great
+        eSwitch string1.compare(string2)
+        case equal, less
+            return true
+        case great
+            return false
 
 attach String to Shar__sugar__greatOrEqual
     #alwaysinline nothrow
     def shar__sugar__greatOrEqual(string1, string2 String) Bool
-        return string1.compare(string2) != enum::ord_less
+        eSwitch string1.compare(string2)
+        case equal, great
+            return true
+        case less
+            return false
 
 attach String to Shar__sugar__getFromAToLast
     #alwaysinline
     def shar__sugar__getFromAToLast(string String, a Int) String
-        return string[a : string.length~()]
+        return string[a : string.length()]
 
 attach String to Shar__sugar__getFromFirstToA
     #alwaysinline
@@ -179,42 +212,51 @@ attach String to Shar__sugar__getRange
     #alwaysinline
     def shar__sugar__getRange(string String, from, to Int) String
         inthrow
-            if !(from >= 0 && from <= to && to <= string.length~())
-                throw(enum::error_outOfRange, "Out of range.", nothing)
+            if !(from >= 0 && from <= to && to <= string.length())
+                throw(const::eid_outOfRange, "Out of range.", nothing)
         var result String = ""
         const length Int = to - from
         if length != 0
             result = unsafe_string_createDummy(length)
-            unsafe_memcpyI16(result.unsafe_offsetI16(8), string.unsafe_offsetI16(8 + from), length)
+            unsafe_memcpyI32(result.unsafe_offsetI32(4), string.unsafe_offsetI32(4 + from), length)
         return result
 
 attach String to Shar__sugar__getItem
     #alwaysinline
     def shar__sugar__getItem(string String, index Int) Char
         inthrow
-            if !index.inRange?(0, string.length~())
-                throw(enum::error_outOfRange, "Out of range.", nothing)
-        return unsafe_object(Char.typeNumber~(), string.unsafe_getI16(index + 8))
+            if !index.inRange?(0, string.length())
+                throw(const::eid_outOfRange, "Out of range.", nothing)
+        return unsafe_object(Char.typeNumber(), string.unsafe_getI32(index + 4))
 
 attach String to Shar__sugar__add
     #inline nothrow
     def shar__sugar__add(string, addedString String) String
-        var result String = unsafe_string_createDummy(string.length~() + addedString.length~())
-        unsafe_memcpyI16(result.unsafe_offsetI16(8), string.unsafe_offsetI16(8), string.length~())
-        unsafe_memcpyI16(result.unsafe_offsetI16(8 + string.length~()), addedString.unsafe_offsetI16(8), addedString.length~())
+        if addedString.empty?()
+            return string
+        if string.empty?()
+            return addedString
+        var result String = unsafe_string_createDummy(string.length() + addedString.length())
+        unsafe_memcpyI32(result.unsafe_offsetI32(4), string.unsafe_offsetI32(4), string.length())
+        unsafe_memcpyI32(result.unsafe_offsetI32(4 + string.length()), addedString.unsafe_offsetI32(4), addedString.length())
         return result
 
 attach String to Shar__sugar__addSet
     #inline nothrow
     def shar__sugar__addSet(write string, addedString String)
+        if addedString.empty?()
+            return
+        if string.empty?()
+            string = addedString
+            return
         if string.use?()
             string = string + addedString
         elif !addedString.empty?()
-            const startStringLength Int = string.length~()
-            const newLength Int = startStringLength + addedString.length~()
+            const startStringLength Int = string.length()
+            const newLength Int = startStringLength + addedString.length()
             string.unsafe_setI64(1, newLength)
-            string.unsafe_realloc(newLength * 2 + 16)
-            unsafe_memcpyI16(string.unsafe_offsetI16(8 + startStringLength), addedString.unsafe_offsetI16(8), addedString.length~())
+            string.unsafe_realloc(newLength * 4 + 16)
+            unsafe_memcpyI32(string.unsafe_offsetI32(4 + startStringLength), addedString.unsafe_offsetI32(4), addedString.length())
 
 attach String to StringWriter
     //@The function returns its argument.
@@ -230,60 +272,36 @@ attach String to StringReader
 
 #override(STD) alwaysinline nothrow
 def print(string String)
-    llvm
-        %##nreg##string pointer i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##string pointer## = inttoptr i64 %##reg##string pointer i64## to i64*
-        %##nreg##length pointer## = getelementptr i64, i64* %##reg##string pointer##, i64 1
-        %##nreg##chars i64*## = getelementptr i64, i64* %##reg##string pointer##, i64 2
-        %##nreg##chars## = bitcast i64* %##reg##chars i64*## to i16*
-        %##nreg##length## = load i64, i64* %##reg##length pointer##, align 8
-        call void @shar__print__string(i64 %##reg##length##, i16* %##reg##chars##)
-        ret [2 x i64] zeroinitializer
+    IR
+        call void @string__print({i64, i32} %0)
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline nothrow
 def println(string String)
-    llvm
-        %##nreg##string pointer i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##string pointer## = inttoptr i64 %##reg##string pointer i64## to i64*
-        %##nreg##length pointer## = getelementptr i64, i64* %##reg##string pointer##, i64 1
-        %##nreg##chars i64*## = getelementptr i64, i64* %##reg##string pointer##, i64 2
-        %##nreg##chars## = bitcast i64* %##reg##chars i64*## to i16*
-        %##nreg##length## = load i64, i64* %##reg##length pointer##, align 8
-        call void @shar__println__string(i64 %##reg##length##, i16* %##reg##chars##)
-        ret [2 x i64] zeroinitializer
+    IR
+        call void @string__println({i64, i32} %0)
+        ret {i64, i32} zeroinitializer
 
 #override(STD) nothrow
 def printAsError(string String)
-    llvm
-        %##nreg##string pointer i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##string pointer## = inttoptr i64 %##reg##string pointer i64## to i64*
-        %##nreg##length pointer## = getelementptr i64, i64* %##reg##string pointer##, i64 1
-        %##nreg##chars i64*## = getelementptr i64, i64* %##reg##string pointer##, i64 2
-        %##nreg##chars## = bitcast i64* %##reg##chars i64*## to i16*
-        %##nreg##length## = load i64, i64* %##reg##length pointer##, align 8
-        call void @shar__print__as__error(i64 %##reg##length##, i16* %##reg##chars##)
-        ret [2 x i64] zeroinitializer
+    IR
+        call void @string__print_as_error({i64, i32} %0)
+        ret {i64, i32} zeroinitializer
 
 #override(STD) nothrow
 def printlnAsError(string String)
-    llvm
-        %##nreg##string pointer i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##string pointer## = inttoptr i64 %##reg##string pointer i64## to i64*
-        %##nreg##length pointer## = getelementptr i64, i64* %##reg##string pointer##, i64 1
-        %##nreg##chars i64*## = getelementptr i64, i64* %##reg##string pointer##, i64 2
-        %##nreg##chars## = bitcast i64* %##reg##chars i64*## to i16*
-        %##nreg##length## = load i64, i64* %##reg##length pointer##, align 8
-        call void @shar__println__as__error(i64 %##reg##length##, i16* %##reg##chars##)
-        ret [2 x i64] zeroinitializer
+    IR
+        call void @string__println_as_error({i64, i32} %0)
+        ret {i64, i32} zeroinitializer
 
 attach String to Hashable
     #alwaysinline nothrow
     def getHash(string String) Int
-        var result Int = string.length~()
+        var result Int = string.length()
         result += result << 10
         result ^= result >> 6
-        for :(index Int = 0) index < string.length~(); index++
-            result += string.unsafe_getI16(index + 8)
+        for :(index Int = 0) index < string.length(); index++
+            result += string.unsafe_getI32(index + 4)
             result += result << 10
             result ^= result >> 6
         result += result << 3
@@ -296,12 +314,12 @@ attach String to Hashable
         const randomNumber Int = const::staticRandomNumber
         const rightShifts Int = (randomNumber & 0xf) + 32
         const leftShifts Int = ((randomNumber & 0xf0) >> 4) + 32
-        var result Int = randomNumber + string.length~()
+        var result Int = randomNumber + string.length()
         result += result << 10
         result ^= result >> 6
-        for :(index Int = 0) index < string.length~(); index++
+        for :(index Int = 0) index < string.length(); index++
             result = (result >> rightShifts) + (result << leftShifts) + (result & 0xffffffff)
-            result += string.unsafe_getI16(index + 8)
+            result += string.unsafe_getI32(index + 4)
             result += result << 10
             result ^= result >> 6
         result += result << 3
@@ -311,7 +329,7 @@ attach String to Hashable
 
 attach String to Long
     #alwaysinline nothrow
-    def length~(string String) Int
+    def length(string String) Int
         return string.unsafe_getI64(1)
 
 attach String to Empty
@@ -321,12 +339,13 @@ attach String to Empty
         return ""
 
 attach String to Put
+    //@If the index is less than zero, or greater than the index of the last item, then the function returns an error with the code "const::STD::eid_outOfRange".
     #alwaysinline
     def put(write string String, index Int, newChar Char) Char
         const oldChar Char = string[index]
         if string.use?()
             string = string.clone()
-        string.unsafe_setI16(index + 8, newChar)
+        string.unsafe_setI32(index + 4, newChar)
         return oldChar
 
 attach String to Iterable
@@ -336,9 +355,9 @@ attach String to Iterable
 
     #alwaysinline nothrow
     def parse__predicate(string String, index Int) Bool
-        return index != string.length~()
+        return index != string.length()
 
-    #alwaysinline unsafewrite nothrow
+    #alwaysinline nothrow
     def parse__next(string String, write index Int)
         index++
 
@@ -356,96 +375,108 @@ attach String to Container
         if string.use?()
             string = string.addItem$(newChar)
         else
-            const newLength Int = string.length~() + 1
+            const newLength Int = string.length() + 1
             string.unsafe_setI64(1, newLength)
-            string.unsafe_realloc(newLength * 2 + 16)
-            string.unsafe_setI16(newLength + 7, newChar)
+            string.unsafe_realloc(newLength * 4 + 16)
+            string.unsafe_setI32(newLength + 3, newChar)
 
     #alwaysinline nothrow
     def addItem$(string String, newChar Char) String
-        var newString String = unsafe_string_createDummy(string.length~() + 1)
-        unsafe_memcpyI16(newString.unsafe_offsetI64(2), string.unsafe_offsetI64(2), string.length~())
-        newString.unsafe_setI16(string.length~() + 8, newChar)
+        var newString String = unsafe_string_createDummy(string.length() + 1)
+        unsafe_memcpyI32(newString.unsafe_offsetI64(2), string.unsafe_offsetI64(2), string.length())
+        newString.unsafe_setI32(string.length() + 4, newChar)
         return newString
 
 //@The function loads the file as a UTF-8 string.
-//@If the load was not successful, then the function returns "Nothing".
-#alwaysinline
+//@If the load was not successful, then the function returns "nothing".
+//@If the file does not contain valid utf-8 text, then the function returns an error with the code "const::STD::eid_invalidCharacter".
 export def loadFromUTF8File(noread type, fileName String) <>String
-    const utf8String <>Bytes = loadFile(fileName)
-    if utf8String.nothing?()
+    const fileSize <>Int = getFileSize(fileName)
+    var reader <>FileReader = FileReader(fileName)
+    if fileSize.nothing?() || reader.nothing?()
         return nothing
-    const utf8StringSizeInBytes Int = utf8String.length~()
-    var positionInUTF8String Int = 0
+    var remainBytes Int = fileSize
     var result String = ""
-    for positionInUTF8String < utf8StringSizeInBytes
-        var newChar Int = utf8String[positionInUTF8String]
-        positionInUTF8String++
-        if newChar > 127
-            if (newChar & 224) == 192
-                inthrow
-                    if positionInUTF8String == utf8StringSizeInBytes
-                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                var charPart Int = utf8String[positionInUTF8String]
-                positionInUTF8String++
-                inthrow
-                    if (charPart & 192) != 128
-                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                newChar ^= 192
-                newChar <<= 6
-                newChar |= charPart ^ 128
-            elif (newChar & 240) == 224
-                inthrow
-                    if positionInUTF8String == utf8StringSizeInBytes
-                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                var charPart Int = utf8String[positionInUTF8String]
-                positionInUTF8String++
-                inthrow
-                    if (charPart & 192) != 128
-                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                newChar ^= 224
-                newChar <<= 6
-                newChar |= charPart ^ 128
-                inthrow
-                    if positionInUTF8String == utf8StringSizeInBytes
-                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                charPart = utf8String[positionInUTF8String]
-                positionInUTF8String++
-                inthrow
-                    if (charPart & 192) != 128
-                        throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                newChar <<= 6
-                newChar |= charPart ^ 128
+    for remainBytes > 0
+        var charCode Int = 0
+        const firstByte <>Int = reader.read(Byte)->byteToInt()
+        if firstByte.nothing?()
+            return nothing
+        if firstByte < 128
+            remainBytes--
+            charCode = firstByte
+        else
+            if remainBytes < 2
+                throw(const::eid_invalidCharacter, "Invalid character.", nothing)
+            const secondByte <>Int = reader.read(Byte)->byteToInt()
+            if secondByte.nothing?()
+                return nothing
+            if (secondByte & 192) != 128
+                throw(const::eid_invalidCharacter, "Invalid character.", nothing)
+            if (firstByte & 224) == 192
+                remainBytes -= 2
+                charCode = ((firstByte ^ 192) << 6) | (secondByte ^ 128)
             else
-                throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-        result.addItem(unsafe_object(Char.typeNumber~(), newChar))
+                if remainBytes < 3
+                    throw(const::eid_invalidCharacter, "Invalid character.", nothing)
+                const thirdByte <>Int = reader.read(Byte)->byteToInt()
+                if thirdByte.nothing?()
+                    return nothing
+                if (thirdByte & 192) != 128
+                    throw(const::eid_invalidCharacter, "Invalid character.", nothing)
+                if (firstByte & 240) == 224
+                    remainBytes -= 3
+                    charCode = ((firstByte ^ 224) << 12) | ((secondByte ^ 128) << 6) | (thirdByte ^ 128)
+                else
+                    if remainBytes < 4
+                        throw(const::eid_invalidCharacter, "Invalid character.", nothing)
+                    const fourthByte <>Int = reader.read(Byte)->byteToInt()
+                    if fourthByte.nothing?()
+                        return nothing
+                    if (fourthByte & 192) != 128
+                        throw(const::eid_invalidCharacter, "Invalid character.", nothing)
+                    if (firstByte & 248) == 240
+                        remainBytes -= 4
+                        charCode = ((firstByte ^ 240) << 18) | ((secondByte ^ 128) << 12) | ((thirdByte ^ 128) << 6) | (fourthByte ^ 128)
+                    else
+                        throw(const::eid_invalidCharacter, "Invalid character.", nothing)
+        nothrow
+            result.addItem(intToChar(charCode))
     return result
 
 //@The function saves a string to a file with UTF-8 characters.
 //@If the save was successful, then the function returns "true", otherwise "false".
-#alwaysinline nothrow
+#nothrow
 export def saveToUTF8File(string, fileName String) Bool
-    const file <>File = openFile(fileName, enum::fmode_write)
+    const file <>File = openFile(fileName, FOMode[write])
     if file.nothing?()
         return false
-    var buffer Bytes = unsafe_bytes_createDummy(min(const::fileBlockSize, string.length~() * 2 + 3))
+    var buffer Bytes = unsafe_bytes_createDummy(min(const::fileBlockSize, (string.length() + 1) * 2))
     var position Int = 0
     parse charIndex, char = string
-        const charAsInt Int = char.charToInt()
-        if charAsInt < 0x80
-            buffer.setItem(position, charAsInt)
-        elif charAsInt < 0x800
-            buffer.setItem(position, (charAsInt >> 6) | 192)
+        const charCode Int = charToInt(char)
+        if charCode < 0x80
+            buffer.setItem(position, intToByte(charCode))
+        elif charCode < 0x800
+            buffer.setItem(position, intToByte((charCode >> 6) | 192))
             position++
-            buffer.setItem(position, (charAsInt & 63) | 128)
+            buffer.setItem(position, intToByte((charCode & 63) | 128))
+        elif charCode < 0x10000
+            buffer.setItem(position, intToByte((charCode >> 12) | 224))
+            position++
+            buffer.setItem(position, intToByte(((charCode >> 6) & 63) | 128))
+            position++
+            buffer.setItem(position, intToByte((charCode & 63) | 128))
         else
-            buffer.setItem(position, (charAsInt >> 12) | 224)
+            buffer.setItem(position, intToByte((charCode >> 18) | 240))
             position++
-            buffer.setItem(position, ((charAsInt >> 6) & 63) | 128)
+            buffer.setItem(position, intToByte(((charCode >> 12) & 63) | 128))
             position++
-            buffer.setItem(position, (charAsInt & 63) | 128)
+            buffer.setItem(position, intToByte(((charCode >> 6) & 63) | 128))
+            position++
+            buffer.setItem(position, intToByte((charCode & 63) | 128))
         position++
-        if buffer.length~() - position < 3 || charIndex == string.length~() - 1
+        if buffer.length() - position < 4 || charIndex == string.length() - 1
             if writeDataToFile(file, position, buffer) != position
                 return false
             position = 0
@@ -453,8 +484,8 @@ export def saveToUTF8File(string, fileName String) Bool
 
 #override(STD) alwaysinline
 def copy(write destination String, destinationPosition Int, source String, sourcePosition, length Int)
-    const destinationLength Int = destination.length~()
-    const sourceLength Int = source.length~()
+    const destinationLength Int = destination.length()
+    const sourceLength Int = source.length()
     inthrow
         if {
             !(
@@ -463,97 +494,66 @@ def copy(write destination String, destinationPosition Int, source String, sourc
                 length >= 0 && length <= (destinationLength - destinationPosition).min(sourceLength - sourcePosition)
             )
         }
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if destination.use?()
-        var newString String = unsafe_string_createDummy(destinationLength)
-        unsafe_memcpyI16(newString.unsafe_offsetI64(2), destination.unsafe_offsetI64(2), destinationPosition)
-        unsafe_memcpyI16(destination.unsafe_offsetI16(8 + destinationPosition), source.unsafe_offsetI16(8 + sourcePosition), length)
+        const newString String = unsafe_string_createDummy(destinationLength)
+        unsafe_memcpyI32(newString.unsafe_offsetI64(2), destination.unsafe_offsetI64(2), destinationPosition)
+        unsafe_memcpyI32(destination.unsafe_offsetI32(4 + destinationPosition), source.unsafe_offsetI32(4 + sourcePosition), length)
         const lastPartStartIndex Int = destinationPosition + length
-        unsafe_memcpyI16(newString.unsafe_offsetI16(8 + lastPartStartIndex), destination.unsafe_offsetI16(8 + lastPartStartIndex), destination.length~() - lastPartStartIndex)
+        unsafe_memcpyI32(newString.unsafe_offsetI32(4 + lastPartStartIndex), destination.unsafe_offsetI32(4 + lastPartStartIndex), destination.length() - lastPartStartIndex)
         destination = newString
     else
-        unsafe_memcpyI16(destination.unsafe_offsetI16(8 + destinationPosition), source.unsafe_offsetI16(8 + sourcePosition), length)
-
+        unsafe_memcpyI32(destination.unsafe_offsetI32(4 + destinationPosition), source.unsafe_offsetI32(4 + sourcePosition), length)
 
 attach String to BinarySerializable
     #alwaysinline nothrow
     def serialize(string String, write bytes Bytes)
-        var utf8String Bytes = Bytes()
+        string.length().serialize(bytes)
         parse _, char = string
-            const charAsInt Int = char.charToInt()
-            if charAsInt < 0x80
-                utf8String.addItem(charAsInt)
-            elif charAsInt < 0x800
-                utf8String.addItem((charAsInt >> 6) | 192)
-                utf8String.addItem((charAsInt & 63) | 128)
-            else
-                utf8String.addItem((charAsInt >> 12) | 224)
-                utf8String.addItem(((charAsInt >> 6) & 63) | 128)
-                utf8String.addItem((charAsInt & 63) | 128)
-        serialize(utf8String, bytes)
+            var charCode Int = charToInt(char)
+            for :(loop)
+                var byte Int = charCode & 127
+                charCode >>= 7
+                if charCode != 0
+                    byte |= 128
+                bytes.addItem(intToByte(byte))
+                if charCode == 0
+                    end loop
 
     #alwaysinline
     def deserialize(noread type String, bytes Bytes, write position Int) String
         var currentPosition Int = position
-        const utf8String Bytes = Bytes.deserialize(bytes, currentPosition)
-        const utf8StringSizeInBytes Int = utf8String.length~()
-        var positionInUTF8String Int = 0
-        var result String = ""
-        for positionInUTF8String < utf8StringSizeInBytes
-            var newChar Int = utf8String[positionInUTF8String]
-            positionInUTF8String++
-            if newChar > 127
-                if (newChar & 224) == 192
-                    inthrow
-                        if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                    var charPart Int = utf8String[positionInUTF8String]
-                    positionInUTF8String++
-                    inthrow
-                        if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                    newChar ^= 192
-                    newChar <<= 6
-                    newChar |= charPart ^ 128
-                elif (newChar & 240) == 224
-                    inthrow
-                        if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                    var charPart Int = utf8String[positionInUTF8String]
-                    positionInUTF8String++
-                    inthrow
-                        if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                    newChar ^= 224
-                    newChar <<= 6
-                    newChar |= charPart ^ 128
-                    inthrow
-                        if positionInUTF8String == utf8StringSizeInBytes
-                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                    charPart = utf8String[positionInUTF8String]
-                    positionInUTF8String++
-                    inthrow
-                        if (charPart & 192) != 128
-                            throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-                    newChar <<= 6
-                    newChar |= charPart ^ 128
-                else
-                    throw(enum::error_invalidCharacter, "Invalid character.", nothing)
-            result.addItem(unsafe_object(Char.typeNumber~(), newChar))
+        const length Int = Int.deserialize(bytes, currentPosition)
+        var result String = unsafe_string_createDummy(length)
+        for :(index Int = 0) index < length; index++
+            var charSize Int = 0
+            var charCode Int = 0
+            for :(loop)
+                charSize++
+                const byte Int = byteToInt(bytes[currentPosition])
+                currentPosition++
+                charCode = (charCode << 7) | (byte & 127)
+                if (byte & 128) != 128
+                    end loop
+            if charSize == 2
+                charCode = (charCode >> 7) | ((charCode & 127) << 7)
+            elif charSize == 3
+                charCode = (charCode >> 14) | (charCode & 0x3F80) | ((charCode & 127) << 14)
+            result.setItem(index, intToChar(charCode))
         position = currentPosition
         return result
 
 #override(STD) alwaysinline
 def swap(write string String, position1, position2 Int)
     inthrow
-        if !(position1.inRange?(0, string.length~()) && position2.inRange?(0, string.length~()))
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(position1.inRange?(0, string.length()) && position2.inRange?(0, string.length()))
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if string.use?()
         string = string.clone()
     const items Int = string.unsafe_offsetI64(2)
-    const tmpItem Int = items.unsafe_getI16(position1)
-    items.unsafe_setI16(position1, items.unsafe_getI16(position2))
-    items.unsafe_setI16(position2, tmpItem)
+    const tmpItem Int = items.unsafe_getI32(position1)
+    items.unsafe_setI32(position1, items.unsafe_getI32(position2))
+    items.unsafe_setI32(position2, tmpItem)
 
 #override(STD) alwaysinline
 def setItem(write string String, index Int, newChar Char)
@@ -562,78 +562,78 @@ def setItem(write string String, index Int, newChar Char)
 #override(STD) alwaysinline
 def countFromAtoB(string String, char Char, a, b Int) Int
     inthrow
-        if !(a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    return unsafe_string_countFromAtoB(string.unsafe_offsetI16(a + 8), char, b - a)
+        if !(a >= 0 && a <= b && b <= string.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    return unsafe_string_countFromAtoB(string.unsafe_offsetI32(a + 4), char, b - a)
 
 #alwaysinline nothrow
 def unsafe_string_countFromAtoB(address, char, length $Any) Int
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##char 64## = extractvalue [2 x i64] %1, 1
-        %##nreg##char## = trunc i64 %##reg##char 64## to i16
-        %##nreg##length## = extractvalue [2 x i64] %2, 1
-        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <8 x i32>*
+        %##nreg##char 64## = extractvalue {i64, i32} %1, 0
+        %##nreg##char## = trunc i64 %##reg##char 64## to i32
+        %##nreg##length## = extractvalue {i64, i32} %2, 0
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 8
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
-        %##nreg##<1 x char>## = insertelement <1 x i16> zeroinitializer, i16 %##reg##char##, i32 0
-        %##nreg##<16 x char>## = shufflevector <1 x i16> %##reg##<1 x char>##, <1 x i16> zeroinitializer, <16 x i32> zeroinitializer
+        %##nreg##<1 x char>## = insertelement <1 x i32> zeroinitializer, i32 %##reg##char##, i32 0
+        %##nreg##<8 x char>## = shufflevector <1 x i32> %##reg##<1 x char>##, <1 x i32> zeroinitializer, <8 x i32> zeroinitializer
         br label %##reg##simd loop##
         ##nreg##simd loop##:
         %##nreg##remain chars 1## = phi i64 [%##reg##length##, %##reg##simd label##], [%##reg##new remain chars 1##, %##reg##simd loop##]
         %##nreg##result 1## = phi i64 [0, %##reg##simd label##], [%##reg##new result 1##, %##reg##simd loop##]
-        %##nreg##address 1## = phi <16 x i16>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##simd loop##]
-        %##nreg##vector from address## = load <16 x i16>, <16 x i16>* %##reg##address 1##, align 2
-        %##nreg##vector compare result## = icmp eq <16 x i16> %##reg##vector from address##, %##reg##<16 x char>##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
-        ##llvmdeclare##llvm.ctpop.i16##declare i16 @llvm.ctpop.i16(i16)##
-        %##nreg##count of chars in vector## = call i16 @llvm.ctpop.i16(i16 %##reg##vector compare result i16##)
-        %##nreg##count of chars in vector i64## = zext i16 %##reg##count of chars in vector## to i64
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
+        %##nreg##address 1## = phi <8 x i32>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##simd loop##]
+        %##nreg##vector from address## = load <8 x i32>, <8 x i32>* %##reg##address 1##, align 4
+        %##nreg##vector compare result## = icmp eq <8 x i32> %##reg##vector from address##, %##reg##<8 x char>##
+        %##nreg##vector compare result i8## = bitcast <8 x i1> %##reg##vector compare result## to i8
+        ##llvmdeclare##llvm.ctpop.i8##declare i8 @llvm.ctpop.i8(i8)##
+        %##nreg##count of chars in vector## = call i8 @llvm.ctpop.i8(i8 %##reg##vector compare result i8##)
+        %##nreg##count of chars in vector i64## = zext i8 %##reg##count of chars in vector## to i64
+        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 8
         %##nreg##new result 1## = add i64 %##reg##result 1##, %##reg##count of chars in vector i64##
-        %##nreg##new simd address## = getelementptr <16 x i16>, <16 x i16>* %##reg##address 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
+        %##nreg##new simd address## = getelementptr <8 x i32>, <8 x i32>* %##reg##address 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 8
         br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##scalar label##:
         %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##simd loop##]
         %##nreg##result 2## = phi i64 [0, %##reg##start##], [%##reg##new result 1##, %##reg##simd loop##]
-        %##nreg##vector address## = phi <16 x i16>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##simd loop##]
-        %##nreg##address 2## = bitcast <16 x i16>* %##reg##vector address## to i16*
+        %##nreg##vector address## = phi <8 x i32>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##simd loop##]
+        %##nreg##address 2## = bitcast <8 x i32>* %##reg##vector address## to i32*
         %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
         br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##scalar loop##:
         %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##scalar loop##]
         %##nreg##result 3## = phi i64 [%##reg##result 2##, %##reg##scalar label##], [%##reg##new result 3##, %##reg##scalar loop##]
-        %##nreg##address 3## = phi i16* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##scalar loop##]
-        %##nreg##char from address## = load i16, i16* %##reg##address 3##, align 2
-        %##nreg##found char?## = icmp eq i16 %##reg##char from address##, %##reg##char##
+        %##nreg##address 3## = phi i32* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##scalar loop##]
+        %##nreg##char from address## = load i32, i32* %##reg##address 3##, align 4
+        %##nreg##found char?## = icmp eq i32 %##reg##char from address##, %##reg##char##
         %##nreg##found char? i64## = zext i1 %##reg##found char?## to i64
         %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
         %##nreg##new result 3## = add i64 %##reg##result 3##, %##reg##found char? i64##
-        %##nreg##new address 3## = getelementptr i16, i16* %##reg##address 3##, i64 1
+        %##nreg##new address 3## = getelementptr i32, i32* %##reg##address 3##, i64 1
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
         %##nreg##result 4## = phi i64 [%##reg##result 2##, %##reg##scalar label##], [%##reg##new result 3##, %##reg##scalar loop##]
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##result 4##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result 4##, 0
+        ret {i64, i32} %##reg##result##
 
 #override(STD) inline
 def countPartFromAtoB(string, part String, a, b Int) Int
-    const partLength Int = part.length~()
-    const stringLength Int = string.length~()
+    const partLength Int = part.length()
+    const stringLength Int = string.length()
     inthrow
         if !(a >= 0 && a <= b && b <= stringLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
+            throw(const::eid_nothingToLook, "There is nothing to count.", nothing)
     var result Int = 0
     const edge Int = b - partLength + 1
     if edge > 0
-        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
+        const firstChar Char = unsafe_object(Char.typeNumber(), part.unsafe_getI32(4))
         for :(index Int = a) index < edge
             const indexOfFirstChar <>Int = string.lookFromAtoB(firstChar, index, edge)
             if indexOfFirstChar.nothing?()
@@ -647,60 +647,61 @@ def countPartFromAtoB(string, part String, a, b Int) Int
 
 #override(STD) alwaysinline nothrow
 def partsEqual?(string1 String, from1 Int, string2 String, from2, length Int) Bool
-    const string1Length Int = string1.length~()
-    const string2Length Int = string2.length~()
-    return {
-        from1 >= 0 && from1 <= string1Length &&
-        from2 >= 0 && from2 <= string2Length &&
-        length >= 0 && length <= (string1Length - from1).min(string2Length - from2) &&
-        unsafe_string_compare(string1.unsafe_offsetI16(from1 + 8), string2.unsafe_offsetI16(from2 + 8), length, length, length) == enum::ord_equal
+    const length1 Int = string1.length()
+    const length2 Int = string2.length()
+    if {
+        from1 >= 0 && from1 <= length1 &&
+        from2 >= 0 && from2 <= length2 &&
+        length >= 0 && length <= (length1 - from1).min(length2 - from2)
     }
+        return unsafe_string_compare(string1.unsafe_offsetI32(from1 + 4), string2.unsafe_offsetI32(from2 + 4), length, length, length) == 0
+    return false
 
 #override(STD) alwaysinline
 def lookNFromAtoB(string String, char Char, n, a, b Int) <>Int
     inthrow
-        if !(n > 0 && a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    return unsafe_string_lookNFromAtoB(string.unsafe_offsetI16(a + 8), char, n, a, b)
+        if !(n > 0 && a >= 0 && a <= b && b <= string.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    return unsafe_string_lookNFromAtoB(string.unsafe_offsetI32(a + 4), char, n, a, b)
 
 #alwaysinline nothrow
 def unsafe_string_lookNFromAtoB(address, char, n, a, b $Any) <>Int
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##char 64## = extractvalue [2 x i64] %1, 1
-        %##nreg##char## = trunc i64 %##reg##char 64## to i16
-        %##nreg##n## = extractvalue [2 x i64] %2, 1
-        %##nreg##a## = extractvalue [2 x i64] %3, 1
-        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <8 x i32>*
+        %##nreg##char 64## = extractvalue {i64, i32} %1, 0
+        %##nreg##char## = trunc i64 %##reg##char 64## to i32
+        %##nreg##n## = extractvalue {i64, i32} %2, 0
+        %##nreg##a## = extractvalue {i64, i32} %3, 0
+        %##nreg##b## = extractvalue {i64, i32} %4, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
-        %##nreg##use simd## = icmp uge i64 %##reg##range size##, 16
+        %##nreg##use simd## = icmp uge i64 %##reg##range size##, 8
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
-        %##nreg##<1 x char>## = insertelement <1 x i16> zeroinitializer, i16 %##reg##char##, i32 0
-        %##nreg##<16 x char>## = shufflevector <1 x i16> %##reg##<1 x char>##, <1 x i16> zeroinitializer, <16 x i32> zeroinitializer
+        %##nreg##<1 x char>## = insertelement <1 x i32> zeroinitializer, i32 %##reg##char##, i32 0
+        %##nreg##<8 x char>## = shufflevector <1 x i32> %##reg##<1 x char>##, <1 x i32> zeroinitializer, <8 x i32> zeroinitializer
         br label %##reg##simd loop##
         ##nreg##simd loop##:
         %##nreg##remain chars 1## = phi i64 [%##reg##range size##, %##reg##simd label##], [%##reg##new remain chars 1##, %##reg##continue simd search##]
         %##nreg##n 1## = phi i64 [%##reg##n##, %##reg##simd label##], [%##reg##n in simd look##, %##reg##continue simd search##]
-        %##nreg##address 1## = phi <16 x i16>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##continue simd search##]
-        %##nreg##vector from address## = load <16 x i16>, <16 x i16>* %##reg##address 1##, align 2
-        %##nreg##vector compare result## = icmp eq <16 x i16> %##reg##vector from address##, %##reg##<16 x char>##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
+        %##nreg##address 1## = phi <8 x i32>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##continue simd search##]
+        %##nreg##vector from address## = load <8 x i32>, <8 x i32>* %##reg##address 1##, align 4
+        %##nreg##vector compare result## = icmp eq <8 x i32> %##reg##vector from address##, %##reg##<8 x char>##
+        %##nreg##vector compare result i8## = bitcast <8 x i1> %##reg##vector compare result## to i8
         br label %##reg##look loop##
         ##nreg##look loop##:
-        %##nreg##chars as bits## = phi i16 [%##reg##vector compare result i16##, %##reg##simd loop##], [%##reg##new chars as bits##, %##reg##look label##]
+        %##nreg##chars as bits## = phi i8 [%##reg##vector compare result i8##, %##reg##simd loop##], [%##reg##new chars as bits##, %##reg##look label##]
         %##nreg##offset## = phi i64 [0, %##reg##simd loop##], [%##reg##new offset##, %##reg##look label##]
         %##nreg##n in simd look## = phi i64 [%##reg##n 1##, %##reg##simd loop##], [%##reg##new n in simd look##, %##reg##look label##]
-        %##nreg##found chars?## = icmp ne i16 %##reg##chars as bits##, 0
+        %##nreg##found chars?## = icmp ne i8 %##reg##chars as bits##, 0
         br i1 %##reg##found chars?##, label %##reg##look label##, label %##reg##continue simd search##
         ##nreg##look label##:
-        %##nreg##char as bit## = and i16 %##reg##chars as bits##, 1
-        %##nreg##char as bit i64## = zext i16 %##reg##char as bit## to i64
+        %##nreg##char as bit## = and i8 %##reg##chars as bits##, 1
+        %##nreg##char as bit i64## = zext i8 %##reg##char as bit## to i64
         %##nreg##new n in simd look## = sub i64 %##reg##n in simd look##, %##reg##char as bit i64##
-        %##nreg##new chars as bits## = lshr i16 %##reg##chars as bits##, 1
+        %##nreg##new chars as bits## = lshr i8 %##reg##chars as bits##, 1
         %##nreg##new offset## = add i64 %##reg##offset##, 1
         %##nreg##simd found char?## = icmp eq i64 %##reg##new n in simd look##, 0
         br i1 %##reg##simd found char?##, label %##reg##simd found label##, label %##reg##look loop##
@@ -708,56 +709,56 @@ def unsafe_string_lookNFromAtoB(address, char, n, a, b $Any) <>Int
         %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain chars 1##
         %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
         %##nreg##full simd index## = add i64 %##reg##start index##, %##reg##offset##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full simd index##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##continue simd search##:
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##new simd address## = getelementptr <16 x i16>, <16 x i16>* %##reg##address 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
+        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 8
+        %##nreg##new simd address## = getelementptr <8 x i32>, <8 x i32>* %##reg##address 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 8
         br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##scalar label##:
         %##nreg##remain chars 2## = phi i64 [%##reg##range size##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##continue simd search##]
         %##nreg##n 2## = phi i64 [%##reg##n##, %##reg##start##], [%##reg##n in simd look##, %##reg##continue simd search##]
-        %##nreg##vector address## = phi <16 x i16>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##continue simd search##]
-        %##nreg##address 2## = bitcast <16 x i16>* %##reg##vector address## to i16*
+        %##nreg##vector address## = phi <8 x i32>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##continue simd search##]
+        %##nreg##address 2## = bitcast <8 x i32>* %##reg##vector address## to i32*
         %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
         br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##scalar loop##:
         %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##continue scalar search##]
         %##nreg##n 3## = phi i64 [%##reg##n 2##, %##reg##scalar label##], [%##reg##new n 3##, %##reg##continue scalar search##]
-        %##nreg##address 3## = phi i16* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##continue scalar search##]
-        %##nreg##char from address## = load i16, i16* %##reg##address 3##, align 2
-        %##nreg##found char?## = icmp eq i16 %##reg##char from address##, %##reg##char##
+        %##nreg##address 3## = phi i32* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##continue scalar search##]
+        %##nreg##char from address## = load i32, i32* %##reg##address 3##, align 4
+        %##nreg##found char?## = icmp eq i32 %##reg##char from address##, %##reg##char##
         %##nreg##found char? i64## = zext i1 %##reg##found char?## to i64
         %##nreg##new n 3## = sub i64 %##reg##n 3##, %##reg##found char? i64##
         %##nreg##final found char## = icmp eq i64 %##reg##new n 3##, 0
         br i1 %##reg##final found char##, label %##reg##final found char label##, label %##reg##continue scalar search##
         ##nreg##continue scalar search##:
         %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
-        %##nreg##new address 3## = getelementptr i16, i16* %##reg##address 3##, i64 1
+        %##nreg##new address 3## = getelementptr i32, i32* %##reg##address 3##, i64 1
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##final found char label##:
         %##nreg##scalar offset## = sub i64 %##reg##range size##, %##reg##remain chars 3##
         %##nreg##full scalar index## = add i64 %##reg##scalar offset##, %##reg##a##
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full scalar index##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) inline
 def lookNPartFromAtoB(string, part String, n, a, b Int) <>Int
-    const partLength Int = part.length~()
-    const stringLength Int = string.length~()
+    const partLength Int = part.length()
+    const stringLength Int = string.length()
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= stringLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
+            throw(const::eid_nothingToLook, "There is nothing to look for.", nothing)
     const edge Int = b - partLength + 1
     if edge > 0
         var mutN Int = n
-        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
+        const firstChar Char = unsafe_object(Char.typeNumber(), part.unsafe_getI32(4))
         for :(index Int = a) index < edge
             const indexOfFirstChar <>Int = string.lookFromAtoB(firstChar, index, edge)
             if indexOfFirstChar.nothing?()
@@ -774,80 +775,80 @@ def lookNPartFromAtoB(string, part String, n, a, b Int) <>Int
 #override(STD) alwaysinline
 def lookAllFromAtoB(string String, char Char, a, b Int) Array
     inthrow
-        if !(a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(a >= 0 && a <= b && b <= string.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var result Array = [].clone()
-    unsafe_string_lookAllFromAtoB(string.unsafe_offsetI16(a + 8), char, a, b, result)
+    unsafe_string_lookAllFromAtoB(string.unsafe_offsetI32(a + 4), char, a, b, result)
     return result
 
 #alwaysinline nothrow unsafewrite
 def unsafe_string_lookAllFromAtoB(address, char, a, b, write result $Any)
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##char 64## = extractvalue [2 x i64] %1, 1
-        %##nreg##char## = trunc i64 %##reg##char 64## to i16
-        %##nreg##a## = extractvalue [2 x i64] %2, 1
-        %##nreg##b## = extractvalue [2 x i64] %3, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <8 x i32>*
+        %##nreg##char 64## = extractvalue {i64, i32} %1, 0
+        %##nreg##char## = trunc i64 %##reg##char 64## to i32
+        %##nreg##a## = extractvalue {i64, i32} %2, 0
+        %##nreg##b## = extractvalue {i64, i32} %3, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
-        %##nreg##use simd## = icmp uge i64 %##reg##range size##, 16
+        %##nreg##use simd## = icmp uge i64 %##reg##range size##, 8
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
-        %##nreg##<1 x char>## = insertelement <1 x i16> zeroinitializer, i16 %##reg##char##, i32 0
-        %##nreg##<16 x char>## = shufflevector <1 x i16> %##reg##<1 x char>##, <1 x i16> zeroinitializer, <16 x i32> zeroinitializer
+        %##nreg##<1 x char>## = insertelement <1 x i32> zeroinitializer, i32 %##reg##char##, i32 0
+        %##nreg##<8 x char>## = shufflevector <1 x i32> %##reg##<1 x char>##, <1 x i32> zeroinitializer, <8 x i32> zeroinitializer
         br label %##reg##simd loop##
         ##nreg##simd loop##:
         %##nreg##remain chars 1## = phi i64 [%##reg##range size##, %##reg##simd label##], [%##reg##new remain chars 1##, %##reg##simd continue search##]
-        %##nreg##address 1## = phi <16 x i16>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##simd continue search##]
-        %##nreg##vector from address## = load <16 x i16>, <16 x i16>* %##reg##address 1##, align 2
-        %##nreg##vector compare result## = icmp eq <16 x i16> %##reg##vector from address##, %##reg##<16 x char>##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
-        %##nreg##have chars?## = icmp ne i16 %##reg##vector compare result i16##, 0
+        %##nreg##address 1## = phi <8 x i32>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##simd continue search##]
+        %##nreg##vector from address## = load <8 x i32>, <8 x i32>* %##reg##address 1##, align 4
+        %##nreg##vector compare result## = icmp eq <8 x i32> %##reg##vector from address##, %##reg##<8 x char>##
+        %##nreg##vector compare result i8## = bitcast <8 x i1> %##reg##vector compare result## to i8
+        %##nreg##have chars?## = icmp ne i8 %##reg##vector compare result i8##, 0
         br i1 %##reg##have chars?##, label %##reg##simd add indexes##, label %##reg##simd continue search##
         ##nreg##simd add indexes##:
         %##nreg##simd offset## = sub i64 %##reg##range size##, %##reg##remain chars 1##
         %##nreg##start index## = add i64 %##reg##a##, %##reg##simd offset##
-        %##nreg##start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##start index##, 1
-        ##llvmdeclare##llvm.ctpop.i16##declare i16 @llvm.ctpop.i16(i16)##
-        %##nreg##count of chars in vector## = call i16 @llvm.ctpop.i16(i16 %##reg##vector compare result i16##)
-        %##nreg##count of chars in vector i64## = zext i16 %##reg##count of chars in vector## to i64
-        %##nreg##count of chars in vector arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##count of chars in vector i64##, 1
-        %##nreg##vector compare result i64## = zext i16 %##reg##vector compare result i16## to i64
-        %##nreg##vector compare result arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##vector compare result i64##, 1
-        %##nreg##unneeded 1## = call [2 x i64] ##ancntfunc##STD::unsafe_string_lookAllFromAtoB_addIndexes_SIMD##([2 x i64] %##reg##start index arg##, [2 x i64] %##reg##count of chars in vector arg##, [2 x i64] %##reg##vector compare result arg##, [2 x i64]* %4)
+        %##nreg##start index arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##start index##, 0
+        ##llvmdeclare##llvm.ctpop.i8##declare i8 @llvm.ctpop.i8(i8)##
+        %##nreg##count of chars in vector## = call i8 @llvm.ctpop.i8(i8 %##reg##vector compare result i8##)
+        %##nreg##count of chars in vector i64## = zext i8 %##reg##count of chars in vector## to i64
+        %##nreg##count of chars in vector arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##count of chars in vector i64##, 0
+        %##nreg##vector compare result i64## = zext i8 %##reg##vector compare result i8## to i64
+        %##nreg##vector compare result arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##vector compare result i64##, 0
+        %##nreg##unneeded 1## = call {i64, i32} ##ntfunc##STD::unsafe_string_lookAllFromAtoB_addIndexes_SIMD##({i64, i32} %##reg##start index arg##, {i64, i32} %##reg##count of chars in vector arg##, {i64, i32} %##reg##vector compare result arg##, {i64, i32}* %4, i8* %5, i1 0)
         br label %##reg##simd continue search##
         ##nreg##simd continue search##:
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##new simd address## = getelementptr <16 x i16>, <16 x i16>* %##reg##address 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
+        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 8
+        %##nreg##new simd address## = getelementptr <8 x i32>, <8 x i32>* %##reg##address 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 8
         br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##scalar label##:
         %##nreg##remain chars 2## = phi i64 [%##reg##range size##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##simd continue search##]
-        %##nreg##vector address## = phi <16 x i16>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##simd continue search##]
-        %##nreg##address 2## = bitcast <16 x i16>* %##reg##vector address## to i16*
+        %##nreg##vector address## = phi <8 x i32>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##simd continue search##]
+        %##nreg##address 2## = bitcast <8 x i32>* %##reg##vector address## to i32*
         %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
         br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##scalar loop##:
         %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##scalar continue search##]
-        %##nreg##address 3## = phi i16* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##scalar continue search##]
-        %##nreg##char from address## = load i16, i16* %##reg##address 3##, align 2
-        %##nreg##have char?## = icmp eq i16 %##reg##char from address##, %##reg##char##
+        %##nreg##address 3## = phi i32* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##scalar continue search##]
+        %##nreg##char from address## = load i32, i32* %##reg##address 3##, align 4
+        %##nreg##have char?## = icmp eq i32 %##reg##char from address##, %##reg##char##
         br i1 %##reg##have char?##, label %##reg##scalar add index##, label %##reg##scalar continue search##
         ##nreg##scalar add index##:
         %##nreg##offset## = sub i64 %##reg##range size##, %##reg##remain chars 3##
         %##nreg##scalar start index## = add i64 %##reg##a##, %##reg##offset##
-        %##nreg##scalar start index arg## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##scalar start index##, 1
-        %##nreg##unneeded 2## = call [2 x i64] ##ancntfunc##STD::unsafe_string_lookAllFromAtoB_addIndex_scalar##([2 x i64] %##reg##scalar start index arg##, [2 x i64]* %4)
+        %##nreg##scalar start index arg## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##scalar start index##, 0
+        %##nreg##unneeded 2## = call {i64, i32} ##ntfunc##STD::unsafe_string_lookAllFromAtoB_addIndex_scalar##({i64, i32} %##reg##scalar start index arg##, {i64, i32}* %4, i8* %5, i1 0)
         br label %##reg##scalar continue search##
         ##nreg##scalar continue search##:
         %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
-        %##nreg##new address 3## = getelementptr i16, i16* %##reg##address 3##, i64 1
+        %##nreg##new address 3## = getelementptr i32, i32* %##reg##address 3##, i64 1
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        %##nreg##result pointer of pointer## = getelementptr [2 x i64], [2 x i64]* %4, i64 0, i64 1
+        %##nreg##result pointer of pointer## = getelementptr {i64, i32}, {i64, i32}* %4, i64 0, i32 0
         %##nreg##result pointer i64## = load i64, i64* %##reg##result pointer of pointer##, align 8
         %##nreg##result pointer## = inttoptr i64 %##reg##result pointer i64## to i64*
         %##nreg##result length pointer## = getelementptr i64, i64* %##reg##result pointer##, i64 1
@@ -856,11 +857,11 @@ def unsafe_string_lookAllFromAtoB(address, char, a, b, write result $Any)
         %##nreg##length == 0## = icmp eq i64 %##reg##result length##, 0
         %##nreg##result new item type## = select i1 %##reg##length == 0##, i64 ##tnum##STD::Nothing##, i64 ##tnum##STD::Int##
         store i64 %##reg##result new item type##, i64* %##reg##result type pointer##, align 8
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #alwaysinline nothrow
 def unsafe_string_lookAllFromAtoB_addIndexes_SIMD(startIndex, countOfNewIndexes, charsAsBits Int, write indexes Array)
-    const oldLength Int = indexes.length~()
+    const oldLength Int = indexes.length()
     const newLength Int = oldLength + countOfNewIndexes
     indexes.unsafe_setI64(1, newLength)
     indexes.unsafe_realloc(newLength * 8 + 24)
@@ -879,7 +880,7 @@ def unsafe_string_lookAllFromAtoB_addIndexes_SIMD(startIndex, countOfNewIndexes,
 
 #alwaysinline nothrow
 def unsafe_string_lookAllFromAtoB_addIndex_scalar(index Int, write indexes Array)
-    const oldLength Int = indexes.length~()
+    const oldLength Int = indexes.length()
     const newLength Int = oldLength + 1
     indexes.unsafe_setI64(1, newLength)
     indexes.unsafe_realloc(newLength * 8 + 24)
@@ -887,17 +888,17 @@ def unsafe_string_lookAllFromAtoB_addIndex_scalar(index Int, write indexes Array
 
 #override(STD) alwaysinline
 def lookAllPartsFromAtoB(string, part String, a, b Int) Array
-    const partLength Int = part.length~()
-    const stringLength Int = string.length~()
+    const partLength Int = part.length()
+    const stringLength Int = string.length()
     inthrow
         if !(a >= 0 && a <= b && b <= stringLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to count.", nothing)
+            throw(const::eid_nothingToLook, "There is nothing to count.", nothing)
     var result Array = []
     const edge Int = b - partLength + 1
     if edge > 0
-        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
+        const firstChar Char = unsafe_object(Char.typeNumber(), part.unsafe_getI32(4))
         for :(index Int = a) index < edge
             const indexOfFirstChar <>Int = string.lookFromAtoB(firstChar, index, edge)
             if indexOfFirstChar.nothing?()
@@ -913,76 +914,76 @@ def lookAllPartsFromAtoB(string, part String, a, b Int) Array
 #override(STD) alwaysinline
 def lookBackNFromAtoB(string String, char Char, n, a, b Int) <>Int
     inthrow
-        if !(n > 0 && a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    return unsafe_string_lookBackNFromAtoB(string.unsafe_offsetI16(b + 8), char, n, a, b)
+        if !(n > 0 && a >= 0 && a <= b && b <= string.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    return unsafe_string_lookBackNFromAtoB(string.unsafe_offsetI32(b + 4), char, n, a, b)
 
 #alwaysinline nothrow
 def unsafe_string_lookBackNFromAtoB(address, char, n, a, b $Any) <>Int
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##char 64## = extractvalue [2 x i64] %1, 1
-        %##nreg##char## = trunc i64 %##reg##char 64## to i16
-        %##nreg##n## = extractvalue [2 x i64] %2, 1
-        %##nreg##a## = extractvalue [2 x i64] %3, 1
-        %##nreg##b## = extractvalue [2 x i64] %4, 1
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <8 x i32>*
+        %##nreg##char 64## = extractvalue {i64, i32} %1, 0
+        %##nreg##char## = trunc i64 %##reg##char 64## to i32
+        %##nreg##n## = extractvalue {i64, i32} %2, 0
+        %##nreg##a## = extractvalue {i64, i32} %3, 0
+        %##nreg##b## = extractvalue {i64, i32} %4, 0
         %##nreg##range size## = sub i64 %##reg##b##, %##reg##a##
-        %##nreg##use simd## = icmp uge i64 %##reg##range size##, 16
+        %##nreg##use simd## = icmp uge i64 %##reg##range size##, 8
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
-        %##nreg##<1 x char>## = insertelement <1 x i16> zeroinitializer, i16 %##reg##char##, i32 0
-        %##nreg##<16 x char>## = shufflevector <1 x i16> %##reg##<1 x char>##, <1 x i16> zeroinitializer, <16 x i32> zeroinitializer
+        %##nreg##<1 x char>## = insertelement <1 x i32> zeroinitializer, i32 %##reg##char##, i32 0
+        %##nreg##<8 x char>## = shufflevector <1 x i32> %##reg##<1 x char>##, <1 x i32> zeroinitializer, <8 x i32> zeroinitializer
         br label %##reg##simd loop##
         ##nreg##simd loop##:
         %##nreg##remain chars 1## = phi i64 [%##reg##range size##, %##reg##simd label##], [%##reg##new remain chars 1##, %##reg##continue simd search##]
         %##nreg##n 1## = phi i64 [%##reg##n##, %##reg##simd label##], [%##reg##n in simd look##, %##reg##continue simd search##]
-        %##nreg##after address 1## = phi <16 x i16>* [%##reg##address##, %##reg##simd label##], [%##reg##address 1##, %##reg##continue simd search##]
-        %##nreg##address 1## = getelementptr <16 x i16>, <16 x i16>* %##reg##after address 1##, i64 -1
-        %##nreg##vector from address## = load <16 x i16>, <16 x i16>* %##reg##address 1##, align 2
-        %##nreg##vector compare result## = icmp eq <16 x i16> %##reg##vector from address##, %##reg##<16 x char>##
-        %##nreg##vector compare result i16## = bitcast <16 x i1> %##reg##vector compare result## to i16
+        %##nreg##after address 1## = phi <8 x i32>* [%##reg##address##, %##reg##simd label##], [%##reg##address 1##, %##reg##continue simd search##]
+        %##nreg##address 1## = getelementptr <8 x i32>, <8 x i32>* %##reg##after address 1##, i64 -1
+        %##nreg##vector from address## = load <8 x i32>, <8 x i32>* %##reg##address 1##, align 4
+        %##nreg##vector compare result## = icmp eq <8 x i32> %##reg##vector from address##, %##reg##<8 x char>##
+        %##nreg##vector compare result i8## = bitcast <8 x i1> %##reg##vector compare result## to i8
         br label %##reg##look loop##
         ##nreg##look loop##:
-        %##nreg##chars as bits## = phi i16 [%##reg##vector compare result i16##, %##reg##simd loop##], [%##reg##new chars as bits##, %##reg##look label##]
+        %##nreg##chars as bits## = phi i8 [%##reg##vector compare result i8##, %##reg##simd loop##], [%##reg##new chars as bits##, %##reg##look label##]
         %##nreg##offset## = phi i64 [1, %##reg##simd loop##], [%##reg##new offset##, %##reg##look label##]
         %##nreg##n in simd look## = phi i64 [%##reg##n 1##, %##reg##simd loop##], [%##reg##new n in simd look##, %##reg##look label##]
-        %##nreg##found chars?## = icmp ne i16 %##reg##chars as bits##, 0
+        %##nreg##found chars?## = icmp ne i8 %##reg##chars as bits##, 0
         br i1 %##reg##found chars?##, label %##reg##look label##, label %##reg##continue simd search##
         ##nreg##look label##:
-        %##nreg##char as bit << 15## = and i16 %##reg##chars as bits##, 32768
-        %##nreg##char as bit## = lshr i16 %##reg##char as bit << 15##, 15
-        %##nreg##char as bit i64## = zext i16 %##reg##char as bit## to i64
+        %##nreg##char as bit << 7## = and i8 %##reg##chars as bits##, 128
+        %##nreg##char as bit## = lshr i8 %##reg##char as bit << 7##, 7
+        %##nreg##char as bit i64## = zext i8 %##reg##char as bit## to i64
         %##nreg##new n in simd look## = sub i64 %##reg##n in simd look##, %##reg##char as bit i64##
-        %##nreg##new chars as bits## = shl i16 %##reg##chars as bits##, 1
+        %##nreg##new chars as bits## = shl i8 %##reg##chars as bits##, 1
         %##nreg##new offset## = add i64 %##reg##offset##, 1
         %##nreg##simd found char?## = icmp eq i64 %##reg##new n in simd look##, 0
         br i1 %##reg##simd found char?##, label %##reg##simd found label##, label %##reg##look loop##
         ##nreg##continue simd search##:
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
+        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 8
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 8
         br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##simd found label##:
         %##nreg##start index## = add i64 %##reg##remain chars 1##, %##reg##a##
         %##nreg##full simd index## = sub i64 %##reg##start index##, %##reg##offset##
-        %##nreg##simd result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full simd index##, 1
-        ret [2 x i64] %##reg##simd result##
+        %##nreg##simd result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full simd index##, 0
+        ret {i64, i32} %##reg##simd result##
         ##nreg##scalar label##:
         %##nreg##remain chars 2## = phi i64 [%##reg##range size##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##continue simd search##]
         %##nreg##n 2## = phi i64 [%##reg##n##, %##reg##start##], [%##reg##n in simd look##, %##reg##continue simd search##]
-        %##nreg##vector address## = phi <16 x i16>* [%##reg##address##, %##reg##start##], [%##reg##address 1##, %##reg##continue simd search##]
-        %##nreg##address 2## = bitcast <16 x i16>* %##reg##vector address## to i16*
+        %##nreg##vector address## = phi <8 x i32>* [%##reg##address##, %##reg##start##], [%##reg##address 1##, %##reg##continue simd search##]
+        %##nreg##address 2## = bitcast <8 x i32>* %##reg##vector address## to i32*
         %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
         br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##scalar loop##:
         %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##continue scalar search##]
         %##nreg##n 3## = phi i64 [%##reg##n 2##, %##reg##scalar label##], [%##reg##new n 3##, %##reg##continue scalar search##]
-        %##nreg##after address 3## = phi i16* [%##reg##address 2##, %##reg##scalar label##], [%##reg##address 3##, %##reg##continue scalar search##]
-        %##nreg##address 3## = getelementptr i16, i16* %##reg##after address 3##, i64 -1
-        %##nreg##char from address## = load i16, i16* %##reg##address 3##, align 2
-        %##nreg##found char?## = icmp eq i16 %##reg##char from address##, %##reg##char##
+        %##nreg##after address 3## = phi i32* [%##reg##address 2##, %##reg##scalar label##], [%##reg##address 3##, %##reg##continue scalar search##]
+        %##nreg##address 3## = getelementptr i32, i32* %##reg##after address 3##, i64 -1
+        %##nreg##char from address## = load i32, i32* %##reg##address 3##, align 4
+        %##nreg##found char?## = icmp eq i32 %##reg##char from address##, %##reg##char##
         %##nreg##found char? i64## = zext i1 %##reg##found char?## to i64
         %##nreg##new n 3## = sub i64 %##reg##n 3##, %##reg##found char? i64##
         %##nreg##final found char## = icmp eq i64 %##reg##new n 3##, 0
@@ -994,24 +995,24 @@ def unsafe_string_lookBackNFromAtoB(address, char, n, a, b $Any) <>Int
         ##nreg##final found char label##:
         %##nreg##full scalar index + 1## = add i64 %##reg##remain chars 3##, %##reg##a##
         %##nreg##full scalar index## = sub i64 %##reg##full scalar index + 1##, 1
-        %##nreg##result## = insertvalue [2 x i64] [i64 ##tnum##STD::Int##, i64 0], i64 %##reg##full scalar index##, 1
-        ret [2 x i64] %##reg##result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##full scalar index##, 0
+        ret {i64, i32} %##reg##result##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) inline
 def lookBackNPartFromAtoB(string, part String, n, a, b Int) <>Int
-    const partLength Int = part.length~()
-    const stringLength Int = string.length~()
+    const partLength Int = part.length()
+    const stringLength Int = string.length()
     inthrow
         if !(n > 0 && a >= 0 && a <= b && b <= stringLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
         if partLength == 0
-            throw(enum::error_nothingToLook, "There is nothing to look for.", nothing)
+            throw(const::eid_nothingToLook, "There is nothing to look for.", nothing)
     const firstEdge Int = b - partLength + 1
     if firstEdge > 0
         var mutN Int = n
-        const firstChar Char = unsafe_object(Char.typeNumber~(), part.unsafe_getI16(8))
+        const firstChar Char = unsafe_object(Char.typeNumber(), part.unsafe_getI32(4))
         for :(edge Int = firstEdge) edge > a
             const indexOfFirstChar <>Int = string.lookBackFromAtoB(firstChar, a, edge)
             if indexOfFirstChar.nothing?()
@@ -1027,275 +1028,275 @@ def lookBackNPartFromAtoB(string, part String, n, a, b Int) <>Int
 
 #override(STD) alwaysinline
 def delete$(string String, from, count Int) String
-    const oldLength Int = string.length~()
+    const oldLength Int = string.length()
     const newLength Int = oldLength - count
     inthrow
         if {
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var result String = unsafe_string_createDummy(newLength)
-    const resultItems Int = result.unsafe_offsetI16(8)
-    const stringItems Int = string.unsafe_offsetI16(8)
-    unsafe_memcpyI16(resultItems, stringItems, from)
-    unsafe_memcpyI16(resultItems.unsafe_offsetI16(from), stringItems.unsafe_offsetI16(from + count), oldLength - from - count)
+    const resultItems Int = result.unsafe_offsetI32(4)
+    const stringItems Int = string.unsafe_offsetI32(4)
+    unsafe_memcpyI32(resultItems, stringItems, from)
+    unsafe_memcpyI32(resultItems.unsafe_offsetI32(from), stringItems.unsafe_offsetI32(from + count), oldLength - from - count)
     return result
 
 #override(STD) alwaysinline
 def delete(write string String, from, count Int)
-    const oldLength Int = string.length~()
+    const oldLength Int = string.length()
     inthrow
         if {
             !(from >= 0 && from <= oldLength &&
             count >= 0 && count <= oldLength - from)
         }
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if count == 0
         return
     const newLength Int = oldLength - count
-    const stringItems Int = string.unsafe_offsetI16(8)
+    const stringItems Int = string.unsafe_offsetI32(4)
     const lastPartIndex Int = from + count
     const lastPartLength Int = oldLength - lastPartIndex
     if string.use?()
-        var newString String = unsafe_string_createDummy(newLength)
-        const newItems Int = newString.unsafe_offsetI16(8)
-        unsafe_memcpyI16(newItems, stringItems, from)
-        unsafe_memcpyI16(newItems.unsafe_offsetI16(from), stringItems.unsafe_offsetI16(lastPartIndex), lastPartLength)
+        const newString String = unsafe_string_createDummy(newLength)
+        const newItems Int = newString.unsafe_offsetI32(4)
+        unsafe_memcpyI32(newItems, stringItems, from)
+        unsafe_memcpyI32(newItems.unsafe_offsetI32(from), stringItems.unsafe_offsetI32(lastPartIndex), lastPartLength)
         string = newString
     else
-        unsafe_memmoveI16(stringItems.unsafe_offsetI16(from), stringItems.unsafe_offsetI16(lastPartIndex), lastPartLength)
+        unsafe_memmoveI32(stringItems.unsafe_offsetI32(from), stringItems.unsafe_offsetI32(lastPartIndex), lastPartLength)
         string.unsafe_setI64(1, newLength)
-        string.unsafe_realloc(16 + newLength * 2)
+        string.unsafe_realloc(16 + newLength * 4)
 
 #override(STD) alwaysinline nothrow
 def replace$(string String, oldChar, newChar Char) String
-    const length Int = string.length~()
+    const length Int = string.length()
     var result String = unsafe_string_createDummy(length)
-    unsafe_string_replace$(result.unsafe_offsetI16(8), string.unsafe_offsetI16(8), oldChar, newChar, length)
+    unsafe_string_replace$(result.unsafe_offsetI32(4), string.unsafe_offsetI32(4), oldChar, newChar, length)
     return result
 
 #alwaysinline nothrow
 def unsafe_string_replace$(destination, source, oldChar, newChar, length $Any)
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##destination i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to <16 x i16>*
-        %##nreg##source i64## = extractvalue [2 x i64] %1, 1
-        %##nreg##source## = inttoptr i64 %##reg##source i64## to <16 x i16>*
-        %##nreg##old char 64## = extractvalue [2 x i64] %2, 1
-        %##nreg##old char## = trunc i64 %##reg##old char 64## to i16
-        %##nreg##new char 64## = extractvalue [2 x i64] %3, 1
-        %##nreg##new char## = trunc i64 %##reg##new char 64## to i16
-        %##nreg##length## = extractvalue [2 x i64] %4, 1
-        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
+        %##nreg##destination i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##destination## = inttoptr i64 %##reg##destination i64## to <8 x i32>*
+        %##nreg##source i64## = extractvalue {i64, i32} %1, 0
+        %##nreg##source## = inttoptr i64 %##reg##source i64## to <8 x i32>*
+        %##nreg##old char 64## = extractvalue {i64, i32} %2, 0
+        %##nreg##old char## = trunc i64 %##reg##old char 64## to i32
+        %##nreg##new char 64## = extractvalue {i64, i32} %3, 0
+        %##nreg##new char## = trunc i64 %##reg##new char 64## to i32
+        %##nreg##length## = extractvalue {i64, i32} %4, 0
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 8
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
-        %##nreg##<1 x old char>## = insertelement <1 x i16> zeroinitializer, i16 %##reg##old char##, i32 0
-        %##nreg##<16 x old char>## = shufflevector <1 x i16> %##reg##<1 x old char>##, <1 x i16> zeroinitializer, <16 x i32> zeroinitializer
-        %##nreg##<1 x new char>## = insertelement <1 x i16> zeroinitializer, i16 %##reg##new char##, i32 0
-        %##nreg##<16 x new char>## = shufflevector <1 x i16> %##reg##<1 x new char>##, <1 x i16> zeroinitializer, <16 x i32> zeroinitializer
+        %##nreg##<1 x old char>## = insertelement <1 x i32> zeroinitializer, i32 %##reg##old char##, i32 0
+        %##nreg##<8 x old char>## = shufflevector <1 x i32> %##reg##<1 x old char>##, <1 x i32> zeroinitializer, <8 x i32> zeroinitializer
+        %##nreg##<1 x new char>## = insertelement <1 x i32> zeroinitializer, i32 %##reg##new char##, i32 0
+        %##nreg##<8 x new char>## = shufflevector <1 x i32> %##reg##<1 x new char>##, <1 x i32> zeroinitializer, <8 x i32> zeroinitializer
         br label %##reg##simd loop##
         ##nreg##simd loop##:
         %##nreg##remain chars 1## = phi i64 [%##reg##length##, %##reg##simd label##], [%##reg##new remain chars 1##, %##reg##simd loop##]
-        %##nreg##destination 1## = phi <16 x i16>* [%##reg##destination##, %##reg##simd label##], [%##reg##new simd destination##, %##reg##simd loop##]
-        %##nreg##source 1## = phi <16 x i16>* [%##reg##source##, %##reg##simd label##], [%##reg##new simd source##, %##reg##simd loop##]
-        %##nreg##vector from source## = load <16 x i16>, <16 x i16>* %##reg##source 1##, align 2
-        %##nreg##vector compare result## = icmp eq <16 x i16> %##reg##vector from source##, %##reg##<16 x old char>##
-        %##nreg##vector from source with new char## = select <16 x i1> %##reg##vector compare result##, <16 x i16> %##reg##<16 x new char>##, <16 x i16> %##reg##vector from source##
-        store <16 x i16> %##reg##vector from source with new char##, <16 x i16>* %##reg##destination 1##, align 2
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##new simd destination## = getelementptr <16 x i16>, <16 x i16>* %##reg##destination 1##, i64 1
-        %##nreg##new simd source## = getelementptr <16 x i16>, <16 x i16>* %##reg##source 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
+        %##nreg##destination 1## = phi <8 x i32>* [%##reg##destination##, %##reg##simd label##], [%##reg##new simd destination##, %##reg##simd loop##]
+        %##nreg##source 1## = phi <8 x i32>* [%##reg##source##, %##reg##simd label##], [%##reg##new simd source##, %##reg##simd loop##]
+        %##nreg##vector from source## = load <8 x i32>, <8 x i32>* %##reg##source 1##, align 4
+        %##nreg##vector compare result## = icmp eq <8 x i32> %##reg##vector from source##, %##reg##<8 x old char>##
+        %##nreg##vector from source with new char## = select <8 x i1> %##reg##vector compare result##, <8 x i32> %##reg##<8 x new char>##, <8 x i32> %##reg##vector from source##
+        store <8 x i32> %##reg##vector from source with new char##, <8 x i32>* %##reg##destination 1##, align 4
+        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 8
+        %##nreg##new simd destination## = getelementptr <8 x i32>, <8 x i32>* %##reg##destination 1##, i64 1
+        %##nreg##new simd source## = getelementptr <8 x i32>, <8 x i32>* %##reg##source 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 8
         br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##scalar label##:
         %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##simd loop##]
-        %##nreg##vector destination 2## = phi <16 x i16>* [%##reg##destination##, %##reg##start##], [%##reg##new simd destination##, %##reg##simd loop##]
-        %##nreg##vector source 2## = phi <16 x i16>* [%##reg##source##, %##reg##start##], [%##reg##new simd source##, %##reg##simd loop##]
-        %##nreg##destination 2## = bitcast <16 x i16>* %##reg##vector destination 2## to i16*
-        %##nreg##source 2## = bitcast <16 x i16>* %##reg##vector source 2## to i16*
+        %##nreg##vector destination 2## = phi <8 x i32>* [%##reg##destination##, %##reg##start##], [%##reg##new simd destination##, %##reg##simd loop##]
+        %##nreg##vector source 2## = phi <8 x i32>* [%##reg##source##, %##reg##start##], [%##reg##new simd source##, %##reg##simd loop##]
+        %##nreg##destination 2## = bitcast <8 x i32>* %##reg##vector destination 2## to i32*
+        %##nreg##source 2## = bitcast <8 x i32>* %##reg##vector source 2## to i32*
         %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
         br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##scalar loop##:
         %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##scalar loop##]
-        %##nreg##destination 3## = phi i16* [%##reg##destination 2##, %##reg##scalar label##], [%##reg##new destination 3##, %##reg##scalar loop##]
-        %##nreg##source 3## = phi i16* [%##reg##source 2##, %##reg##scalar label##], [%##reg##new source 3##, %##reg##scalar loop##]
-        %##nreg##char from source## = load i16, i16* %##reg##source 3##, align 2
-        %##nreg##old char?## = icmp eq i16 %##reg##char from source##, %##reg##old char##
-        %##nreg##result char## = select i1 %##reg##old char?##, i16 %##reg##new char##, i16 %##reg##char from source##
-        store i16 %##reg##result char##, i16* %##reg##destination 3##, align 2
+        %##nreg##destination 3## = phi i32* [%##reg##destination 2##, %##reg##scalar label##], [%##reg##new destination 3##, %##reg##scalar loop##]
+        %##nreg##source 3## = phi i32* [%##reg##source 2##, %##reg##scalar label##], [%##reg##new source 3##, %##reg##scalar loop##]
+        %##nreg##char from source## = load i32, i32* %##reg##source 3##, align 4
+        %##nreg##old char?## = icmp eq i32 %##reg##char from source##, %##reg##old char##
+        %##nreg##result char## = select i1 %##reg##old char?##, i32 %##reg##new char##, i32 %##reg##char from source##
+        store i32 %##reg##result char##, i32* %##reg##destination 3##, align 4
         %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
-        %##nreg##new destination 3## = getelementptr i16, i16* %##reg##destination 3##, i64 1
-        %##nreg##new source 3## = getelementptr i16, i16* %##reg##source 3##, i64 1
+        %##nreg##new destination 3## = getelementptr i32, i32* %##reg##destination 3##, i64 1
+        %##nreg##new source 3## = getelementptr i32, i32* %##reg##source 3##, i64 1
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline nothrow
 def replace(write string String, oldChar, newChar Char)
-    const length Int = string.length~()
+    const length Int = string.length()
     if string.use?()
         string = string.replace$(oldChar, newChar)
     else
-        unsafe_string_replace(string.unsafe_offsetI16(8), oldChar, newChar, length)
+        unsafe_string_replace(string.unsafe_offsetI32(4), oldChar, newChar, length)
 
 #alwaysinline nothrow
 def unsafe_string_replace(address, oldChar, newChar, length $Any)
-    llvm
+    IR
         br label %##reg##start##
         ##nreg##start##:
-        %##nreg##address i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##address## = inttoptr i64 %##reg##address i64## to <16 x i16>*
-        %##nreg##old char 64## = extractvalue [2 x i64] %1, 1
-        %##nreg##old char## = trunc i64 %##reg##old char 64## to i16
-        %##nreg##new char 64## = extractvalue [2 x i64] %2, 1
-        %##nreg##new char## = trunc i64 %##reg##new char 64## to i16
-        %##nreg##length## = extractvalue [2 x i64] %3, 1
-        %##nreg##use simd## = icmp uge i64 %##reg##length##, 16
+        %##nreg##address i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##address## = inttoptr i64 %##reg##address i64## to <8 x i32>*
+        %##nreg##old char 64## = extractvalue {i64, i32} %1, 0
+        %##nreg##old char## = trunc i64 %##reg##old char 64## to i32
+        %##nreg##new char 64## = extractvalue {i64, i32} %2, 0
+        %##nreg##new char## = trunc i64 %##reg##new char 64## to i32
+        %##nreg##length## = extractvalue {i64, i32} %3, 0
+        %##nreg##use simd## = icmp uge i64 %##reg##length##, 8
         br i1 %##reg##use simd##, label %##reg##simd label##, label %##reg##scalar label##
         ##nreg##simd label##:
-        %##nreg##<1 x old char>## = insertelement <1 x i16> zeroinitializer, i16 %##reg##old char##, i32 0
-        %##nreg##<16 x old char>## = shufflevector <1 x i16> %##reg##<1 x old char>##, <1 x i16> zeroinitializer, <16 x i32> zeroinitializer
-        %##nreg##<1 x new char>## = insertelement <1 x i16> zeroinitializer, i16 %##reg##new char##, i32 0
-        %##nreg##<16 x new char>## = shufflevector <1 x i16> %##reg##<1 x new char>##, <1 x i16> zeroinitializer, <16 x i32> zeroinitializer
+        %##nreg##<1 x old char>## = insertelement <1 x i32> zeroinitializer, i32 %##reg##old char##, i32 0
+        %##nreg##<8 x old char>## = shufflevector <1 x i32> %##reg##<1 x old char>##, <1 x i32> zeroinitializer, <8 x i32> zeroinitializer
+        %##nreg##<1 x new char>## = insertelement <1 x i32> zeroinitializer, i32 %##reg##new char##, i32 0
+        %##nreg##<8 x new char>## = shufflevector <1 x i32> %##reg##<1 x new char>##, <1 x i32> zeroinitializer, <8 x i32> zeroinitializer
         br label %##reg##simd loop##
         ##nreg##simd loop##:
         %##nreg##remain chars 1## = phi i64 [%##reg##length##, %##reg##simd label##], [%##reg##new remain chars 1##, %##reg##simd loop##]
-        %##nreg##address 1## = phi <16 x i16>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##simd loop##]
-        %##nreg##vector from address## = load <16 x i16>, <16 x i16>* %##reg##address 1##, align 2
-        %##nreg##vector compare result## = icmp eq <16 x i16> %##reg##vector from address##, %##reg##<16 x old char>##
-        %##nreg##vector from address with new char## = select <16 x i1> %##reg##vector compare result##, <16 x i16> %##reg##<16 x new char>##, <16 x i16> %##reg##vector from address##
-        store <16 x i16> %##reg##vector from address with new char##, <16 x i16>* %##reg##address 1##, align 2
-        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 16
-        %##nreg##new simd address## = getelementptr <16 x i16>, <16 x i16>* %##reg##address 1##, i64 1
-        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 16
+        %##nreg##address 1## = phi <8 x i32>* [%##reg##address##, %##reg##simd label##], [%##reg##new simd address##, %##reg##simd loop##]
+        %##nreg##vector from address## = load <8 x i32>, <8 x i32>* %##reg##address 1##, align 4
+        %##nreg##vector compare result## = icmp eq <8 x i32> %##reg##vector from address##, %##reg##<8 x old char>##
+        %##nreg##vector from address with new char## = select <8 x i1> %##reg##vector compare result##, <8 x i32> %##reg##<8 x new char>##, <8 x i32> %##reg##vector from address##
+        store <8 x i32> %##reg##vector from address with new char##, <8 x i32>* %##reg##address 1##, align 4
+        %##nreg##new remain chars 1## = sub i64 %##reg##remain chars 1##, 8
+        %##nreg##new simd address## = getelementptr <8 x i32>, <8 x i32>* %##reg##address 1##, i64 1
+        %##nreg##continue simd## = icmp uge i64 %##reg##new remain chars 1##, 8
         br i1 %##reg##continue simd##, label %##reg##simd loop##, label %##reg##scalar label##
         ##nreg##scalar label##:
         %##nreg##remain chars 2## = phi i64 [%##reg##length##, %##reg##start##], [%##reg##new remain chars 1##, %##reg##simd loop##]
-        %##nreg##vector address 2## = phi <16 x i16>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##simd loop##]
-        %##nreg##address 2## = bitcast <16 x i16>* %##reg##vector address 2## to i16*
+        %##nreg##vector address 2## = phi <8 x i32>* [%##reg##address##, %##reg##start##], [%##reg##new simd address##, %##reg##simd loop##]
+        %##nreg##address 2## = bitcast <8 x i32>* %##reg##vector address 2## to i32*
         %##nreg##continue 2## = icmp ne i64 %##reg##remain chars 2##, 0
         br i1 %##reg##continue 2##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##scalar loop##:
         %##nreg##remain chars 3## = phi i64 [%##reg##remain chars 2##, %##reg##scalar label##], [%##reg##new remain chars 3##, %##reg##scalar loop##]
-        %##nreg##address 3## = phi i16* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##scalar loop##]
-        %##nreg##char from address## = load i16, i16* %##reg##address 3##, align 2
-        %##nreg##old char?## = icmp eq i16 %##reg##char from address##, %##reg##old char##
-        %##nreg##result char## = select i1 %##reg##old char?##, i16 %##reg##new char##, i16 %##reg##char from address##
-        store i16 %##reg##result char##, i16* %##reg##address 3##, align 2
+        %##nreg##address 3## = phi i32* [%##reg##address 2##, %##reg##scalar label##], [%##reg##new address 3##, %##reg##scalar loop##]
+        %##nreg##char from address## = load i32, i32* %##reg##address 3##, align 4
+        %##nreg##old char?## = icmp eq i32 %##reg##char from address##, %##reg##old char##
+        %##nreg##result char## = select i1 %##reg##old char?##, i32 %##reg##new char##, i32 %##reg##char from address##
+        store i32 %##reg##result char##, i32* %##reg##address 3##, align 4
         %##nreg##new remain chars 3## = sub i64 %##reg##remain chars 3##, 1
-        %##nreg##new address 3## = getelementptr i16, i16* %##reg##address 3##, i64 1
+        %##nreg##new address 3## = getelementptr i32, i32* %##reg##address 3##, i64 1
         %##nreg##continue 3## = icmp ne i64 %##reg##new remain chars 3##, 0
         br i1 %##reg##continue 3##, label %##reg##scalar loop##, label %##reg##end label##
         ##nreg##end label##:
-        ret [2 x i64] zeroinitializer
+        ret {i64, i32} zeroinitializer
 
 #override(STD) alwaysinline
 def insert$(string String, index Int, newChar Char) String
-    const oldLength Int = string.length~()
+    const oldLength Int = string.length()
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var result String = unsafe_string_createDummy(newLength)
-    const resultChars Int = result.unsafe_offsetI16(8)
-    const stringChars Int = string.unsafe_offsetI16(8)
-    unsafe_memcpyI16(resultChars, stringChars, index)
-    resultChars.unsafe_setI16(index, newChar)
-    unsafe_memcpyI16(resultChars.unsafe_offsetI16(index + 1), stringChars.unsafe_offsetI16(index), oldLength - index)
+    const resultChars Int = result.unsafe_offsetI32(4)
+    const stringChars Int = string.unsafe_offsetI32(4)
+    unsafe_memcpyI32(resultChars, stringChars, index)
+    resultChars.unsafe_setI32(index, newChar)
+    unsafe_memcpyI32(resultChars.unsafe_offsetI32(index + 1), stringChars.unsafe_offsetI32(index), oldLength - index)
     return result
 
 #override(STD) alwaysinline
 def insert(write string String, index Int, newChar Char)
-    const oldLength Int = string.length~()
+    const oldLength Int = string.length()
     const newLength Int = oldLength + 1
     inthrow
         if !index.inRange?(0, newLength)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if string.use?()
-        var newString String = unsafe_string_createDummy(newLength)
-        const newChars Int = newString.unsafe_offsetI16(8)
-        const stringChars Int = string.unsafe_offsetI16(8)
-        unsafe_memcpyI16(newChars, stringChars, index)
-        newChars.unsafe_setI16(index, newChar)
-        unsafe_memcpyI16(newChars.unsafe_offsetI16(index + 1), stringChars.unsafe_offsetI16(index), oldLength - index)
+        const newString String = unsafe_string_createDummy(newLength)
+        const newChars Int = newString.unsafe_offsetI32(4)
+        const stringChars Int = string.unsafe_offsetI32(4)
+        unsafe_memcpyI32(newChars, stringChars, index)
+        newChars.unsafe_setI32(index, newChar)
+        unsafe_memcpyI32(newChars.unsafe_offsetI32(index + 1), stringChars.unsafe_offsetI32(index), oldLength - index)
         string = newString
     else
         string.unsafe_setI64(1, newLength)
-        string.unsafe_realloc(newLength * 2 + 16)
-        const stringChars Int = string.unsafe_offsetI16(8)
-        unsafe_memmoveI16(stringChars.unsafe_offsetI16(index + 1), stringChars.unsafe_offsetI16(index), oldLength - index)
-        stringChars.unsafe_setI16(index, newChar)
+        string.unsafe_realloc(newLength * 4 + 16)
+        const stringChars Int = string.unsafe_offsetI32(4)
+        unsafe_memmoveI32(stringChars.unsafe_offsetI32(index + 1), stringChars.unsafe_offsetI32(index), oldLength - index)
+        stringChars.unsafe_setI32(index, newChar)
 
 #override(STD) inline
 def insertPart$(string String, index Int, addedString String) String
-    const oldLength Int = string.length~()
-    const addedLength Int = addedString.length~()
+    const oldLength Int = string.length()
+    const addedLength Int = addedString.length()
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return string
     var result String = unsafe_string_createDummy(newLength)
-    const resultChars Int = result.unsafe_offsetI16(8)
-    const stringChars Int = string.unsafe_offsetI16(8)
-    const addedChars Int = addedString.unsafe_offsetI16(8)
-    unsafe_memcpyI16(resultChars, stringChars, index)
-    unsafe_memcpyI16(resultChars.unsafe_offsetI16(index), addedChars, addedLength)
-    unsafe_memcpyI16(resultChars.unsafe_offsetI16(index + addedLength), stringChars.unsafe_offsetI16(index), oldLength - index)
+    const resultChars Int = result.unsafe_offsetI32(4)
+    const stringChars Int = string.unsafe_offsetI32(4)
+    const addedChars Int = addedString.unsafe_offsetI32(4)
+    unsafe_memcpyI32(resultChars, stringChars, index)
+    unsafe_memcpyI32(resultChars.unsafe_offsetI32(index), addedChars, addedLength)
+    unsafe_memcpyI32(resultChars.unsafe_offsetI32(index + addedLength), stringChars.unsafe_offsetI32(index), oldLength - index)
     return result
 
 #override(STD) inline
 def insertPart(write string String, index Int, addedString String)
-    const oldLength Int = string.length~()
-    const addedLength Int = addedString.length~()
+    const oldLength Int = string.length()
+    const addedLength Int = addedString.length()
     const newLength Int = oldLength + addedLength
     inthrow
         if !index.inRange?(0, oldLength + 1)
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     if addedLength == 0
         return
-    const addedChars Int = addedString.unsafe_offsetI16(8)
+    const addedChars Int = addedString.unsafe_offsetI32(4)
     if string.use?()
-        var newString String = unsafe_string_createDummy(newLength)
-        const stringChars Int = string.unsafe_offsetI16(8)
-        const newStringChars Int = newString.unsafe_offsetI16(8)
-        unsafe_memcpyI16(newStringChars, stringChars, index)
-        unsafe_memcpyI16(newStringChars.unsafe_offsetI16(index), addedChars, addedLength)
-        unsafe_memcpyI16(newStringChars.unsafe_offsetI16(index + addedLength), stringChars.unsafe_offsetI16(index), oldLength - index)
+        const newString String = unsafe_string_createDummy(newLength)
+        const stringChars Int = string.unsafe_offsetI32(4)
+        const newStringChars Int = newString.unsafe_offsetI32(4)
+        unsafe_memcpyI32(newStringChars, stringChars, index)
+        unsafe_memcpyI32(newStringChars.unsafe_offsetI32(index), addedChars, addedLength)
+        unsafe_memcpyI32(newStringChars.unsafe_offsetI32(index + addedLength), stringChars.unsafe_offsetI32(index), oldLength - index)
         string = newString
     else
         string.unsafe_setI64(1, newLength)
-        string.unsafe_realloc(newLength * 2 + 16)
-        const stringChars Int = string.unsafe_offsetI16(8)
-        unsafe_memmoveI16(stringChars.unsafe_offsetI16(index + addedLength), stringChars.unsafe_offsetI16(index), oldLength - index)
-        unsafe_memcpyI16(stringChars.unsafe_offsetI16(index), addedChars, addedLength)
+        string.unsafe_realloc(newLength * 4 + 16)
+        const stringChars Int = string.unsafe_offsetI32(4)
+        unsafe_memmoveI32(stringChars.unsafe_offsetI32(index + addedLength), stringChars.unsafe_offsetI32(index), oldLength - index)
+        unsafe_memcpyI32(stringChars.unsafe_offsetI32(index), addedChars, addedLength)
 
 #override(STD) alwaysinline
-def repeat(noread type String, char Char, count Int) String
+def repeat(char Char, count Int, noread type String) String
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var result String = unsafe_string_createDummy(count)
-    unsafe_memsetI16(result.unsafe_offsetI16(8), char, count)
+    unsafe_memsetI32(result.unsafe_offsetI32(4), char, count)
     return result
 
 #override(STD) alwaysinline
 def repeatPart(part String, count Int) String
     inthrow
         if count < 0
-            throw(enum::error_outOfRange, "Out of range.", nothing)
-    const partLength Int = part.length~()
+            throw(const::eid_outOfRange, "Out of range.", nothing)
+    const partLength Int = part.length()
     const resultLength Int = count * partLength
     var result String = unsafe_string_createDummy(resultLength)
-    const resultChars Int = result.unsafe_offsetI16(8)
-    const partChars Int = part.unsafe_offsetI16(8)
+    const resultChars Int = result.unsafe_offsetI32(4)
+    const partChars Int = part.unsafe_offsetI32(4)
     for :(index Int = 0) index < resultLength; index += partLength
-        unsafe_memcpyI16(resultChars.unsafe_offsetI16(index), partChars, partLength)
+        unsafe_memcpyI32(resultChars.unsafe_offsetI32(index), partChars, partLength)
     return result
 
 attach String to Multithreaded
@@ -1306,93 +1307,114 @@ attach String to Multithreaded
 #override(STD) alwaysinline
 def reverseFromAtoB(write string String, a, b Int)
     inthrow
-        if !(a >= 0 && a <= b && b <= string.length~())
-            throw(enum::error_outOfRange, "Out of range.", nothing)
+        if !(a >= 0 && a <= b && b <= string.length())
+            throw(const::eid_outOfRange, "Out of range.", nothing)
     var mutA Int = a
     var mutB Int = b
     if string.use?()
         string = string.clone()
-    const stringChars Int = string.unsafe_offsetI16(8)
-    for mutB - mutA >= 32
-        const aAddress Int = stringChars.unsafe_offsetI16(mutA)
-        mutA += 16
-        mutB -= 16
-        const bAddress Int = stringChars.unsafe_offsetI16(mutB)
+    const stringChars Int = string.unsafe_offsetI32(4)
+    for mutB - mutA >= 16
+        const aAddress Int = stringChars.unsafe_offsetI32(mutA)
+        mutA += 8
+        mutB -= 8
+        const bAddress Int = stringChars.unsafe_offsetI32(mutB)
         unsafe_string_simdReverseAndSwapParts(aAddress, bAddress)
     mutB--
     for mutB > mutA
-        const charA Int = stringChars.unsafe_getI16(mutA)
-        stringChars.unsafe_setI16(mutA, stringChars.unsafe_getI16(mutB))
-        stringChars.unsafe_setI16(mutB, charA)
+        const charA Int = stringChars.unsafe_getI32(mutA)
+        stringChars.unsafe_setI32(mutA, stringChars.unsafe_getI32(mutB))
+        stringChars.unsafe_setI32(mutB, charA)
         mutB--
         mutA++
 
 #alwaysinline nothrow
 def unsafe_string_simdReverseAndSwapParts(part1, part2 $Any)
-    llvm
-        %##nreg##part1 i64## = extractvalue [2 x i64] %0, 1
-        %##nreg##part2 i64## = extractvalue [2 x i64] %1, 1
-        %##nreg##part1 pointer## = inttoptr i64 %##reg##part1 i64## to <16 x i16>*
-        %##nreg##part2 pointer## = inttoptr i64 %##reg##part2 i64## to <16 x i16>*
-        %##nreg##part1## = load <16 x i16>, <16 x i16>* %##reg##part1 pointer##, align 2
-        %##nreg##part2## = load <16 x i16>, <16 x i16>* %##reg##part2 pointer##, align 2
-        %##nreg##reversed part1## = shufflevector <16 x i16> %##reg##part1##, <16 x i16> undef, <16 x i32> <i32 15, i32 14, i32 13, i32 12, i32 11, i32 10, i32 9, i32 8, i32 7, i32 6, i32 5, i32 4, i32 3, i32 2, i32 1, i32 0>
-        %##nreg##reversed part2## = shufflevector <16 x i16> %##reg##part2##, <16 x i16> undef, <16 x i32> <i32 15, i32 14, i32 13, i32 12, i32 11, i32 10, i32 9, i32 8, i32 7, i32 6, i32 5, i32 4, i32 3, i32 2, i32 1, i32 0>
-        store <16 x i16> %##reg##reversed part1##, <16 x i16>* %##reg##part2 pointer##, align 2
-        store <16 x i16> %##reg##reversed part2##, <16 x i16>* %##reg##part1 pointer##, align 2
-        ret [2 x i64] zeroinitializer
+    IR
+        %##nreg##part1 i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##part2 i64## = extractvalue {i64, i32} %1, 0
+        %##nreg##part1 pointer## = inttoptr i64 %##reg##part1 i64## to <8 x i32>*
+        %##nreg##part2 pointer## = inttoptr i64 %##reg##part2 i64## to <8 x i32>*
+        %##nreg##part1## = load <8 x i32>, <8 x i32>* %##reg##part1 pointer##, align 4
+        %##nreg##part2## = load <8 x i32>, <8 x i32>* %##reg##part2 pointer##, align 4
+        %##nreg##reversed part1## = shufflevector <8 x i32> %##reg##part1##, <8 x i32> undef, <8 x i32> <i32 7, i32 6, i32 5, i32 4, i32 3, i32 2, i32 1, i32 0>
+        %##nreg##reversed part2## = shufflevector <8 x i32> %##reg##part2##, <8 x i32> undef, <8 x i32> <i32 7, i32 6, i32 5, i32 4, i32 3, i32 2, i32 1, i32 0>
+        store <8 x i32> %##reg##reversed part1##, <8 x i32>* %##reg##part2 pointer##, align 4
+        store <8 x i32> %##reg##reversed part2##, <8 x i32>* %##reg##part1 pointer##, align 4
+        ret {i64, i32} zeroinitializer
 
-#inline nothrow
+#alwaysinline nothrow
 export def toLower(string String) String
     var result String = ""
-    parse _, oldChar = string
-        var newChar Int = charToInt(oldChar)
-        if oldChar < '\0080'
-            if oldChar >= 'A' && oldChar <= 'Z'
-                newChar |= 32
+    parse _, originalChar = string
+        if originalChar < '\000080'
+            var newCode Int = charToInt(originalChar)
+            if originalChar >= 'A' && originalChar <= 'Z'
+                newCode |= 32
+            result.addItem(intToChar(newCode))
         else
-            const upperChar <>Int = const::upperToLowerMap[oldChar]
-            if upperChar.type?(Int)
-                newChar = upperChar
-        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
-        const char1 Char = unsafe_object(Char.typeNumber~(), newChar >> 16)
-        result.addItem(char0)
-        if char1 != '\0000'
-            result.addItem(char1)
+            const originalCode Int = charToInt(originalChar)
+            const hash Int = (((originalCode >> 5) + (originalCode >> 9) + (originalCode >> 10) + (originalCode >> 12) + (originalCode >> 13)) ^ originalCode) & 2047
+            var upperAndLowerChar1 Int = const::toLowerHashTable[hash * 2]
+            if (upperAndLowerChar1 & 0x1ffff) == originalCode
+                for :(loop)
+                    upperAndLowerChar1 >>= 17
+                    if upperAndLowerChar1 == 0
+                        end loop
+                    result.addItem(intToChar(upperAndLowerChar1 & 0x1ffff))
+            else
+                var upperAndLowerChar2 Int = const::toLowerHashTable[hash * 2 + 1]
+                if (upperAndLowerChar2 & 0x1ffff) == originalCode
+                    for :(loop)
+                        upperAndLowerChar2 >>= 17
+                        if upperAndLowerChar2 == 0
+                            end loop
+                        result.addItem(intToChar(upperAndLowerChar2 & 0x1ffff))
+                else
+                    result.addItem(originalChar)
     return result
 
-#inline nothrow
+#alwaysinline nothrow
 export def toUpper(string String) String
     var result String = ""
-    parse _, oldChar = string
-        var newChar Int = charToInt(oldChar)
-        if oldChar < '\0080'
-            if oldChar >= 'a' && oldChar <= 'z'
-                newChar ^= 32
+    parse _, originalChar = string
+        if originalChar < '\000080'
+            var newCode Int = charToInt(originalChar)
+            if originalChar >= 'a' && originalChar <= 'z'
+                newCode ^= 32
+            result.addItem(intToChar(newCode))
         else
-            const lowerChar <>Int = const::lowerToUpperMap[oldChar]
-            if lowerChar.type?(Int)
-                newChar = lowerChar
-        const char0 Char = unsafe_object(Char.typeNumber~(), newChar & 0xffff)
-        const char1 Char = unsafe_object(Char.typeNumber~(), (newChar >> 16) & 0xffff)
-        const char2 Char = unsafe_object(Char.typeNumber~(), newChar >> 32)
-        result.addItem(char0)
-        if char1 != '\0000'
-            result.addItem(char1)
-        if char2 != '\0000'
-            result.addItem(char2)
+            const originalCode Int = charToInt(originalChar)
+            const hash Int = ((((originalCode >> 6) << 1) + ((originalCode >> 8) << 1) + (originalCode >> 13)) ^ originalCode) & 2047
+            var lowerAndUpperChar1 Int = const::toUpperHashTable[hash * 2]
+            if (lowerAndUpperChar1 & 0x1ffff) == originalCode
+                for :(loop)
+                    lowerAndUpperChar1 >>= 17
+                    if lowerAndUpperChar1 == 0
+                        end loop
+                    result.addItem(intToChar(lowerAndUpperChar1 & 0x1ffff))
+            else
+                var lowerAndUpperChar2 Int = const::toUpperHashTable[hash * 2 + 1]
+                if (lowerAndUpperChar2 & 0x1ffff) == originalCode
+                    for :(loop)
+                        lowerAndUpperChar2 >>= 17
+                        if lowerAndUpperChar2 == 0
+                            end loop
+                        result.addItem(intToChar(lowerAndUpperChar2 & 0x1ffff))
+                else
+                    result.addItem(originalChar)
     return result
 
 attach String to ItemTypeNumber
     #alwaysinline nothrow
-    def itemTypeNumber~(string String) Int
-        return Char.typeNumber~()
+    def itemTypeNumber(string String) Int
+        return Char.typeNumber()
 
 #override(STD) nothrow
 def sort(write string String, rise Bool)
     if string.empty?()
         return
-    return string.quicksort(0, string.length~(), rise, const::staticRandomNumber)
+    return string.quicksort(0, string.length(), rise, const::staticRandomNumber)
 
 #override(STD)
 def quicksort(write string String, beginIndex, endEdge Int, rise Bool, randomNumber Int)
@@ -1465,7 +1487,7 @@ def quicksort(write string String, beginIndex, endEdge Int, rise Bool, randomNum
 def stableSort(write string String, rise Bool)
     if string.empty?()
         return
-    return string.quicksort(0, string.length~(), rise, const::staticRandomNumber)
+    return string.quicksort(0, string.length(), rise, const::staticRandomNumber)
 
 attach String to Shar__sugar__patternMatch
     #alwaysinline

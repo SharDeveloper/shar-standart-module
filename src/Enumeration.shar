@@ -1,0 +1,20 @@
+module STD
+
+group Enumeration
+
+#alwaysinline
+export def enumToInt(enum $Enumeration) Int
+    return enum.unsafe_getValue()
+
+#alwaysinline
+def enum_dump(enum $Any, level Int) String
+    return "  ".repeatPart(level) + "Type: " + enum.typeNumber().getTypeName() + " = " + unsafe_enum_variantName(enum) + "\n"
+
+#alwaysinline nothrow
+def unsafe_enum_variantName(enum $Any) String
+    IR
+        %##nreg##variant id i64## = extractvalue {i64, i32} %0, 0
+        %##nreg##variant id## = trunc i64 %##reg##variant id i64## to i32
+        %##nreg##type number## = extractvalue {i64, i32} %0, 1
+        %##nreg##result## = call {i64, i32} @shar.get.field.name(i32 %##reg##type number##, i32 %##reg##variant id##)
+        ret {i64, i32} %##reg##result##

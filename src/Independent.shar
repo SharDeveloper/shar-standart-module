@@ -1,4 +1,4 @@
 module STD
 
-//@Members of the "STD::Independent" group are types for which automatic memory management is not relevant.
+//@Members of the "STD::Independent" group are types for which automatic resources management is not relevant.
 export group Independent
