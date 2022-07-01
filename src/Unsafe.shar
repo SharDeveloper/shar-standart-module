@@ -550,3 +550,23 @@ def unsafe_inHashableGroup?(typeNumber $Any) Bool
         %##nreg##result i64## = zext i1 %##reg##result i1## to i64
         %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Bool##}, i64 %##reg##result i64##, 0
         ret {i64, i32} %##reg##result##
+
+// The function is used by some functions from the current module for optimization.
+#alwaysinline nothrow
+def unsafe_getRandomOffset(edge, randomNumber $Any) Int
+    IR
+        %##nreg##edge## = extractvalue {i64, i32} %0, 0
+        %##nreg##random number## = extractvalue {i64, i32} %1, 0
+        %##nreg##edge - 1## = sub i64 %##reg##edge##, 1
+        %##nreg##edge / 3## = udiv i64 %##reg##edge##, 3
+        %##nreg##random offset## = and i64 %##reg##edge - 1##, %##reg##random number##
+        %##nreg##25%## = lshr i64 %##reg##edge##, 2
+        %##nreg##75%## = mul i64 %##reg##25%##, 3
+        %##nreg##ro <= 25%## = icmp ule i64 %##reg##random offset##, %##reg##25%##
+        %##nreg##ro >= 75%## = icmp uge i64 %##reg##random offset##, %##reg##75%##
+        %##nreg##ro + edge/3## = add i64 %##reg##random offset##, %##reg##edge / 3##
+        %##nreg##ro - edge/3## = sub i64 %##reg##random offset##, %##reg##edge / 3##
+        %##nreg##half result## = select i1 %##reg##ro <= 25%##, i64 %##reg##ro + edge/3##, i64 %##reg##random offset##
+        %##nreg##result i64## = select i1 %##reg##ro >= 75%##, i64 %##reg##ro - edge/3##, i64 %##reg##half result##
+        %##nreg##result## = insertvalue {i64, i32} {i64 0, i32 ##tnum##STD::Int##}, i64 %##reg##result i64##, 0
+        ret {i64, i32} %##reg##result##

@@ -1428,14 +1428,7 @@ def quicksort(write string String, beginIndex, endEdge Int, rise Bool, randomNum
         var bigRangeLeftIndex Int = -1
         var bigRangeRightEdge Int = -1
         if rangeLength > 16
-            const length25p Int = rangeLength >> 2
-            const length75p Int = (length25p << 1) + length25p
-            var randomOffset Int = (randomNumber & (rangeLength - 1))
-            if randomOffset < length25p
-                randomOffset += length25p
-            elif randomOffset > length75p
-                randomOffset -= length25p
-            string.swap(leftIndex, leftIndex + randomOffset)
+            string.swap(leftIndex, leftIndex + unsafe_getRandomOffset(rangeLength, randomNumber))
             const currentChar Char = string[leftIndex]
             var currentIndex Int = leftIndex
             var oppositeIndex Int = rightEdge - 1

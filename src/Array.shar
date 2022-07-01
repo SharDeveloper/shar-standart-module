@@ -407,15 +407,8 @@ def quicksort(write array Array, beginIndex, endEdge Int, rise Bool, randomNumbe
         var bigRangeLeftIndex Int = -1
         var bigRangeRightEdge Int = -1
         if rangeLength > 16
-            const length25p Int = rangeLength >> 2
-            const length75p Int = (length25p << 1) + length25p
-            var randomOffset Int = (randomNumber & (rangeLength - 1))
-            if randomOffset < length25p
-                randomOffset += length25p
-            elif randomOffset > length75p
-                randomOffset -= length25p
             nothrow
-                array.swap(leftIndex, leftIndex + randomOffset)
+                array.swap(leftIndex, leftIndex + unsafe_getRandomOffset(rangeLength, randomNumber))
             var currentIndex Int = leftIndex
             var oppositeIndex Int = rightEdge - 1
             var direction Int = -1
