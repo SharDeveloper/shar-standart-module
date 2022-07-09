@@ -181,14 +181,26 @@ export def unsafe_loadLib(fileName String) <>Int
 
 //@The function loads an object from the library and, if the load is successful, returns a number that can be used to work with the loaded object.
 #alwaysinline nothrow
-export def unsafe_getLibObject(lib Int, objectName String) <>Int
+export def unsafe_getLibObject(lib <>Int, objectName String) <>Int
+    if lib.nothing?()
+        return nothing
+    return unsafe_getLibObjectIR(lib, objectName)
+
+#alwaysinline nothrow
+def unsafe_getLibObjectIR(lib, objectName $Any) <>Int
     IR
         %##nreg##result## = call {i64, i32} @lib__get_object_address({i64, i32} %0, {i64, i32} %1)
         ret {i64, i32} %##reg##result##
 
 //@The function unloads the library. If the unloading was successful, the function returns "true", otherwise "false".
 #alwaysinline nothrow
-export def unsafe_unloadLib(lib Int) Bool
+export def unsafe_unloadLib(lib <>Int) Bool
+    if lib.nothing?()
+        return false
+    return unsafe_unloadLibIR(lib)
+
+#alwaysinline nothrow
+def unsafe_unloadLibIR(lib $Any) Bool
     IR
         %##nreg##result## = call {i64, i32} @lib__unload_lib({i64, i32} %0)
         ret {i64, i32} %##reg##result##
